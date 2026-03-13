@@ -95,7 +95,7 @@ jobs:
         password: ${{ secrets.DOCKER_HUB_TOKEN }}
     - name: Create .env file
       run: |
-        echo -e "ENV_CONTENT=production" > .env.production
+        echo -e "ENV_CONTENT=staging" > .env.staging
 
     - name: Build docker image save version tag
       run: |
