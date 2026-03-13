@@ -1,5 +1,5 @@
-{
-  "rules": {
-    "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": false }]
-  }
-}
+// {
+//   "rules": {
+//     "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": false }]
+//   }
+// }
