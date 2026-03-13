@@ -1,6 +1,6 @@
 import { DefaultTokenSecretResolverStrategy } from '@core/strategies/default-token-secret-resolver.strategy';
 import { RedisService } from '@redis/redis.service';
-import { PermissionsController } from '@/modules/permissions/controller/permissions.controller';
+import { PermissionsController } from '@modules/permissions/controller/permissions.controller';
 import { PermissionsModel } from '@modules/permissions/domain/models/permissions.model';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';

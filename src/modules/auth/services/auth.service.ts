@@ -1,4 +1,4 @@
-import { LoginDto } from '@/modules/auth/dto/login.dto';
+import { LoginDto } from '@modules/auth/dto/login.dto';
 import { BullService } from '@bull/bull.service';
 import { LoginResponseDto } from '@modules/auth/interface/login.interface';
 import { RefreshTokenResponseDto } from '@modules/auth/interface/refreshToken.interface';

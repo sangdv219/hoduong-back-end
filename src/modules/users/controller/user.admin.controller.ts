@@ -21,7 +21,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto } from '@modules/users/dto/user.admin.request.dto';
-import { UserEntity } from '@/infrastructure/models/user.model';
+import { UserEntity } from '@infrastructure/models/user.model';
 import { UserService } from '@modules/users/services/user.service';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
 import { JWTAuthGuard } from '@core/guards/jwt.guard';
