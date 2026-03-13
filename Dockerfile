@@ -3,7 +3,11 @@ FROM node:22-alpine AS dependencies
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+COPY tsconfig.json ./
+COPY tsconfig.build.json ./
+COPY nest-cli.json ./
+RUN npm ci --only=production \
+    && npm cache clean --force
 
 
 # Rebuild the source code only when needed
