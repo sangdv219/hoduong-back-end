@@ -6,8 +6,7 @@ COPY package*.json ./
 COPY tsconfig.json ./
 COPY tsconfig.build.json ./
 COPY nest-cli.json ./
-RUN npm ci --only=production \
-    && npm cache clean --force
+RUN npm install
 
 
 # Rebuild the source code only when needed
