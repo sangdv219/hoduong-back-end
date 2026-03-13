@@ -3,8 +3,7 @@ FROM node:20-alpine AS dependencies
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev \
-    && npm cache clean --force
+RUN npm install
 
 
 # Rebuild the source code only when needed
