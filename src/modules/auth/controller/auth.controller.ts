@@ -1,4 +1,4 @@
-import { VerifyOtpDto } from '@modules/auth/dto/verify-otp.dto';
+// import { VerifyOtpDto } from '@modules/auth/dto/verify-otp.dto';
 import { RateLimit } from '@core/decorators/rate-limit';
 import { RedisKey } from '@core/decorators/redis-key.decorator';
 import { TokenType } from '@core/decorators/token-type.decorator';
@@ -55,10 +55,10 @@ export class AuthController {
     return await this.authService.refreshToken(body.refreshToken);
   }
   
-  @Post('verify-otp')
-  @Version('3')
-  @HttpCode(HttpStatus.CREATED)
-  async verifyOTP(@Body() body: VerifyOtpDto): Promise<VerifyResponseDto> {
-    return await this.OTPService.verifyOtp(body);
-  }
+  // @Post('verify-otp')
+  // @Version('3')
+  // @HttpCode(HttpStatus.CREATED)
+  // async verifyOTP(@Body() body: VerifyOtpDto): Promise<VerifyResponseDto> {
+  //   return await this.OTPService.verifyOtp(body);
+  // }
 }
