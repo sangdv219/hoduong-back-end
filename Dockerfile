@@ -17,17 +17,19 @@ WORKDIR /app
 RUN echo "$PF_ENV" > /app/.env
 COPY . .
 COPY --from=dependencies /app/node_modules ./node_modules
-RUN yarn build
+RUN npm run build
 
 # Production image, copy all the files and run next
 FROM node:20-alpine AS runner
 WORKDIR /app
 
 COPY --from=builder /app/dist ./dist
-# COPY --from=builder /app/.env .env
+COPY --from=builder /app/.env.staging ./
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 
-ENV NODE_ENV=production
+ENV NODE_ENV=staging
+RUN cp .env.staging .env
+
 EXPOSE 3000
 CMD ["node", "dist/main"]
