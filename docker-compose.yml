@@ -17,7 +17,7 @@ services:
   app:
     build: .
     image: sangdev2109/hoduong-backend-app:latest
-    container_name: hoduong
+    container_name: hoduong-backend-app
     env_file:
       - .env.staging
    
