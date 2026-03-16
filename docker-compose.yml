@@ -2,21 +2,21 @@ networks:
   demo:
     driver: bridge
 services:
-  migrate:
-    build: .
-    image: sangdev2109/hoduong-migrate:latest
-    command: npx sequelize-cli db:migrate --config dist/config/config.json --env ${NODE_ENV} 
-    container_name: migrate
-    environment:
-      - NODE_ENV=staging
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - demo
+  # migrate:
+  #   build: .
+  #   environment:
+  #     - NODE_ENV=staging
+  #   image: sangdev2109/hoduong-migrate:latest
+  #   command: npx sequelize-cli db:migrate --config dist/config/config.json --env ${NODE_ENV} 
+  #   container_name: migrate
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - demo
   app:
     build: .
-    image: sangdev2109/hoduong-app:latest
+    image: sangdev2109/hoduong-backend-app:latest
     container_name: hoduong
     env_file:
       - .env.staging
