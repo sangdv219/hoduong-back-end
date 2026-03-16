@@ -93,9 +93,9 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_TOKEN }}
-    - name: Create .env file
-      run: |
-        echo -e "ENV_CONTENT=staging" > .env.staging
+    # - name: Create .env file
+    #   run: |
+    #     echo -e "ENV_CONTENT=staging" > .env.staging
 
     - name: Build docker image save version tag
       run: |
@@ -140,10 +140,10 @@ jobs:
         script: |
           cd /home/sangduong/hoduong-backend-app
           # echo "---------- Start Deploying ----------"
-           
+          echo "ENV_CONTENT=staging" > .env.staging
           docker compose down
           docker compose pull
-          docker rm -f hoduong-backend-app
+          docker rm -f hoduong-backend-app || true
           docker compose up -d 
 
           # echo "---------- Finished ----------"
