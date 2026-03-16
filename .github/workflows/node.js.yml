@@ -126,7 +126,16 @@ jobs:
         host: ${{ secrets.HOST_SERVER }}
         port: 22
         username: ${{ secrets.USER_SERVER }} 
-        key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
+        # key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
+        key: |
+                  -----BEGIN OPENSSH PRIVATE KEY-----
+                  b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABAVmSofRU
+                  xOZNhOIxvbYw2ZAAAAGAAAAAEAAAAzAAAAC3NzaC1lZDI1NTE5AAAAIJszogwf+EceOep3
+                  YmDVcjNL/VM7uOb8CLJVwdaTtzRdAAAAoPLWm6vEGI/clGYdkF9oyldqNffrvgsp8tNzd+
+                  iupwum6S/ELjd0NIAFbbTXdY9mIIeqMJUeoFKyJJWQdz+szUzOMIdZea/3x3C/ZianlDv0
+                  ETEl3mi93q57DpztGrE/znSC6nZZvX24D3khFun5Bu2WWolvagGKNQEVBo42WVLXvkAYJZ
+                  3t1j75EYk8xHXzvE652YFql33KNOieYRxZoqw=
+                  -----END OPENSSH PRIVATE KEY-----
         source: "."
         target: "/home/sangduong/hoduong-backend-app"
 
