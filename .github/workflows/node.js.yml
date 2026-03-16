@@ -141,7 +141,7 @@ jobs:
           cd /home/sangduong/hoduong-backend-app
           # echo "---------- Start Deploying ----------"
           echo "ENV_CONTENT=staging" > .env.staging
-          docker compose down
+          docker compose down --remove-orphans
           docker compose pull
           docker rm -f hoduong-backend-app || true
           docker compose up -d 
