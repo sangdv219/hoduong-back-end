@@ -143,7 +143,7 @@ jobs:
            
           docker compose down
           docker compose pull
-          docker rm -f hoduong-backend
+          docker rm -f hoduong-backend-app
           docker compose up -d 
 
           # echo "---------- Finished ----------"
