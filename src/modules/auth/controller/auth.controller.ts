@@ -4,7 +4,7 @@ import { RedisKey } from '@core/decorators/redis-key.decorator';
 import { TokenType } from '@core/decorators/token-type.decorator';
 import { JWTAuthGuard } from '@core/guards/jwt.guard';
 import { RateLimitGuard } from '@core/guards/rate-limit.guard';
-import { LoginDto } from '@modules/auth/dto/login.dto';
+import { LoginDto } from '@/modules/auth/dto/login.dto';
 import { RefreshTokenDto } from '@modules/auth/dto/refreshToken.dto';
 import { LoginResponseDto, VerifyResponseDto } from '@modules/auth/interface/login.interface';
 import { AuthService } from '@modules/auth/services/auth.service';
