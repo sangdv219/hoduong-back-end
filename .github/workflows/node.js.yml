@@ -99,7 +99,6 @@ jobs:
 
     - name: Build docker image save version tag
       run: |
-        echo -e "$ENV_CONTENT" > .env.staging
         docker build -f Dockerfile  --build-arg PF_ENV="${{secrets.ENV_CONTENT}}" -t ${{ env.IMAGE_NAME }} .
         docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.USERNAME }}/${{ env.IMAGE_NAME }}:latest
     - name: Push docker image lastest and version tag
