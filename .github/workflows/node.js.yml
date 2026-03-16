@@ -127,6 +127,7 @@ jobs:
         port: 22
         username: ${{ secrets.USER_SERVER }} 
         key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
+        debug: true
         source: "."
         target: "/home/sangduong/hoduong-backend-app"
 
