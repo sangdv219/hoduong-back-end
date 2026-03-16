@@ -12,9 +12,9 @@
     ],
     "paths": {
       "@/*": ["src/*"],
+      "@core/*": ["src/core/*"],
       "@modules/*": ["src/modules/*"],
       "@models/*": ["src/infrastructure/models/*"],
-      "@core/*": ["src/core/*"],
       "@database/*": ["src/database/*"],
       "@redis/*": ["src/redis/*"],
       "@bull/*": ["src/bull/*"],
