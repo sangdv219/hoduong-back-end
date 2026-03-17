@@ -13,13 +13,13 @@ module.exports = {
         primaryKey: true
       },
       fullname: {
-        type: Sequelize.STRING(500),
+        type: Sequelize.STRING(100),
         allowNull: false,
         defaultValue: Sequelize.name
       },
 
       ascii_name: {
-        type: Sequelize.STRING(500),
+        type: Sequelize.STRING(100),
         allowNull: true,
       },
 
