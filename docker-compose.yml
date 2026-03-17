@@ -40,8 +40,8 @@ services:
       - "5433:5432"
     environment:
       POSTGRES_USER: sangduong
-      DB_DATABASE: hoduong
-      DB_PASSWORD: 210919
+      POSTGRES_DB: hoduong_db
+      POSTGRES_PASSWORD: 210919
       DB_HOST: postgres
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes: 
