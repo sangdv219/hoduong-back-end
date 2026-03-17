@@ -140,9 +140,10 @@ jobs:
         script: |
           cd /home/sangduong/hoduong-backend-app
           # echo "---------- Start Deploying ----------"
-          echo "ENV_CONTENT=staging" > .env.staging
+          echo "ENV_CONTENT=staging" >> .env.staging
           docker compose down --remove-orphans
           docker compose pull
+          docker system prune -f
           docker rm -f redis postgres hoduong-backend-app || true
           docker compose up -d 
 
