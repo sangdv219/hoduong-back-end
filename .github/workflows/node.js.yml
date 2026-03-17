@@ -139,7 +139,7 @@ jobs:
         script: |
           cd /home/sangduong/hoduong-backend-app
           # echo "---------- Start Deploying ----------"
-          echo "ENV_CONTENT=${{ secrets.ENV_CONTENT }}" > .env.staging
+          echo "${{ secrets.ENV_CONTENT }}" > .env.staging
           docker compose down -v --remove-orphans
           docker compose pull
           docker system prune -f
