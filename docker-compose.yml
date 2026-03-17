@@ -42,7 +42,6 @@ services:
       POSTGRES_USER: sangduong
       POSTGRES_DB: hoduong_db
       POSTGRES_PASSWORD: 210919
-      DB_HOST: postgres
     volumes: 
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
