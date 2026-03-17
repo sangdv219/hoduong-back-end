@@ -1,5 +1,4 @@
 // src/bull/processors/order.processor.ts
-import { OrderService } from '@modules/orders/services/order.service';
 import { Process, Processor } from '@nestjs/bull';
 import { HttpException, Logger } from '@nestjs/common';
 import { Job } from 'bull';
@@ -8,12 +7,12 @@ import { Job } from 'bull';
 export class OrderProcessor {
     private readonly logger = new Logger(OrderProcessor.name);
     constructor(
-        private readonly orderService: OrderService
+        // private readonly orderService: OrderService
     ) { }
     @Process('place-order') // name job
     async handlePlaceOrder(job: Job, token?: string) {
         try {
-            await this.orderService.implementsOrder(job.data)
+            // await this.orderService.implementsOrder(job.data)
 
             return { status: 'ok' };
         } catch (error) {

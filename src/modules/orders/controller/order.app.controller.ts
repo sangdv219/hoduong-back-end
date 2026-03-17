@@ -7,7 +7,6 @@ import { BaseResponseInterceptor } from '@core/interceptors/base-response.interc
 import { LoggingInterceptor } from '@core/interceptors/logging.interceptor';
 import { CreatedOrderRequestDto, UpdatedOrderRequestDto } from '@modules/orders/dto/order.request.dto';
 import { GetAllOrderResponseDto, GetByIdOrderResponseDto } from '@modules/orders/dto/order.response.dto';
-import { OrderService } from '@modules/orders/services/order.service';
 import { CacheTTL } from '@nestjs/cache-manager';
 import {
   Body,
@@ -34,22 +33,22 @@ import { PaginationQueryDto } from '@shared/dto/common';
 @UseFilters(new AllExceptionsFilter())
 export class OrderAppController {
   constructor(
-    private readonly orderService: OrderService
+    // private readonly orderService: OrderService
   ) { }
 
-  @Get()
-  @Resource('orders')
-  @Action('read')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JWTAuthGuard, RbacGuard)
-  @CacheTTL(60)
-  async getPagination(@Query() query: PaginationQueryDto): Promise<GetAllOrderResponseDto> {
-    try {
-      return await this.orderService.getPagination(query);
-    } catch (error) {
-      throw error;
-    }
-  }
+  // @Get()
+  // @Resource('orders')
+  // @Action('read')
+  // @HttpCode(HttpStatus.OK)
+  // @UseGuards(JWTAuthGuard, RbacGuard)
+  // @CacheTTL(60)
+  // async getPagination(@Query() query: PaginationQueryDto): Promise<GetAllOrderResponseDto> {
+  //   try {
+  //     return await this.orderService.getPagination(query);
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
   // @Version('1')
   // @UseGuards(JWTAuthGuard, RbacGuard)
@@ -66,15 +65,15 @@ export class OrderAppController {
   //   }
   // }
 
-  @Version('1')
-  @Get(':id')
-  async getOrderById(@Param('id') id: string): Promise<GetByIdOrderResponseDto | null> {
-    try {
-      return await this.orderService.getById(id);
-    } catch (error) {
-      throw error;
-    }
-  }
+  // @Version('1')
+  // @Get(':id')
+  // async getOrderById(@Param('id') id: string): Promise<GetByIdOrderResponseDto | null> {
+  //   try {
+  //     return await this.orderService.getById(id);
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
   
   // @Version('2')
   // @Get(':id')
@@ -86,55 +85,55 @@ export class OrderAppController {
   //   }
   // }
 
-  @HttpCode(HttpStatus.CREATED)
-  @Post('checkout')
-  async checkout(@Body() createOrderDto: CreatedOrderRequestDto) {
-    try {
-      return await this.orderService.checkout(createOrderDto);
-    } catch (error) {
-      throw error;
-    }
-  }
+  // @HttpCode(HttpStatus.CREATED)
+  // @Post('checkout')
+  // async checkout(@Body() createOrderDto: CreatedOrderRequestDto) {
+  //   try {
+  //     return await this.orderService.checkout(createOrderDto);
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
-  @Patch(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async updateOrder(@Param('id') id: string, @Body() dto: UpdatedOrderRequestDto) {
-    try {
-      return await this.orderService.update(id, dto);
-    } catch (error) {
-      throw error;
-    }
-  }
+  // @Patch(':id')
+  // @HttpCode(HttpStatus.NO_CONTENT)
+  // async updateOrder(@Param('id') id: string, @Body() dto: UpdatedOrderRequestDto) {
+  //   try {
+  //     return await this.orderService.update(id, dto);
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteOrder(@Param('id') id: string): Promise<void> {
-    try {
-      return await this.orderService.delete(id);
-    } catch (error) {
-      throw error;
-    }
-  }
+  // @Delete(':id')
+  // @HttpCode(HttpStatus.NO_CONTENT)
+  // async deleteOrder(@Param('id') id: string): Promise<void> {
+  //   try {
+  //     return await this.orderService.delete(id);
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
-  @Delete('removeOrderItems/:id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteOrderItems(@Param('id') id: string): Promise<void> {
-    try {
-      return await this.orderService.deleteOrderItems(id);
-    } catch (error) {
-      throw error;
-    }
-  }
+  // @Delete('removeOrderItems/:id')
+  // @HttpCode(HttpStatus.NO_CONTENT)
+  // async deleteOrderItems(@Param('id') id: string): Promise<void> {
+  //   try {
+  //     return await this.orderService.deleteOrderItems(id);
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
-  @Version('99')
-  @Get('ExcuteDoublyList')
-  async ExcuteDoublyList() {
-    try {
-      return await this.orderService.excuteDoublyList();
-    } catch (error) {
-      throw error;
-    }
-  }
+  // @Version('99')
+  // @Get('ExcuteDoublyList')
+  // async ExcuteDoublyList() {
+  //   try {
+  //     return await this.orderService.excuteDoublyList();
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
 
 }
