@@ -43,14 +43,13 @@ services:
       POSTGRES_DB: hoduong_db
       POSTGRES_PASSWORD: 210919
       DB_HOST: postgres
-      POSTGRES_HOST_AUTH_METHOD: trust
     volumes: 
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sangduong -d hoduong"]
+      test: ["CMD-SHELL", "pg_isready -U sangduong -d hoduong_db"]
       interval: 10s
       timeout: 5s
-      # retries: 5
+      retries: 5
 
 
   redis:
