@@ -7,7 +7,7 @@ import { buildRedisKeyQuery } from '@redis/helpers/redis-key.helper';
 import { RedisService } from '@redis/redis.service';
 import { RESOURCE_KEY } from '@core/decorators/resource.decorator';
 import { ACTION_KEY } from '@core/decorators/action.decorator';
-import { RbacService } from '@/modules/rbac/rbac.service';
+import { RbacService } from '@modules/rbac/rbac.service';
 
 @Injectable()
 export class RbacGuard implements CanActivate {

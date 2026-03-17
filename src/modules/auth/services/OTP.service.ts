@@ -6,7 +6,7 @@ import { RedisContext, RedisModule } from '@redis/enums/redis-key.enum';
 import { buildRedisKey } from '@redis/helpers/redis-key.helper';
 import { findCacheByEmail, scanlAlKeys } from '@shared/utils/common.util';
 import { GoneException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { VerifyOtpDto } from '@/modules/auth/dto/verify-otp.dto';
+import { VerifyOtpDto } from '@modules/auth/dto/verify-otp.dto';
 import { VerifyResponseDto } from '@modules/auth/interface/login.interface';
 import { REDIS_TOKEN } from '@redis/constants/key-prefix.constant';
 

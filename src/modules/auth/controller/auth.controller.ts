@@ -1,15 +1,14 @@
+// import { VerifyOtpDto } from '@modules/auth/dto/verify-otp.dto';
 import { RateLimit } from '@core/decorators/rate-limit';
-import { LoginDto } from '@/modules/auth/dto/login.dto';
-import { RefreshTokenDto } from '@/modules/auth/dto/refreshToken.dto';
-import { RegisterDto } from '@/modules/auth/dto/register.dto';
-import { VerifyOtpDto } from '@/modules/auth/dto/verify-otp.dto';
-import { LoginResponseDto, VerifyResponseDto } from '@modules/auth/interface/login.interface';
-import { AuthService } from '@modules/auth/services/auth.service';
-import { OTPService } from '@modules/auth/services/OTP.service';
 import { RedisKey } from '@core/decorators/redis-key.decorator';
 import { TokenType } from '@core/decorators/token-type.decorator';
 import { JWTAuthGuard } from '@core/guards/jwt.guard';
 import { RateLimitGuard } from '@core/guards/rate-limit.guard';
+import { LoginDto } from '@/modules/auth/dto/login.dto';
+import { RefreshTokenDto } from '@modules/auth/dto/refreshToken.dto';
+import { LoginResponseDto, VerifyResponseDto } from '@modules/auth/interface/login.interface';
+import { AuthService } from '@modules/auth/services/auth.service';
+import { OTPService } from '@modules/auth/services/OTP.service';
 import {
   applyDecorators,
   Body,
@@ -56,10 +55,10 @@ export class AuthController {
     return await this.authService.refreshToken(body.refreshToken);
   }
   
-  @Post('verify-otp')
-  @Version('3')
-  @HttpCode(HttpStatus.CREATED)
-  async verifyOTP(@Body() body: VerifyOtpDto): Promise<VerifyResponseDto> {
-    return await this.OTPService.verifyOtp(body);
-  }
+  // @Post('verify-otp')
+  // @Version('3')
+  // @HttpCode(HttpStatus.CREATED)
+  // async verifyOTP(@Body() body: VerifyOtpDto): Promise<VerifyResponseDto> {
+  //   return await this.OTPService.verifyOtp(body);
+  // }
 }

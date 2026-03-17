@@ -5,7 +5,7 @@ name: Build Image Development CI/CD
 
 on:
   push:
-    branches: [ "main", "staging", "develop", "feat/**" ]
+    branches: [ "main", "staging", "feat/**" ]
   workflow_dispatch:
     # logLevel: 'info'
   # pull_request:
@@ -95,11 +95,10 @@ jobs:
         password: ${{ secrets.DOCKER_HUB_TOKEN }}
     - name: Create .env file
       run: |
-        echo -e "ENV_CONTENT=production" > .env.production
+        echo -e "ENV_CONTENT=staging" > .env.staging
 
     - name: Build docker image save version tag
       run: |
-        echo -e "$ENV_CONTENT" > .env.staging
         docker build -f Dockerfile  --build-arg PF_ENV="${{secrets.ENV_CONTENT}}" -t ${{ env.IMAGE_NAME }} .
         docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.USERNAME }}/${{ env.IMAGE_NAME }}:latest
     - name: Push docker image lastest and version tag
@@ -140,10 +139,11 @@ jobs:
         script: |
           cd /home/sangduong/hoduong-backend-app
           # echo "---------- Start Deploying ----------"
-           
-          docker compose down
+          echo "${{ secrets.ENV_CONTENT }}" > .env.staging
+          docker compose down -v --remove-orphans
           docker compose pull
-          docker rm -f hoduong-backend
+          docker system prune -f
+          docker rm -f redis postgres hoduong-backend-app || true
           docker compose up -d 
 
           # echo "---------- Finished ----------"

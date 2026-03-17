@@ -1,4 +1,4 @@
-// import { UserRolesModel } from '@/modules/associations/models/user-roles.model';
+// import { UserRolesModel } from '@modules/associations/models/user-roles.model';
 import { UserRolesModel } from '@modules/associations/models/user-roles.model';
 import { BaseModel } from '@shared/model/base.model';
 import { ClsServiceManager } from 'nestjs-cls';

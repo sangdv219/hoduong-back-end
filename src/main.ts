@@ -24,8 +24,8 @@ async function bootstrap() {
   // app.useGlobalInterceptors(new UserContextInterceptor());     inject global
 
   const config = new DocumentBuilder()
-    .setTitle('Cats example')
-    .setDescription('The cats API description')
+    .setTitle('Hoduong API')
+    .setDescription('Hoduong API description')
     .setVersion('1.0')
     // .addTag('cats')
     .addBearerAuth(

@@ -1,25 +1,4 @@
-# plop-templates
-# test
-# tools
-# logs
-# *.log
-# npm-debug.log*
-# pnpm-debug.log*
-# yarn-debug.log*
-# yarn-error.log*
-# lerna-debug.log*    
-# yarn.lock
-# dist
-# .github
-
 .env
 .env.production
 .env.development
 node_modules/
-# Dockerfile
-# .prettierrc
-# .eslint.config.mjs
-# nest-cli.json
-# plopfile.js
-
-# typeOrm.config.ts

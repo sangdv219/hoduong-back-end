@@ -1,16 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { AbstractUserRepository } from '@modules/users/abstract/user.admin.abstract';
+import { BaseRepository } from '@/domain/repositories/base.repository';
 import { UserEntity } from '@/infrastructure/models/user.model';
-import { GetAllUserAdminResponseDto } from '../dto/user.admin.response.dto';
-import { PaginationQueryDto } from '@/shared/dto/common';
+import { Injectable } from '@nestjs/common';
 
-
-
-
+export abstract class AbstractUserRepository extends BaseRepository<UserEntity> {}
 @Injectable()
 export class PostgresUserRepository extends AbstractUserRepository {
-
   private static readonly searchableFields = ['phone', 'gender', 'email', 'name'];
   constructor(
     // @InjectModel(UserEntity)

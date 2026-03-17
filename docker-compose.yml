@@ -2,27 +2,27 @@ networks:
   demo:
     driver: bridge
 services:
-  migrate:
-    build: .
-    image: sangdev2109/hoduong-migrate:latest
-    command: npx sequelize-cli db:migrate --config dist/config/config.json --env ${NODE_ENV} 
-    container_name: migrate
-    environment:
-      - NODE_ENV=staging
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - demo
+  # migrate:
+  #   build: .
+  #   environment:
+  #     - NODE_ENV=staging
+  #   image: sangdev2109/hoduong-migrate:latest
+  #   command: npx sequelize-cli db:migrate --config dist/config/config.json --env ${NODE_ENV} 
+  #   container_name: migrate
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - demo
   app:
     build: .
-    image: sangdev2109/hoduong-app:latest
-    container_name: hoduong
+    image: sangdev2109/hoduong-backend-app:latest
+    container_name: hoduong-backend-app
     env_file:
       - .env.staging
    
     ports: 
-      - "8080:80"
+      - "3000:3000"
     restart: on-failure
     depends_on:
       - postgres
@@ -40,12 +40,12 @@ services:
       - "5433:5432"
     environment:
       POSTGRES_USER: sangduong
-      DB_DATABASE: hoduong
-      DB_PASSWORD: 210919
+      POSTGRES_DB: hoduong_db
+      POSTGRES_PASSWORD: 210919
     volumes: 
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sangduong -d hoduong"]
+      test: ["CMD-SHELL", "pg_isready -U sangduong -d hoduong_db"]
       interval: 10s
       timeout: 5s
       retries: 5
