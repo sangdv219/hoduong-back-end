@@ -1,4 +1,3 @@
-import { ProductResponseDto } from '@modules/products/dto/product.response.dto';
 import { Expose } from 'class-transformer';
 
 export class AnalyticsBaseDto {
@@ -30,11 +29,5 @@ export class CreatedAnalyticsReponseDto extends AnalyticsBaseDto {
   
   @Expose()
   updated_at: Date;
-}
-
-
-export class GetByIdAnalyticsResponseDto extends CreatedAnalyticsReponseDto {
-  @Expose()
-  products: ProductResponseDto[];
 }
 

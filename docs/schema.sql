@@ -1,0 +1,6 @@
+Family
+Person
+Relationship
+Marriage
+Photo
+Document
