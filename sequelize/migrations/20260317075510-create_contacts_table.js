@@ -47,7 +47,7 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex('contacts', ['name'], {
+    await queryInterface.addIndex('contacts', ['fullName'], {
       unique: true,
       name: 'idx_contacts_node_id',
     });
