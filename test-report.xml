@@ -1,16 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testExecutions version="1">
-  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/app.controller.spec.ts">
+  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/shared/utils/string.util.spec.ts">
+    <testCase name="toAsciiName normalizes Vietnamese diacritics and spaces" duration="23"/>
+    <testCase name="toAsciiName trims and lowercases input" duration="3"/>
   </file>
-  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/modules/users/users.controller.spec.ts">
-    <testCase name="UserAdminController / (GET) - should return hello message" duration="5"/>
+  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/modules/nodes/services/node.service.spec.ts">
+    <testCase name="NodeService.attachMemberToTree returns null when parentUserId is not provided" duration="11"/>
+    <testCase name="NodeService.attachMemberToTree creates node and couple under parent user" duration="6"/>
+    <testCase name="NodeService.attachMemberToTree uses ROOT_TREE_LEVEL when parent couple is missing" duration="1"/>
+    <testCase name="NodeService.attachMemberToTree rejects attaching to self" duration="28"/>
+    <testCase name="NodeService.attachMemberToTree rejects when parent user not found" duration="2"/>
+    <testCase name="NodeService.attachMemberToTree rejects when parent has no node (BR-072)" duration="1"/>
+    <testCase name="NodeService.attachMemberToTree rejects when parent already has a direct child" duration="1"/>
+    <testCase name="NodeService.attachMemberToTree rejects when new user already has a node (BR-001)" duration="1"/>
   </file>
-  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/modules/products/product.controller.spec.ts">
+  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/modules/users/use-cases/create-user/create-user.use-case.spec.ts">
+    <testCase name="CreateUserUseCase creates member, assigns role, and returns safe response without password fields" duration="11"/>
+    <testCase name="CreateUserUseCase attaches member to family tree when parentUserId is provided" duration="1"/>
+    <testCase name="CreateUserUseCase uses provided roleId when supplied" duration="1"/>
+    <testCase name="CreateUserUseCase propagates conflict when email already exists" duration="2"/>
   </file>
-  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/modules/brands/brand.controller.spec.ts">
-  </file>
-  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/core/test/base.service.spec.ts">
-  </file>
-  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/modules/categories/Cart.controller.spec.ts">
+  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/modules/users/services/user.service.spec.ts">
+    <testCase name="UserService.createMember (PR-081) hashes password before persisting (PR-081)" duration="10"/>
+    <testCase name="UserService.createMember (PR-081) stores hash verifiable by argon2" duration="1"/>
+    <testCase name="UserService.createMember (PR-081) throws conflict when email exists" duration="16"/>
+    <testCase name="UserService.createMember (PR-081) throws conflict when phone exists" duration="1"/>
   </file>
 </testExecutions>

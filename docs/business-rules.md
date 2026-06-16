@@ -265,6 +265,8 @@ Tree rebuild operations must not alter historical relationships.
 # 6. User & Permission Rules
 
 ## PR-081
+Every create user must hash password 
+<!-- ## PR-081
 Every user must have a unique account.
 
 ## PR-082
@@ -292,7 +294,7 @@ Users may belong to multiple families if authorized.
 Administrative privileges may be revoked.
 
 ## PR-090
-Role assignments must be recorded.
+Role assignments must be recorded. -->
 
 # 7. Audit Rules
 

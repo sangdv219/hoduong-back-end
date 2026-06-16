@@ -20,7 +20,9 @@ import {
   Version
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
-import { CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto } from '@modules/users/dto/user.admin.request.dto';
+import { UpdatedUserAdminRequestDto } from '@modules/users/dto/user.admin.request.dto';
+import { CreateMemberRequestDto } from '@modules/users/dto/create-member.request.dto';
+import { CreateMemberResponseDto } from '@modules/users/dto/create-member.response.dto';
 import { UserEntity } from '@infrastructure/models/user.model';
 import { UserService } from '@modules/users/services/user.service';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
@@ -28,6 +30,7 @@ import { JWTAuthGuard } from '@core/guards/jwt.guard';
 import { UserContextInterceptor } from '@core/interceptors/user-context.interceptor';
 import { RegisterDto } from '@modules/auth/dto/register.dto';
 import { RegisterUserUseCase } from '@modules/users/use-cases/sign-up/signup.use-case';
+import { CreateUserUseCase } from '@modules/users/use-cases/create-user/create-user.use-case';
 
 @ApiBearerAuth('Authorization')
 @Controller({ path:'user-admin', version: '1' })
@@ -37,6 +40,7 @@ export class UserAdminController {
   constructor(
     private readonly userService: UserService,
     private readonly registerUserUseCase: RegisterUserUseCase,
+    private readonly createUserUseCase: CreateUserUseCase,
   ) { }
 
   @ApiOkResponse({ description: 'Danh sách user phân trang', type: BaseGetResponse<UserEntity> })
@@ -79,15 +83,12 @@ export class UserAdminController {
   }
   
   @HttpCode(HttpStatus.CREATED)
-  @UseGuards(JWTAuthGuard)
-  @UseInterceptors(UserContextInterceptor)
+  // @UseGuards(JWTAuthGuard)
+  // @UseInterceptors(UserContextInterceptor)
   @Post()
-  async create(@Body() createUserAdminDto: CreatedUserAdminRequestDto) {
-    try {
-      return await this.userService.create(createUserAdminDto);
-    } catch (error) {
-      throw error;
-    }
+  @ApiOkResponse({ description: 'Create new member', type: CreateMemberResponseDto })
+  async create(@Body() dto: CreateMemberRequestDto): Promise<CreateMemberResponseDto> {
+    return await this.createUserUseCase.execute(dto);
   }
   
   @Patch(':id')

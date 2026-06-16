@@ -1,11 +1,8 @@
-import { Expose } from "class-transformer";
+import { Expose } from 'class-transformer';
 
 export class UserAdminBaseDto {
   @Expose()
-  name: string;
-
-  @Expose()
-  password: string;
+  fullname: string;
 
   @Expose()
   email: string;
@@ -19,10 +16,10 @@ export class UserAdminBaseDto {
   @Expose()
   age: number;
 
-  @Expose() 
+  @Expose()
   is_root: boolean = true;
 
-  @Expose() 
+  @Expose()
   is_active: boolean = true;
 }
 
@@ -37,11 +34,10 @@ export class GetAllUserAdminResponseDto {
 export class CreatedUserAdminReponseDto extends UserAdminBaseDto {
   @Expose()
   created_at: Date;
-  
+
   @Expose()
   updated_at: Date;
 }
-
 
 export class GetByIdUserAdminResponseDto extends CreatedUserAdminReponseDto {
   @Expose()

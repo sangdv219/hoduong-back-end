@@ -10,7 +10,7 @@ export default {
   },
   moduleNameMapper: {
     ...pathsToModuleNameMapper(compilerOptions.paths, { 
-     prefix: '<rootDir>/src/' 
+     prefix: '<rootDir>/' 
     }),
   },
 

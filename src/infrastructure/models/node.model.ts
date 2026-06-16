@@ -5,11 +5,13 @@ import {
   Column,
   DataType,
   Default,
+  ForeignKey,
   HasMany,
   PrimaryKey,
   Sequelize,
   Table,
 } from 'sequelize-typescript';
+import { CoupleModel } from '@/infrastructure/models/couple.model';
 import { UserEntity } from './user.model';
 
 @Table({
@@ -23,6 +25,7 @@ export class NodeModel extends BaseModel<NodeModel> {
   @Column(DataType.UUID)
   declare id: string;
 
+  @ForeignKey(() => UserEntity)
   @AllowNull(false)
   @Column(DataType.UUID)
   declare user_id: string;
@@ -49,5 +52,8 @@ export class NodeModel extends BaseModel<NodeModel> {
 
   @HasMany(() => NodeModel, { foreignKey: 'parent_id', as: 'children' })
   declare children?: NodeModel[];
+
+  @HasMany(() => CoupleModel, 'node_id')
+  declare couples?: CoupleModel[];
 }
 
