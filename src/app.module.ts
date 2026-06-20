@@ -15,6 +15,7 @@ import { AppController } from './app.controller'
 import { DatabaseService } from '@infrastructure/database/database.service'
 import { DatabaseModule } from '@infrastructure/database/database.module'
 import { NodeModule } from './modules/nodes/node.module'
+import { McpController } from 'mcp.controller'
 
 @Module({
   imports: [
@@ -47,7 +48,7 @@ import { NodeModule } from './modules/nodes/node.module'
     AssociationsModule,
     AuditModule,
   ],
-  controllers: [AppController],
+  controllers: [McpController],
   providers: [DatabaseService],
   exports: [DatabaseService],
 })
