@@ -11,8 +11,8 @@ import {
 } from 'class-validator';
 
 export class NodeUserVModel {
-  id: string;
-  fullname: string;
+  id?: string;
+  fullname?: string;
   otherName?: string;
   gender?: string;
   yearOfBirth?: number;
@@ -22,31 +22,31 @@ export class NodeUserVModel {
   biography?: string;
   status?: string;
   email?: string;
-  is_active: boolean;
+  is_active?: boolean;
   createdAt?: Date;
   updatedBy?: string;
 }
 
 export class CoupleGetVModel {
-  id: string;
-  level: number;
-  userId: string;
-  createdAt?: Date;
-  createdBy?: string;
-  is_active: boolean;
-  nodeId?: string;
-  user?: NodeUserVModel;
+  id?: string;
+  level?: number;
+  userId?: string | null;
+  createdAt?: Date | null;
+  createdBy?: string | null;
+  is_active?: boolean | null;
+  nodeId?: string | null;
+  user?: NodeUserVModel | null;
 }
 
 export class NodeGetVModel {
-  nodeId: string;
-  userId: string;
+  nodeId?: string;
+  userId?: string | null;
   parentId?: string;
   createdAt?: Date;
   createdBy?: string;
   updatedAt?: Date;
   updatedBy?: string;
-  is_active: boolean;
+  is_active?: boolean;
   members?: number;
   parent?: NodeUserVModel;
   user?: NodeUserVModel;
@@ -54,22 +54,22 @@ export class NodeGetVModel {
 }
 
 export class NodeTreeVModel {
-  id: string;
-  userId: string;
+  id?: string;
+  userId?: string | null;
   parentId?: string;
   createdAt?: Date;
   createdBy?: string;
   updatedAt?: Date;
   updatedBy?: string;
-  is_active: boolean;
+  is_active?: boolean;
   members?: number;
-  children: NodeTreeVModel[];
+  children?: NodeTreeVModel[] | null;
   user?: NodeUserVModel;
 }
 
 export class NodePaginationModel {
-  records: NodeGetVModel[];
-  totalRecords: number;
+  records?: NodeGetVModel[] | null;
+  totalRecords?: number | null;
 }
 
 export class NodeFilterQueryDto {
@@ -77,95 +77,95 @@ export class NodeFilterQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  pageNumber?: number = 1;
+  pageNumber?: number | null = 1;
 
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  pageSize?: number = 10;
+  pageSize?: number | null = 10;
 
   @IsOptional()
   @IsString()
-  keyword?: string;
+  keyword?: string | null;
 
   @IsOptional()
   @IsUUID()
-  parentId?: string;
+  parentId?: string | null;
 
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
-  is_active?: boolean;
+  is_active?: boolean | null;
 
   @IsOptional()
   @IsString()
-  createdBy?: string;
+  createdBy?: string | null;
 
   @IsOptional()
   @IsString()
-  updatedBy?: string;
+  updatedBy?: string | null = null;
 
   @IsOptional()
   @Type(() => Date)
-  createdDate?: Date;
+  createdDate?: Date | null = null;
 
   @IsOptional()
   @Type(() => Date)
-  updatedDate?: Date;
+  updatedDate?: Date | null = null;
 }
 
 export class CreateNodeRequestDto {
   @IsUUID()
   @IsNotEmpty()
   @ApiProperty({ description: 'User ID linked to this node' })
-  userId: string;
+  userId?: string | null = null;
 
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional({ description: 'Parent node ID' })
-  parentId?: string;
+  parentId?: string | null = null;
 
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional({ description: 'Spouse user ID to create couple relation' })
-  coupleUserId?: string;
+  coupleUserId?: string | null = null;
 
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   @ApiPropertyOptional({ description: 'Member order among siblings', default: 1 })
-  members?: number;
+  members?: number | null = 1;
 
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
   @ApiPropertyOptional({ default: true })
-  is_active?: boolean = true;
+  is_active?: boolean | null = true;
 }
 
 export class UpdateNodeRequestDto {
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional({ description: 'User ID linked to this node' })
-  userId?: string;
+  userId?: string | null = null;
 
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional({ description: 'Parent node ID' })
-  parentId?: string;
+  parentId?: string | null = null;
 
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   @ApiPropertyOptional({ description: 'Member order among siblings' })
-  members?: number;
+  members?: number | null = 1;
 
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
   @ApiPropertyOptional()
-  is_active?: boolean;
+  is_active?: boolean | null = true ;
 }

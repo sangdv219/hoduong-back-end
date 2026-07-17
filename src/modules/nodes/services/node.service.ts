@@ -71,12 +71,12 @@ export class NodeService {
 
   async create(dto: CreateNodeRequestDto, actor: string): Promise<NodeGetVModel> {
     return this.baseTransactionService.runInTransaction(async (transaction) => {
-      const user = await this.userRepository.findByPk(dto.userId, [], false, { transaction });
+      const user = await this.userRepository.findByPk(dto.userId!, [], false, { transaction }); // TODO: Fix this
       if (!user) {
         throw new NotFoundException(NODE_ERROR.USER_NOT_FOUND);
       }
 
-      const existingNode = await this.nodeRepository.findByUserId(dto.userId, transaction);
+      const existingNode = await this.nodeRepository.findByUserId(dto.userId!, transaction); // TODO: Fix this
       if (existingNode) {
         throw new ConflictException(NODE_ERROR.USER_ALREADY_HAS_NODE);
       }
@@ -122,7 +122,7 @@ export class NodeService {
         }
         const parentId = dto.parentId ?? entity.parent_id;
         if (parentId) {
-          await this.validateMemberOrder(parentId, dto.members, nodeId, transaction);
+          await this.validateMemberOrder(parentId, dto.members!, nodeId, transaction);
         }
       }
 
@@ -379,7 +379,7 @@ export class NodeService {
     actor: string,
     transaction: Transaction,
   ): Promise<NodeModel> {
-    const parentNode = await this.nodeRepository.findByPk(dto.parentId!, [], false, { transaction });
+    const parentNode = await this.nodeRepository.findByPk(dto.parentId!, [], false, { transaction }); // TODO: Fix this
     if (!parentNode) {
       throw new NotFoundException(NODE_ERROR.PARENT_NODE_NOT_FOUND);
     }
@@ -388,7 +388,7 @@ export class NodeService {
     await this.validateMemberOrder(dto.parentId!, members, undefined, transaction);
 
     const attachment = await this.attachToParentNode(
-      dto.userId,
+      dto.userId!, // TODO: Fix this
       dto.parentId!,
       members,
       transaction,
