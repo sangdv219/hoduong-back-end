@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "^9.2.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@nestjs/bull": "^11.0.3",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.1",
@@ -62,7 +63,8 @@
     "sequelize": "^6.37.7",
     "sequelize-typescript": "^2.1.6",
     "socket.io": "^4.8.1",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

@@ -45,6 +45,6 @@ async function bootstrap() {
 
   console.log(`🚀 HTTP server running on port http://localhost:${configService.getOrThrow('PORT')}/api#/`);
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3001);
 }
 bootstrap();

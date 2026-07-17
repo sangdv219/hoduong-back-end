@@ -1,16 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testExecutions version="1">
-  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/app.controller.spec.ts">
-  </file>
-  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/modules/users/users.controller.spec.ts">
-    <testCase name="UserAdminController / (GET) - should return hello message" duration="5"/>
-  </file>
-  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/modules/products/product.controller.spec.ts">
-  </file>
-  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/modules/brands/brand.controller.spec.ts">
-  </file>
-  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/core/test/base.service.spec.ts">
-  </file>
-  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/modules/categories/Cart.controller.spec.ts">
+  <file path="/Users/sangduong/Developer/BE/hoduong-backend/src/modules/nodes/services/node.service.spec.ts">
   </file>
 </testExecutions>

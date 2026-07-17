@@ -14,6 +14,8 @@ import { AssociationsModule } from '@modules/associations/associations.module'
 import { AppController } from './app.controller'
 import { DatabaseService } from '@infrastructure/database/database.service'
 import { DatabaseModule } from '@infrastructure/database/database.module'
+import { NodeModule } from './modules/nodes/node.module'
+import { McpController } from 'mcp.controller'
 
 @Module({
   imports: [
@@ -38,6 +40,7 @@ import { DatabaseModule } from '@infrastructure/database/database.module'
     DatabaseModule,
     AuthModule,
     UserModule,
+    NodeModule,
     RolesModule,
     PermissionsModule,
     BullModule,
@@ -45,7 +48,7 @@ import { DatabaseModule } from '@infrastructure/database/database.module'
     AssociationsModule,
     AuditModule,
   ],
-  controllers: [AppController],
+  controllers: [McpController],
   providers: [DatabaseService],
   exports: [DatabaseService],
 })

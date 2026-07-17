@@ -1,4 +1,6 @@
 // import { UserRolesModel } from '@modules/associations/models/user-roles.model';
+import { NodeModel } from '@/infrastructure/models/node.model';
+import { CoupleModel } from '@/infrastructure/models/couple.model';
 import { UserRolesModel } from '@modules/associations/models/user-roles.model';
 import { BaseModel } from '@shared/model/base.model';
 import { ClsServiceManager } from 'nestjs-cls';
@@ -57,6 +59,38 @@ export class UserEntity extends BaseModel<UserEntity> {
   @Column(DataType.INTEGER)
   declare age: number;
 
+  @AllowNull(true)
+  @Column({ type: DataType.STRING(500) })
+  declare other_name: string; // Khớp với otherName?
+
+  @AllowNull(true)
+  @Column(DataType.INTEGER)
+  declare year_of_birth: number; // Khớp với yearOfBirth?
+
+  @AllowNull(true)
+  @Column(DataType.INTEGER)
+  declare year_of_death: number; // Khớp với yearOfDeath?
+
+  @AllowNull(true)
+  @Column({ type: DataType.STRING(1000) })
+  declare burial_place: string; // Khớp với burialPlace?
+
+  @AllowNull(true)
+  @Column({ type: DataType.STRING(1000) })
+  declare address: string; // Khớp với address?
+
+  @AllowNull(true)
+  @Column(DataType.TEXT)
+  declare biography: string; // Khớp với biography?
+
+  @AllowNull(true)
+  @Column({ type: DataType.STRING(100) })
+  declare status: string; // Khớp với status?
+
+  @AllowNull(true)
+  @Column(DataType.INTEGER)
+  declare avatar_file_id: number; 
+  
   @AllowNull(false)
   @Default(false)
   @Column(DataType.BOOLEAN)
@@ -115,5 +149,11 @@ export class UserEntity extends BaseModel<UserEntity> {
   declare locked_until: Date; // New field to track when the account is locked until
 
   @HasMany(() => UserRolesModel)
-  declare userRoles: UserRolesModel[]
+  declare userRoles: UserRolesModel[];
+
+  @HasMany(() => NodeModel)
+  declare nodes: NodeModel[];
+
+  @HasMany(() => CoupleModel)
+  declare couples: CoupleModel[];
 }

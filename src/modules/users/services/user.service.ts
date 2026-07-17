@@ -1,36 +1,50 @@
+import { UserEntity } from '@/infrastructure/models/user.model';
 import { BaseService } from '@core/services/base.service';
 import { PostgresUserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
-import { UserEntity } from '@/infrastructure/models/user.model';
-import { CreatedUserAuthRequestDto } from '@modules/users/dto/user-auth.request.dto';
+import { PasswordService } from '@modules/password/services/password.service';
+import { PostgresRoleRepository } from '@modules/roles/infrastructure/repository/postgres-role.repository';
+import { USER_ENTITY, USER_ERROR, DEFAULT_MEMBER_ROLE_NAME } from '@modules/users/constants/user.constant';
+import { CreateMemberRequestDto } from '@modules/users/dto/create-member.request.dto';
 import { CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto } from '@modules/users/dto/user.admin.request.dto';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
-import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { NodeService } from '@modules/nodes/services/node.service';
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectConnection } from '@nestjs/sequelize';
 import { RedisService } from '@redis/redis.service';
-import * as argon2 from 'argon2';
-import { Sequelize } from 'sequelize';
+import { toAsciiName } from '@shared/utils/string.util';
+import { Transaction } from 'sequelize';
+import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
-export class UserService extends
-  BaseService<UserEntity,
-    CreatedUserAdminRequestDto,
-    UpdatedUserAdminRequestDto,
-    GetByIdUserAdminResponseDto,
-    GetAllUserAdminResponseDto> {
+export class UserService extends BaseService<
+  UserEntity,
+  CreatedUserAdminRequestDto,
+  UpdatedUserAdminRequestDto,
+  GetByIdUserAdminResponseDto,
+  GetAllUserAdminResponseDto
+> {
   protected entityName: string;
   private users: string[] = [];
+
   constructor(
     @InjectConnection()
     private readonly sequelize: Sequelize,
     protected repository: PostgresUserRepository,
     protected userRolesRepository: PostgresUserRolesRepository,
-    // protected userPermissionsRepository: PostgresRolePermissionsRepository,
     private readonly userRepository: PostgresUserRepository,
     public cacheManage: RedisService,
+    private readonly passwordService: PasswordService,
+    private readonly roleRepository: PostgresRoleRepository,
+    private readonly nodeService: NodeService,
   ) {
     super(repository);
-    this.entityName = 'User';
+    this.entityName = USER_ENTITY.NAME;
   }
 
   protected async moduleInit() {
@@ -40,7 +54,7 @@ export class UserService extends
   protected async bootstrapLogic(): Promise<void> {
     Logger.log(`🛑 repository--------->`, this.repository);
     Logger.log(this.repository);
-   }
+  }
 
   protected async beforeAppShutDown(signal): Promise<void> {
     this.stopJob();
@@ -58,28 +72,21 @@ export class UserService extends
   }
 
   async delete(id: string): Promise<void> {
-    const user = await this.userRepository.findByPk(id)
-    if (user) {
-      user.is_active = false;
-      user.deleted_at = new Date();
-    }
-    if (!user) throw new NotFoundException(`User with id ${id} not found!`)
+    const user = await this.userRepository.findByPk(id);
+    if (!user) throw new NotFoundException(`User with id ${id} not found!`);
+
+    await this.nodeService.detachMemberByUserId(id);
+    user.is_active = false;
+    user.deleted_at = new Date();
     await user.save();
-  }
-  // $argon2id$v=19$m=65536,t=3,p=4$IJNVxnKTrqpO07cfawpPGw$YdqBIL0JB7qY3sSKrplvpR8oDqIOywHMz/9nX4YHNzk
-  async create(dto: CreatedUserAdminRequestDto): Promise<void> {
-    const encode = await argon2.hash(dto.password)
-    const user = { ...dto }
-    user['password_hash'] = encode;
-    await this.userRepository.create(user)
   }
 
   async update(id: string, dto: UpdatedUserAdminRequestDto) {
-    this.getById(id)
-    this.cleanCacheRedis()
-    const entity = await this.userRepository.findByPk(id)
-    if (!entity) throw new NotFoundException(`User with id ${id} not found!`)
-    Object.assign(entity, dto)
+    this.getById(id);
+    this.cleanCacheRedis();
+    const entity = await this.userRepository.findByPk(id);
+    if (!entity) throw new NotFoundException(`User with id ${id} not found!`);
+    Object.assign(entity, dto);
     await entity.save();
     return entity;
   }
@@ -87,7 +94,7 @@ export class UserService extends
   async restoreUser(id: string): Promise<any> {
     const user = await this.userRepository.findByOneByRaw({
       where: { id, is_active: false },
-      paranoid: false, // Allow fetching soft-delete records
+      paranoid: false,
     });
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
@@ -111,7 +118,8 @@ export class UserService extends
   }
 
   async getRolePermissionByUserId(userId: string) {
-    const rawQuery = await this.sequelize.query(`
+    const rawQuery = await this.sequelize.query(
+      `
         SELECT DISTINCT p.id, p.resource as resource, p.action as permission_action, r.name as role_name
         FROM permissions p
         JOIN role_permissions rp ON p.id = rp.permission_id
@@ -120,13 +128,13 @@ export class UserService extends
         JOIN users u ON u.id = ur.user_id
         WHERE u.id = :userId;
       `,
-    {
-      replacements: { userId },
-      raw: true,
-      nest: true
-    })
+      {
+        replacements: { userId },
+        raw: true,
+        nest: true,
+      },
+    );
 
-    // Logger.log('rawQuery:', rawQuery);
     return rawQuery;
   }
 
@@ -138,5 +146,51 @@ export class UserService extends
       throw new ConflictException('Email already exists');
     }
     await this.userRepository.create(body);
+  }
+
+  async ensureUniqueContact(email: string, phone: string): Promise<void> {
+    if (await this.userRepository.existsByEmail(email)) {
+      throw new ConflictException(USER_ERROR.EMAIL_EXISTS);
+    }
+    if (await this.userRepository.existsByPhone(phone)) {
+      throw new ConflictException(USER_ERROR.PHONE_EXISTS);
+    }
+  }
+
+  async resolveRoleId(roleId?: string): Promise<string> {
+    if (roleId) {
+      return roleId;
+    }
+
+    const defaultRole = await this.roleRepository.findOneByField('name', DEFAULT_MEMBER_ROLE_NAME);
+    if (!defaultRole?.id) {
+      throw new NotFoundException(USER_ERROR.DEFAULT_ROLE_NOT_FOUND);
+    }
+    return defaultRole.id;
+  }
+
+  async createMember(
+    dto: CreateMemberRequestDto,
+    transaction?: Transaction,
+  ): Promise<Record<string, unknown>> {
+    await this.ensureUniqueContact(dto.email, dto.phone);
+
+    const passwordHash = await this.passwordService.hashPassword(dto.password);
+
+    const userEntity = {
+      fullname: dto.fullname,
+      ascii_name: toAsciiName(dto.fullname),
+      email: dto.email,
+      phone: dto.phone,
+      password_hash: passwordHash,
+      gender: dto.gender,
+      age: dto.age,
+      is_root: false,
+      is_active: dto.is_active ?? true,
+      avatar: dto.avatar ?? null,
+    };
+
+    this.cleanCacheRedis();
+    return this.userRepository.create(userEntity, { transaction });
   }
 }

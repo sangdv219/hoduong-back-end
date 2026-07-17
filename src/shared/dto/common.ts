@@ -10,7 +10,7 @@ export class PaginationQueryDto implements IPaginationDTO {
   @IsNumber()
   @Min(1, { message: 'Page must be at least 1'})
   @Max(10, { message: 'Page cannot exceed 10'})
-  page: number;
+  page!: number;
 
   @IsOptional()
   @ApiPropertyOptional({ example: 100, description: 'Limit per page (1–100)' })
@@ -18,24 +18,24 @@ export class PaginationQueryDto implements IPaginationDTO {
   @IsNumber()
   @Min(1, { message: 'Limit must be at least 1'})
   @Max(100, { message: 'Limit cannot exceed 100'})
-  limit: number;
+  limit!: number;
 
   @IsOptional()
   @ApiPropertyOptional({ example: '', description: 'Find' })
   @Type(() => String)
   @IsString()
-  keyword: string;
+  keyword!: string;
 
   @IsOptional()
   @ApiPropertyOptional({ example: '', description: 'Order by field' })
   @Type(() => String)
   @IsString()
-  orderBy: string;
+  orderBy!: string;
 
   @IsOptional()
   @IsEnum(['ASC', 'DESC'])
   @ApiPropertyOptional({
     enum: ['ASC', 'DESC'],
   })
-  sortOrder: 'ASC' | 'DESC';
+  sortOrder!: 'ASC' | 'DESC';
 }

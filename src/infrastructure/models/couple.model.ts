@@ -6,6 +6,7 @@ import {
   DataType,
   Default,
   PrimaryKey,
+  ForeignKey,
   Sequelize,
   Table,
 } from 'sequelize-typescript';
@@ -22,7 +23,8 @@ export class CoupleModel extends BaseModel<CoupleModel> {
   @Default(Sequelize.literal('gen_random_uuid()'))
   @Column(DataType.UUID)
   declare id: string;
-
+  
+  @ForeignKey(() => UserEntity)
   @AllowNull(false)
   @Column(DataType.UUID)
   declare user_id: string;

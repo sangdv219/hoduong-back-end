@@ -41,7 +41,7 @@ export class RolesController {
   @Get()
   @ApiOkResponse({ description: 'Danh sách role phân trang', type: BaseGetResponse<RolesModel> })
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JWTAuthGuard)
+  // @UseGuards(JWTAuthGuard)
   async getPagination(@Query() query: PaginationQueryDto): Promise<GetAllRoleResponseDto> {
     try {
       return await this.roleService.getPagination(query);
@@ -64,8 +64,8 @@ export class RolesController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @UseGuards(JWTAuthGuard)
-  @UseInterceptors(UserContextInterceptor)
+  // @UseGuards(JWTAuthGuard)
+  // @UseInterceptors(UserContextInterceptor)
   async create(@Body() createRolesDto: CreatedRolesRequestDto) {
     try {
       return await this.roleService.create(createRolesDto);

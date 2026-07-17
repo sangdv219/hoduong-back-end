@@ -11,27 +11,27 @@ import {
 } from 'class-validator';
 
 interface CreatedUserAdminRequest {
-  name: string
-  email: string
-  password: string
-  gender: string
-  phone: string
-  is_root: boolean
-  is_active: boolean
-  avatar: string
-  created_at?: Date
-  updated_at?: Date
-  deleted_at?: Date
-  created_by?: string
-  updated_by?: string
-  deleted_by?: string
+  fullname: string;
+  email: string;
+  password: string;
+  gender: string;
+  phone: string;
+  is_root: boolean;
+  is_active: boolean;
+  avatar: string;
+  created_at?: Date;
+  updated_at?: Date;
+  deleted_at?: Date;
+  created_by?: string;
+  updated_by?: string;
+  deleted_by?: string;
 }
 
 export class CreatedUserAdminRequestDto implements CreatedUserAdminRequest {
-  @IsNotEmpty({ message: 'Name is required' })
-  @IsString({ message: 'Name must be a string' })
-  @ApiProperty({ description: 'user', example: 'user' })
-  name: string;
+  @IsNotEmpty({ message: 'Fullname is required' })
+  @IsString({ message: 'Fullname must be a string' })
+  @ApiProperty({ description: 'Full name', example: 'Nguyen Van A' })
+  fullname: string;
 
   @IsNotEmpty()
   @ApiProperty({ description: 'email', example: 'sangdv219@gmail.com' })
@@ -70,8 +70,8 @@ export class CreatedUserAdminRequestDto implements CreatedUserAdminRequest {
   @IsBoolean({ message: 'is_active must be a boolean (true/false)' })
   is_active: boolean = true;
 
+  @IsOptional()
   @ApiProperty({ description: 'avatar', example: 'abc' })
-  @IsNotEmpty({ message: 'avatar is required' })
   @IsString({ message: 'avatar must be a string' })
   avatar: string;
 }
