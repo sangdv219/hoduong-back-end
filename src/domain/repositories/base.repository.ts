@@ -9,7 +9,7 @@ export interface IPaginationDTO {
   limit: number;
   keyword: string;
   orderBy: string;
-  sortOrder: 'ASC' | 'DESC'
+  sortOrder?: 'ASC' | 'DESC'
 }
 
 export interface IBaseRepository<T> {
@@ -125,7 +125,7 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
     return record as unknown as T[K];
   }
 
-  async findByPk(id: string, exclude = [''], raw = true, options?: { transaction?: Transaction }): Promise<T | null> {
+  async findByPk(id: string, exclude = [''], raw = false, options?: { transaction?: Transaction }): Promise<T | null> {
     return this.model.findByPk(id, { ...exclude, raw, transaction: options?.transaction })
   }
 

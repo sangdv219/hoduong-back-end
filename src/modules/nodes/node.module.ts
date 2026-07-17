@@ -7,7 +7,7 @@ import { NodeService } from '@modules/nodes/services/node.service';
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
-import { DmnNodeController } from './controller/node.controller';
+import { NodeController } from './controller/node.controller';
 
 @Module({
   imports: [SequelizeModule.forFeature([NodeModel, CoupleModel, UserEntity])],
@@ -17,7 +17,7 @@ import { DmnNodeController } from './controller/node.controller';
     PostgresUserRepository,
     NodeService,
   ],
-  controllers: [DmnNodeController],
+  controllers: [NodeController],
   exports: [PostgresNodeRepository, PostgresCoupleRepository, NodeService],
 })
 export class NodeModule {}

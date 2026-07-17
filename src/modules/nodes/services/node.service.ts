@@ -1,7 +1,20 @@
+import { BaseTransactionService } from '@/infrastructure/database/transaction.service';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
 import { ROOT_TREE_LEVEL } from '@modules/couples/constants/couple.constant';
 import { PostgresCoupleRepository } from '@modules/couples/repository/postgres-couple.repository';
 import { NODE_ERROR } from '@modules/nodes/constants/node.constant';
+import {
+  CreateNodeRequestDto,
+  NodeFilterQueryDto,
+  NodeGetVModel,
+  NodePaginationModel,
+  NodeTreeVModel,
+  UpdateNodeRequestDto,
+} from '@modules/nodes/dto/node.dto';
+import {
+  mapEntityToTree,
+  mapEntityToVModel,
+} from '@modules/nodes/helpers/node.mapper';
 import { PostgresNodeRepository } from '@modules/nodes/repository/postgres-node.repository';
 import {
   BadRequestException,
@@ -9,12 +22,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Op, Sequelize, Transaction } from 'sequelize';
-import { InjectModel } from '@nestjs/sequelize';
+import { Transaction } from 'sequelize';
 import { NodeModel } from '@/infrastructure/models/node.model';
 import { UserEntity } from '@/infrastructure/models/user.model';
-import { CoupleModel } from '@/infrastructure/models/couple.model';
-  
+
 export interface TreeAttachmentResult {
   nodeId: string;
   coupleId: string;
@@ -26,15 +37,10 @@ export interface TreeAttachmentResult {
 @Injectable()
 export class NodeService {
   constructor(
-    @InjectModel(NodeModel)
-    private readonly nodeModel: NodeModel,
-    @InjectModel(UserEntity)
-    private readonly userModel: UserEntity,
-    @InjectModel(CoupleModel)
-    private readonly coupleModel: CoupleModel,
     private readonly nodeRepository: PostgresNodeRepository,
     private readonly coupleRepository: PostgresCoupleRepository,
     private readonly userRepository: PostgresUserRepository,
+    private readonly baseTransactionService: BaseTransactionService,
   ) {}
 
   async attachMemberToTree(
@@ -55,29 +61,255 @@ export class NodeService {
       throw new NotFoundException(NODE_ERROR.PARENT_USER_NOT_FOUND);
     }
 
-    const existingNode = await this.nodeRepository.findByUserId(newUserId, transaction);
-    if (existingNode) {
-      throw new ConflictException(NODE_ERROR.USER_ALREADY_HAS_NODE);
-    }
-
     const parentNode = await this.nodeRepository.findByUserId(parentUserId, transaction);
     if (!parentNode) {
       throw new NotFoundException(NODE_ERROR.PARENT_NODE_NOT_FOUND);
     }
 
-    const existingChild = await this.nodeRepository.findByParentId(parentNode.id, transaction);
+    return this.attachToParentNode(newUserId, parentNode.id, 1, transaction, parentUserId);
+  }
+
+  async create(dto: CreateNodeRequestDto, actor: string): Promise<NodeGetVModel> {
+    return this.baseTransactionService.runInTransaction(async (transaction) => {
+      const user = await this.userRepository.findByPk(dto.userId, [], false, { transaction });
+      if (!user) {
+        throw new NotFoundException(NODE_ERROR.USER_NOT_FOUND);
+      }
+
+      const existingNode = await this.nodeRepository.findByUserId(dto.userId, transaction);
+      if (existingNode) {
+        throw new ConflictException(NODE_ERROR.USER_ALREADY_HAS_NODE);
+      }
+
+      let node: NodeModel;
+
+      if (!dto.parentId) {
+        node = await this.createRootNode(dto, actor, transaction);
+      } else {
+        node = await this.createChildNode(dto, actor, transaction);
+      }
+
+      if (dto.coupleUserId) {
+        await this.createSpouseCouple(dto.coupleUserId, node.id, node, transaction);
+      }
+
+      const created = await this.nodeRepository.findByPkWithRelations(node.id, transaction);
+      return mapEntityToVModel(created!);
+    });
+  }
+
+  async update(nodeId: string, dto: UpdateNodeRequestDto, actor: string): Promise<NodeGetVModel> {
+    return this.baseTransactionService.runInTransaction(async (transaction) => {
+      const entity = await this.nodeRepository.findByPk(nodeId, [], false, { transaction });
+      if (!entity) {
+        throw new NotFoundException(NODE_ERROR.NODE_NOT_FOUND);
+      }
+
+      if (dto.userId && dto.userId !== entity.user_id) {
+        const user = await this.userRepository.findByPk(dto.userId, [], false, { transaction });
+        if (!user) {
+          throw new NotFoundException(NODE_ERROR.USER_NOT_FOUND);
+        }
+        const existingNode = await this.nodeRepository.findByUserId(dto.userId, transaction);
+        if (existingNode && existingNode.id !== nodeId) {
+          throw new ConflictException(NODE_ERROR.USER_ALREADY_HAS_NODE);
+        }
+      }
+
+      if (dto.members !== undefined && dto.members !== entity.members) {
+        if (!entity.parent_id && !dto.parentId) {
+          throw new BadRequestException(NODE_ERROR.CANNOT_PROVIDE_MEMBERS_WITHOUT_PARENT);
+        }
+        const parentId = dto.parentId ?? entity.parent_id;
+        if (parentId) {
+          await this.validateMemberOrder(parentId, dto.members, nodeId, transaction);
+        }
+      }
+
+      await this.nodeRepository.updateNode(
+        nodeId,
+        {
+          user_id: dto.userId ?? entity.user_id,
+          parent_id: dto.parentId ?? entity.parent_id,
+          members: dto.members ?? entity.members,
+          is_active: dto.is_active ?? entity.is_active,
+          updated_by: actor,
+        },
+        transaction,
+      );
+
+      const updated = await this.nodeRepository.findByPkWithRelations(nodeId, transaction);
+      return mapEntityToVModel(updated!);
+    });
+  }
+
+  async remove(nodeId: string, actor: string): Promise<void> {
+    await this.baseTransactionService.runInTransaction(async (transaction) => {
+      const entity = await this.nodeRepository.findByPk(nodeId, [], false, { transaction });
+      if (!entity) {
+        throw new NotFoundException(NODE_ERROR.NODE_NOT_FOUND);
+      }
+
+      if (!entity.parent_id) {
+        throw new BadRequestException(NODE_ERROR.CANNOT_DELETE_ROOT_NODE);
+      }
+
+      const child = await this.nodeRepository.findByParentId(nodeId, transaction);
+      if (child) {
+        throw new BadRequestException(NODE_ERROR.CANNOT_DELETE_NODE_WITH_CHILDREN);
+      }
+
+      await this.nodeRepository.softDeactivate(nodeId, actor, transaction);
+      await this.coupleRepository.deactivateByNodeId(nodeId, transaction);
+      await this.nodeRepository.decrementMembers(entity.parent_id!, transaction);
+    });
+  }
+
+  async changeStatus(nodeId: string, actor: string): Promise<NodeGetVModel> {
+    const entity = await this.nodeRepository.findByPk(nodeId);
+    if (!entity) {
+      throw new NotFoundException(NODE_ERROR.NODE_NOT_FOUND);
+    }
+
+    await this.nodeRepository.updateNode(nodeId, {
+      is_active: !entity.is_active,
+      updated_by: actor,
+    });
+
+    const updated = await this.nodeRepository.findByPkWithRelations(nodeId);
+    return mapEntityToVModel(updated!);
+  }
+
+  async detachMemberByUserId(userId: string, transaction?: Transaction): Promise<void> {
+    const run = async (tx: Transaction) => {
+      const node = await this.nodeRepository.findByUserId(userId, tx);
+      if (!node || !node.is_active) {
+        return;
+      }
+
+      if (!node.parent_id) {
+        await this.nodeRepository.softDeactivate(node.id, 'system', tx);
+        await this.coupleRepository.deactivateByNodeId(node.id, tx);
+        return;
+      }
+
+      const child = await this.nodeRepository.findByParentId(node.id, tx);
+      if (child) {
+        throw new BadRequestException(NODE_ERROR.CANNOT_DELETE_NODE_WITH_CHILDREN);
+      }
+
+      await this.nodeRepository.softDeactivate(node.id, 'system', tx);
+      await this.coupleRepository.deactivateByUserId(userId, tx);
+      await this.nodeRepository.decrementMembers(node.parent_id, tx);
+    };
+
+    if (transaction) {
+      await run(transaction);
+      return;
+    }
+
+    await this.baseTransactionService.runInTransaction(run);
+  }
+
+  async getAll(query: NodeFilterQueryDto): Promise<NodePaginationModel> {
+    const page = query.pageNumber ?? 1;
+    const limit = query.pageSize ?? 10;
+
+    const { items, total } = await this.nodeRepository.search({
+      page,
+      limit,
+      keyword: query.keyword ?? '',
+      orderBy: 'created_at',
+    });
+
+    const records: NodeGetVModel[] = [];
+    for (const node of items) {
+      const detail = await this.getById(node.id);
+      if (detail) {
+        records.push(detail);
+      }
+    }
+
+    return { records, totalRecords: total };
+  }
+
+  async getAllAsTree(): Promise<NodeTreeVModel> {
+    const allNodes = await this.nodeRepository.findAll({ is_active: true });
+    const userIds = allNodes?.map((n) => n.user_id) ?? [];
+    const users = await this.userRepository.findAll(userIds);
+    const userMap = new Map(users?.map((u) => [u.id, u]) ?? []);
+
+    const rootNodeEntity = allNodes?.find((x) => x.parent_id === null || x.parent_id === undefined);
+    if (!rootNodeEntity) {
+      throw new NotFoundException('Family tree root not found');
+    }
+
+    return mapEntityToTree(rootNodeEntity, allNodes ?? [], userMap as Map<string, UserEntity>);
+  }
+
+  async getById(id: string): Promise<NodeGetVModel | null> {
+    const entity = await this.nodeRepository.findByPkWithRelations(id);
+    if (!entity) {
+      return null;
+    }
+    return mapEntityToVModel(entity);
+  }
+
+  async getChilds(userId: string): Promise<NodeGetVModel[]> {
+    const parentNode = await this.nodeRepository.findByUserId(userId);
+    if (!parentNode) {
+      return [];
+    }
+
+    const childNode = await this.nodeRepository.findByParentId(parentNode.id);
+    if (!childNode) {
+      return [];
+    }
+
+    const child = await this.nodeRepository.findByPkWithRelations(childNode.id);
+    return child ? [mapEntityToVModel(child)] : [];
+  }
+
+  async getParents(userId: string): Promise<NodeGetVModel[]> {
+    const currentNode = await this.nodeRepository.findByUserId(userId);
+    if (!currentNode?.parent_id) {
+      return [];
+    }
+
+    const parent = await this.getById(currentNode.parent_id);
+    return parent ? [parent] : [];
+  }
+
+  private async attachToParentNode(
+    newUserId: string,
+    parentNodeId: string,
+    members: number,
+    transaction: Transaction,
+    parentUserId?: string,
+  ): Promise<TreeAttachmentResult> {
+    const existingNode = await this.nodeRepository.findByUserId(newUserId, transaction);
+    if (existingNode) {
+      throw new ConflictException(NODE_ERROR.USER_ALREADY_HAS_NODE);
+    }
+
+    const parentNode = await this.nodeRepository.findByPk(parentNodeId, [], false, { transaction });
+    if (!parentNode) {
+      throw new NotFoundException(NODE_ERROR.PARENT_NODE_NOT_FOUND);
+    }
+
+    const existingChild = await this.nodeRepository.findByParentId(parentNodeId, transaction);
     if (existingChild) {
       throw new ConflictException(NODE_ERROR.PARENT_ALREADY_HAS_CHILD);
     }
 
-    const parentCouple = await this.coupleRepository.findByUserId(parentUserId, transaction);
+    const parentCouple = await this.coupleRepository.findByUserId(parentNode.user_id, transaction);
     const level = (parentCouple?.level ?? ROOT_TREE_LEVEL) + 1;
 
     const childNode = await this.nodeRepository.create(
       {
         user_id: newUserId,
-        parent_id: parentNode.id,
-        members: 1,
+        parent_id: parentNodeId,
+        members,
         is_active: true,
       },
       { transaction },
@@ -93,403 +325,127 @@ export class NodeService {
       { transaction },
     );
 
-    await this.nodeRepository.incrementMembers(parentNode.id, transaction);
+    await this.nodeRepository.incrementMembers(parentNodeId, transaction);
 
     return {
       nodeId: childNode.id,
       coupleId: couple.id,
       level,
-      parentNodeId: parentNode.id,
-      parentUserId,
-    };
-  }
-  async getAll(parameters: DmnNodeFilterParams, currentUser: string): Promise<PaginationModel<DmnNodeGetVModel>> {
-    const limit = parameters.pageSize;
-    const offset = (parameters.pageNumber - 1) * parameters.pageSize;
-
-    // Xây dựng điều kiện lọc (Where clause)
-    const whereClause: any = { isActive: true };
-    this.buildQueryable(whereClause, parameters);
-
-    // Xử lý tìm kiếm theo từ khóa (Keyword)
-    const userIncludeWhere: any = {};
-    if (parameters.keyword) {
-      // Tìm theo tên User hiện tại hoặc tên của User cha mẹ
-      userIncludeWhere[Op.or] = [
-        { fullName: { [Op.like]: `%${parameters.keyword}%` } }
-      ];
-    }
-
-    // Thực hiện truy vấn đồng thời lấy tổng số bản ghi và dữ liệu phân trang
-    const { items: records, total: totalRecords } = await this.nodeRepository.search({
-      page: parameters.pageNumber,
-      limit: parameters.pageSize,
-      keyword: parameters.keyword || '',
-      orderBy: 'created_at',
-      sortOrder: 'DESC',
-    });
-
-    // Ánh xạ dữ liệu trả về và bổ sung thông tin Cha mẹ
-    const result: DmnNodeGetVModel[] = [];
-    for (const node of records) {
-      const userModel = node.user ? this.mapUserToVModel(node.user) : undefined;
-
-      let parentModel: UserEntity | undefined = undefined;
-      if (node.parentId && node.parentId !== 0) {
-        const parentNode = await this.nodeRepository.findByPk(node.parentId);
-        if (parentNode) {
-          parentModel = parentNode.user;
-        }
-      }
-
-      result.push({
-        id: Number(node.id),
-        userId: node.userId,
-        parentId: node.parentId ? Number(node.parentId) : undefined,
-        createdDate: node.createdDate,
-        createdBy: node.createdBy,
-        updatedDate: node.updatedDate,
-        updatedBy: node.updatedBy,
-        members: node.members ? Number(node.members) : undefined,
-        isActive: node.isActive,
-        parent: parentModel,
-        user: userModel,
-      });
-    }
-
-    return {
-      records: result,
-      totalRecords,
+      parentNodeId,
+      parentUserId: parentUserId ?? parentNode.user_id,
     };
   }
 
-  /**
-   * Lấy chi tiết một Node theo ID (GetById)
-   */
-  async getById(id: number): Promise<DmnNodeGetVModel | null> {
-    const entity = await this.nodeRepository.findByPk(id.toString());
-    if (!entity) return null;
-
-    // Lấy thông tin cặp vợ chồng (Couples) liên quan
-    const couples: any = await this.coupleRepository.findByNodeId(entity.id);
-    // Lấy thông tin cha mẹ của Node hiện tại
-    let userParent: UserEntity | null = null;
-    if (entity.parent_id) {
-      const entityParent = await this.nodeRepository.findByPk(entity.parent_id.toString());
-      if (entityParent) {
-        userParent = entityParent.user;
-      }
+  private async createRootNode(
+    dto: CreateNodeRequestDto,
+    actor: string,
+    transaction: Transaction,
+  ): Promise<NodeModel> {
+    const existingRoot = await this.nodeRepository.findRootNode(transaction);
+    if (existingRoot) {
+      throw new ConflictException(NODE_ERROR.ROOT_NODE_ALREADY_EXISTS);
     }
 
-    // Ánh xạ các cặp quan hệ vợ chồng (Tránh lỗi N+1 Query)
-    let couplesWithUsers: CoupleModel[] = [];
-    if (couples && couples.length > 0) {
-      couplesWithUsers = couples;
-    }
-    return {
-      id: Number(entity.id),
-      userId: entity.user_id,
-      user: entity.user,
-      members: entity.members ? Number(entity.members) : undefined,
-      parentId: entity.parent_id ? Number(entity.parent_id) : undefined,
-      createdDate: entity.created_at,
-      createdBy: entity.created_by,
-      updatedDate: entity.updated_at,
-      updatedBy: entity.updated_by,
-      isActive: entity.is_active,
-    }
-  }
-  /**
-   * Lấy danh sách con cái trực tiếp (GetChilds)
-   */
-  async getChilds(userId: string): Promise<any> {
-    const parentNode = await this.nodeRepository.findByUserId(userId);
-    if (!parentNode || Number(parentNode.id) === 0) {
-      return [];
+    if (dto.members !== undefined && dto.members !== null) {
+      throw new BadRequestException(NODE_ERROR.CANNOT_PROVIDE_MEMBERS_WITHOUT_PARENT);
     }
 
-    const children: DmnNodeGetVModel[] = [];
-    const childNodes = await this.nodeRepository.findByParentId(parentNode.id);
-    return childNodes;
+    const node = await this.nodeRepository.create(
+      {
+        user_id: dto.userId,
+        parent_id: null,
+        members: 1,
+        is_active: dto.is_active ?? true,
+        created_by: actor,
+      },
+      { transaction },
+    );
+
+    await this.coupleRepository.create(
+      {
+        user_id: dto.userId,
+        node_id: node.id,
+        level: ROOT_TREE_LEVEL,
+        is_active: true,
+      },
+      { transaction },
+    );
+
+    return node as NodeModel;
   }
 
-  /**
-   * Lấy thông tin bạn đời / cặp quan hệ (GetCouple)
-   */
-  // async getCouple(userId: string): Promise<DmnCoupleGetVModel[]> {
-  //   const parentNode = await this.nodeRepository.findByUserId(userId);
-  //   if (!parentNode || Number(parentNode.id) === 0) {
-  //     return [];
-  //   }
-
-  //   const couples: CoupleModel[] | null= await this.coupleRepository.findByNodeId(parentNode.id);
-  //   const userIds = couples.map(c => c.user_id);
-
-  //   const users = await this.userRepository.findAll(userIds);
-  //   const userMap = new Map(users?.map(u => [u.id, u]) ?? []);
-
-  //   return couples.map(c => {
-  //     const coupleUser = userMap.get(c.user_id);
-  //     return {
-  //       id: Number(c.id),
-  //       level: c.level,
-  //       userId: c.user_id,
-  //       createdDate: c.created_at,
-  //       createdBy: c.created_by,
-  //       isActive: c.is_active,
-  //       user: coupleUser ? this.mapUserToVModel(coupleUser) : undefined,
-  //     };
-  //   });
-  // }
-
-  /**
-   * Tạo mới một Node gia phả kèm theo cặp quan hệ (Transaction bọc toàn bộ)
-   */
-  // async create(model: DmnNodeCreateVModel, globalUserName: string): Promise<DmnNodeGetVModel> {
-  //   if (model.parentId) {
-  //     const parentNode = await this.dmnNodeModel.findOne({ where: { id: model.parentId } });
-  //     if (!parentNode) {
-  //       throw new NotFoundException('Không tìm thấy nút cha mẹ (Parent node not found).');
-  //     }
-  //     const parentUser = await this.userModel.findOne({ where: { id: parentNode.userId } });
-  //     if (!parentUser) {
-  //       throw new NotFoundException('Không tìm thấy tài khoản người dùng cha mẹ.');
-  //     }
-  //   } else if (model.members !== undefined && model.members !== null) {
-  //     throw new BadRequestException('Không thể cung cấp giá trị thành viên khi chưa có ParentId.');
-  //   }
-
-  //   if (model.members !== undefined && model.members !== null && model.parentId) {
-  //     const parentNode = await this.dmnNodeModel.findOne({ where: { id: model.parentId } });
-  //     if (parentNode) {
-  //       const childNodes = await this.getChilds(parentNode.userId);
-  //       const existingMembers = childNodes
-  //         .filter(c => c.members !== undefined && c.members !== null)
-  //         .map(c => c.members);
-
-  //       if (existingMembers.includes(model.members)) {
-  //         throw new BadRequestException('Thứ tự vị trí thành viên này đã tồn tại trong các nút con cùng cấp.');
-  //       }
-  //     }
-  //   }
-
-  //   // Thực thi Transaction của Sequelize bảo vệ an toàn toàn vẹn dữ liệu
-  //   return await this.sequelize.transaction(async (t) => {
-  //     const entity = await this.dmnNodeModel.create({
-  //       userId: model.userId,
-  //       parentId: model.parentId,
-  //       createdDate: new Date(),
-  //       createdBy: globalUserName,
-  //       isActive: model.isActive,
-  //       members: model.members,
-  //     } as any, { transaction: t });
-
-  //     if (model.coupleUserId) {
-  //       await this.dmnCoupleModel.create({
-  //         userId: model.coupleUserId,
-  //         isActive: true,
-  //         level: 1,
-  //         nodeId: entity.id,
-  //         createdDate: new Date(),
-  //         createdBy: globalUserName,
-  //       } as any, { transaction: t });
-  //     }
-
-  //     return this.mapEntityToVModel(entity);
-  //   });
-  // }
-
-  // /**
-  //  * Cập nhật thông tin Node (Update)
-  //  */
-  // async update(model: DmnNodeUpdateVModel, globalUserName: string): Promise<number> {
-  //   const entity = await this.dmnNodeModel.findOne({ where: { id: model.id } });
-  //   if (!entity) {
-  //     return 404;
-  //   }
-
-  //   if (model.members !== entity.members) {
-  //     if (model.parentId) {
-  //       const parentNode = await this.dmnNodeModel.findOne({ where: { id: model.parentId } });
-  //       if (parentNode) {
-  //         const childNodes = await this.getChilds(parentNode.userId);
-  //         const existingMembers = childNodes
-  //           .filter(c => c.members !== undefined && c.members !== null)
-  //           .map(c => c.members);
-
-  //         if (model.members !== undefined && model.members !== null && existingMembers.includes(model.members)) {
-  //           throw new BadRequestException('Thứ tự vị trí thành viên này đã tồn tại trong các nút con.');
-  //         }
-  //       }
-  //     }
-  //   }
-
-  //   entity.userId = model.userId;
-  //   entity.parentId = model.parentId;
-  //   entity.updatedDate = new Date();
-  //   entity.updatedBy = globalUserName;
-  //   entity.isActive = model.isActive;
-  //   entity.members = model.members;
-
-  //   await entity.save();
-  //   return 1;
-  // }
-
-  /**
-   * Xóa một Node (Remove)
-   */
-  // async remove(id: number): Promise<number> {
-  //   const entity = await this.nodeRepository.findOne({ where: { id } });
-  //   if (!entity) {
-  //     return 404;
-  //   }
-
-  //   const hasChildren = await this.nodeRepository.findOne({ where: { parentId: id } });
-  //   if (hasChildren) {
-  //     throw new BadRequestException('Phải thực hiện xóa toàn bộ các nút con trước khi xóa nút gốc.');
-  //   }
-
-  //   await entity.destroy();
-  //   return 1;
-  // }
-
-  // /**
-  //  * Thay đổi trạng thái hoạt động (ChangeStatus)
-  //  */
-  // async changeStatus(id: number): Promise<number> {
-  //   const entity = await this.nodeRepository.findOne({ where: { id } });
-  //   if (!entity) {
-  //     return 404;
-  //   }
-
-  //   entity.isActive = !entity.isActive;
-  //   entity.updatedDate = new Date();
-
-  //   await entity.save();
-  //   return 1;
-  // }
-
-  // /**
-  //  * Lấy cấu trúc toàn bộ cây gia phả đệ quy (GetAllAsTree)
-  //  */
-  async getAllAsTree(): Promise<DmnNodeGetAsTree> {
-    const allNodes = await this.nodeRepository.findAll( { is_active: true } );
-    const userIds = allNodes?.map(n => n.user_id) ?? [];
-    const users = await this.userRepository.findAll(userIds);
-    const userMap = new Map(users?.map(u => [u.id, u]) ?? []);
-
-    const rootNodeEntity = allNodes?.find(x => x.parent_id === null || Number(x.parent_id) === 0) as NodeModel;
-    if (!rootNodeEntity) {
-      throw new NotFoundException('Không tìm thấy dữ liệu gốc của cây gia phả.');
+  private async createChildNode(
+    dto: CreateNodeRequestDto,
+    actor: string,
+    transaction: Transaction,
+  ): Promise<NodeModel> {
+    const parentNode = await this.nodeRepository.findByPk(dto.parentId!, [], false, { transaction });
+    if (!parentNode) {
+      throw new NotFoundException(NODE_ERROR.PARENT_NODE_NOT_FOUND);
     }
 
-    return this.mapEntityToVModelTree(rootNodeEntity, allNodes ?? [], userMap as Map<string, UserEntity>);
+    const members = dto.members ?? 1;
+    await this.validateMemberOrder(dto.parentId!, members, undefined, transaction);
+
+    const attachment = await this.attachToParentNode(
+      dto.userId,
+      dto.parentId!,
+      members,
+      transaction,
+    );
+
+    await this.nodeRepository.updateNode(
+      attachment.nodeId,
+      { created_by: actor },
+      transaction,
+    );
+
+    return (await this.nodeRepository.findByPk(attachment.nodeId, [], false, { transaction })) as NodeModel;
   }
 
-  // ==========================================
-  // PRIVATE HELPER METHODS
-  // ==========================================
+  private async createSpouseCouple(
+    coupleUserId: string,
+    nodeId: string,
+    node: NodeModel,
+    transaction: Transaction,
+  ): Promise<void> {
+    if (coupleUserId === node.user_id) {
+      throw new BadRequestException(NODE_ERROR.CANNOT_ATTACH_TO_SELF);
+    }
 
-  private mapUserToVModel(user: UserEntity): any {
-    return {
-      id: user.id,
-      fullname: user.fullname,
-      other_name: user.other_name,
-      gender: user.gender,
-      year_of_birth: user.year_of_birth,
-      year_of_death: user.year_of_death,
-      burial_place: user.burial_place,
-      address: user.address,
-      biography: user.biography,
-      status: user.status,
-      email: user.email || '',
-      is_active: user.is_active,
-      created_at: user.created_at,
-      updated_by: user.updated_by,
-    };
+    const spouse = await this.userRepository.findByPk(coupleUserId, [], false, { transaction });
+    if (!spouse) {
+      throw new NotFoundException(NODE_ERROR.USER_NOT_FOUND);
+    }
+
+    const existingSpouseNode = await this.nodeRepository.findByUserId(coupleUserId, transaction);
+    if (existingSpouseNode) {
+      throw new ConflictException(NODE_ERROR.COUPLE_USER_ALREADY_HAS_NODE);
+    }
+
+    const ownerCouple = await this.coupleRepository.findByUserId(node.user_id, transaction);
+    const level = ownerCouple?.level ?? ROOT_TREE_LEVEL;
+
+    await this.coupleRepository.create(
+      {
+        user_id: coupleUserId,
+        node_id: nodeId,
+        level,
+        is_active: true,
+      },
+      { transaction },
+    );
   }
 
-  async getParents(userId: string): Promise<any> {
-    const currentNode = await this.nodeRepository.findByUserId(userId);
-    if (!currentNode || Number(currentNode.id) === 0) {
-      return [];
-    }
-
-    const parents: any[] = [];
-    if (currentNode && currentNode.parent_id) {
-      const parentResult = await this.getById(Number(currentNode.parent_id));
-      if (parentResult) {
-        parents.push(parentResult);
-      }
-    }
-    return parents;
-  }
-  // private mapEntityToVModel(entity: DmnNode): DmnNodeGetVModel {
-  //   return {
-  //     id: Number(entity.id),
-  //     userId: entity.userId,
-  //     parentId: entity.parentId ? Number(entity.parentId) : undefined,
-  //     createdDate: entity.createdDate,
-  //     createdBy: entity.createdBy,
-  //     updatedDate: entity.updatedDate,
-  //     updatedBy: entity.updatedBy,
-  //     isActive: entity.isActive,
-  //     members: entity.members ? Number(entity.members) : undefined,
-  //   };
-  // }
-
-  private mapEntityToVModelTree(
-    entity: NodeModel,
-    allNodes: NodeModel[],
-    userMap: Map<string, UserEntity>,
-  ): DmnNodeGetAsTree {
-    const userEntity = userMap.get(entity.user_id);
-    const userModel = userEntity ? this.mapUserToVModel(userEntity) : undefined;
-
-    const children = allNodes
-      .filter(x => Number(x.parent_id) === Number(entity.id))
-      .map(child => this.mapEntityToVModelTree(child, allNodes, userMap))
-      .filter(childTree => childTree.user?.isActive === true);
-
-    return {
-      id: Number(entity.id),
-      userId: entity.user_id,
-      parentId: entity.parent_id ? Number(entity.parent_id) : undefined,
-      createdDate: entity.createdAt,
-      createdBy: entity.created_by,
-      updatedDate: entity.updated_at,
-      updatedBy: entity.updated_by,
-      isActive: entity.is_active,
-      members: entity.members ? Number(entity.members) : undefined,
-      children,
-      user: userModel,
-    };
-  }
-
-  private buildQueryable(whereClause: any, fParams: DmnNodeFilterParams): void {
-    if (fParams.parentId !== undefined) {
-      whereClause.parentId = fParams.parentId;
-    }
-
-    if (fParams.isActive !== undefined) {
-      whereClause.isActive = fParams.isActive;
-    }
-
-    if (fParams.createdBy) {
-      whereClause.createdBy = { [Op.like]: `%${fParams.createdBy}%` };
-    }
-
-    if (fParams.updatedBy) {
-      whereClause.updatedBy = { [Op.like]: `%${fParams.updatedBy}%` };
-    }
-
-    // Query lọc theo ngày chính xác (Không phụ thuộc vào giờ giấc)
-    if (fParams.createdDate) {
-      whereClause[Op.and] = Sequelize.literal(`DATE(createdDate) = DATE('${fParams.createdDate.toISOString().split('T')[0]}')`);
-    }
-
-    if (fParams.updatedDate) {
-      whereClause[Op.and] = Sequelize.literal(`DATE(updatedDate) = DATE('${fParams.updatedDate.toISOString().split('T')[0]}')`);
+  private async validateMemberOrder(
+    parentId: string,
+    members: number,
+    excludeNodeId: string | undefined,
+    transaction: Transaction,
+  ): Promise<void> {
+    const sibling = await this.nodeRepository.findByParentId(parentId, transaction);
+    if (sibling && sibling.id !== excludeNodeId && sibling.members === members) {
+      throw new BadRequestException(NODE_ERROR.MEMBER_ORDER_ALREADY_EXISTS);
     }
   }
 }

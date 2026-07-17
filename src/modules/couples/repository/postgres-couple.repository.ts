@@ -19,15 +19,36 @@ export class PostgresCoupleRepository extends AbstractCoupleRepository {
 
   async findByUserId(userId: string, transaction?: Transaction): Promise<CoupleModel | null> {
     return this.model.findOne({
-      where: { user_id: userId },
+      where: { user_id: userId, is_active: true },
       transaction,
     });
   }
 
   async findByNodeId(nodeId: string, transaction?: Transaction): Promise<CoupleModel | null> {
     return this.model.findOne({
-      where: { node_id: nodeId },
+      where: { node_id: nodeId, is_active: true },
       transaction,
     });
+  }
+
+  async findAllByNodeId(nodeId: string, transaction?: Transaction): Promise<CoupleModel[]> {
+    return this.model.findAll({
+      where: { node_id: nodeId, is_active: true },
+      transaction,
+    });
+  }
+
+  async deactivateByNodeId(nodeId: string, transaction?: Transaction): Promise<void> {
+    await this.model.update(
+      { is_active: false },
+      { where: { node_id: nodeId }, transaction },
+    );
+  }
+
+  async deactivateByUserId(userId: string, transaction?: Transaction): Promise<void> {
+    await this.model.update(
+      { is_active: false },
+      { where: { user_id: userId }, transaction },
+    );
   }
 }

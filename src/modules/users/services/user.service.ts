@@ -8,6 +8,7 @@ import { CreateMemberRequestDto } from '@modules/users/dto/create-member.request
 import { CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto } from '@modules/users/dto/user.admin.request.dto';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
+import { NodeService } from '@modules/nodes/services/node.service';
 import {
   ConflictException,
   Injectable,
@@ -40,6 +41,7 @@ export class UserService extends BaseService<
     public cacheManage: RedisService,
     private readonly passwordService: PasswordService,
     private readonly roleRepository: PostgresRoleRepository,
+    private readonly nodeService: NodeService,
   ) {
     super(repository);
     this.entityName = USER_ENTITY.NAME;
@@ -71,11 +73,11 @@ export class UserService extends BaseService<
 
   async delete(id: string): Promise<void> {
     const user = await this.userRepository.findByPk(id);
-    if (user) {
-      user.is_active = false;
-      user.deleted_at = new Date();
-    }
     if (!user) throw new NotFoundException(`User with id ${id} not found!`);
+
+    await this.nodeService.detachMemberByUserId(id);
+    user.is_active = false;
+    user.deleted_at = new Date();
     await user.save();
   }
 

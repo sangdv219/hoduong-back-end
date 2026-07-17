@@ -4,23 +4,23 @@ import { Expose } from 'class-transformer';
 export class CreateMemberResponseDto {
   @Expose()
   @ApiProperty({ example: 'uuid' })
-  id: string;
+  id!: string;
 
   @Expose()
   @ApiProperty({ example: 'Nguyen Van A' })
-  fullname: string;
+  fullname!: string;
 
   @Expose()
   @ApiProperty({ example: 'nguyen-van-a' })
-  ascii_name: string;
+  ascii_name!: string;
 
   @Expose()
   @ApiProperty({ example: 'member@example.com' })
-  email: string;
+  email!: string;
 
   @Expose()
   @ApiProperty({ example: '0919528956' })
-  phone: string;
+  phone!: string;
 
   @Expose()
   @ApiPropertyOptional({ example: 'Nam' })
@@ -32,11 +32,11 @@ export class CreateMemberResponseDto {
 
   @Expose()
   @ApiProperty({ example: false })
-  is_root: boolean;
+  is_root!: boolean;
 
   @Expose()
   @ApiProperty({ example: true })
-  is_active: boolean;
+  is_active!: boolean;
 
   @Expose()
   @ApiPropertyOptional()
@@ -68,9 +68,9 @@ export class CreateMemberResponseDto {
 
   @Expose()
   @ApiProperty()
-  created_at: Date;
+  created_at!: Date;
 
   @Expose()
   @ApiProperty()
-  updated_at: Date;
+  updated_at!: Date;
 }

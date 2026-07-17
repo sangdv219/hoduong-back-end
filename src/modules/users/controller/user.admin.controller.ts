@@ -46,7 +46,7 @@ export class UserAdminController {
   @ApiOkResponse({ description: 'Danh sách user phân trang', type: BaseGetResponse<UserEntity> })
   @Get()
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JWTAuthGuard)
+  // @UseGuards(JWTAuthGuard)
   async getPagination(@Query() query: PaginationQueryDto): Promise<GetAllUserAdminResponseDto> {
     try {
       return this.userService.getPagination(query);
@@ -56,7 +56,7 @@ export class UserAdminController {
   }
 
   @Get(':id')
-  @UseGuards(JWTAuthGuard)
+  // @UseGuards(JWTAuthGuard)
   async getUserAdminById(@Param('id') id: string): Promise<GetByIdUserAdminResponseDto | null> {
     try {
       return await this.userService.getById(id);
@@ -73,7 +73,7 @@ export class UserAdminController {
   }
   
   @Get('getRolePermissionByUserId/:id')
-  @UseGuards(JWTAuthGuard)
+  // @UseGuards(JWTAuthGuard)
   async getRolePermissionByUserId(@Param('id') id: string): Promise<any | null> {
     try {
       return await this.userService.getRolePermissionByUserId(id);
@@ -93,8 +93,8 @@ export class UserAdminController {
   
   @Patch(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @UseGuards(JWTAuthGuard)
-  @UseInterceptors(UserContextInterceptor)
+  // @UseGuards(JWTAuthGuard)
+  // @UseInterceptors(UserContextInterceptor)
   async updateUserAdmin(@Param('id') id: string, @Body() dto: UpdatedUserAdminRequestDto) {
     try {
       return await this.userService.update(id, dto);
@@ -105,8 +105,8 @@ export class UserAdminController {
   
   @Delete(':id')
   @HttpCode(HttpStatus.CREATED)
-  @UseGuards(JWTAuthGuard)
-  @UseInterceptors(UserContextInterceptor)
+  // @UseGuards(JWTAuthGuard)
+  // @UseInterceptors(UserContextInterceptor)
   async deleteUserAdmin(@Param('id') id: string): Promise<void> {
     try {
       return await this.userService.delete(id);
@@ -117,8 +117,8 @@ export class UserAdminController {
   }
   
   @Patch('/restore/:id')
-  @UseGuards(JWTAuthGuard)
-  @UseInterceptors(UserContextInterceptor)
+  // @UseGuards(JWTAuthGuard)
+  // @UseInterceptors(UserContextInterceptor)
   @HttpCode(HttpStatus.NO_CONTENT)
   async restoreUserAdmin(@Param('id') id: string): Promise<any> {
     return await this.userService.restoreUser(id);
