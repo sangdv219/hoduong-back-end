@@ -15,12 +15,12 @@ export class NodeUserVModel {
   fullname?: string;
   otherName?: string;
   gender?: string;
-  yearOfBirth?: number;
-  yearOfDeath?: number;
+  yearOfBirth?: Date;
+  yearOfDeath?: Date;
   burialPlace?: string;
   address?: string;
   biography?: string;
-  status?: string;
+  status?: number;
   email?: string;
   is_active?: boolean;
   createdAt?: Date;

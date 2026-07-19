@@ -269,7 +269,7 @@
 //   //     include: [{
 //   //       model: UserEntity,
 //   //       // attributes: {exclude: ['password_hash', 'created_by']}
-//   //       attributes: ['name', 'email', 'phone', 'age', 'gender', 'avatar']
+//   //       attributes: ['name', 'email', 'phone', 'age', 'gender']
 //   //     },
 //   //     ],
 //   //     raw: true,

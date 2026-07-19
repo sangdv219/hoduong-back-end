@@ -1,7 +1,7 @@
 import { IPaginationDTO } from '@/domain/repositories/base.repository';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class PaginationQueryDto implements IPaginationDTO {
   @IsOptional()
@@ -38,4 +38,12 @@ export class PaginationQueryDto implements IPaginationDTO {
     enum: ['ASC', 'DESC'],
   })
   sortOrder!: 'ASC' | 'DESC';
+
+  @IsOptional()
+  @ApiPropertyOptional({ example: 'created_at', description: 'Sort by field' })
+  @Type(() => String)
+  @IsString()
+  sortBy!: string;
 }
+
+

@@ -38,6 +38,10 @@ export class UserEntity extends BaseModel<UserEntity> {
   declare ascii_name: string;
 
   @AllowNull(true)
+  @Column({ type: DataType.STRING(500) })
+  declare other_name: string; // Khớp với otherName?
+
+  @AllowNull(true)
   @Column(DataType.TEXT)
   declare password_hash: string;
 
@@ -60,16 +64,12 @@ export class UserEntity extends BaseModel<UserEntity> {
   declare age: number;
 
   @AllowNull(true)
-  @Column({ type: DataType.STRING(500) })
-  declare other_name: string; // Khớp với otherName?
+  @Column(DataType.DATE)
+  declare birth_date: Date; // Khớp với yearOfBirth?
 
   @AllowNull(true)
-  @Column(DataType.INTEGER)
-  declare year_of_birth: number; // Khớp với yearOfBirth?
-
-  @AllowNull(true)
-  @Column(DataType.INTEGER)
-  declare year_of_death: number; // Khớp với yearOfDeath?
+  @Column(DataType.DATE)
+  declare year_of_death: Date; // Khớp với yearOfDeath?
 
   @AllowNull(true)
   @Column({ type: DataType.STRING(1000) })
@@ -84,8 +84,8 @@ export class UserEntity extends BaseModel<UserEntity> {
   declare biography: string; // Khớp với biography?
 
   @AllowNull(true)
-  @Column({ type: DataType.STRING(100) })
-  declare status: string; // Khớp với status?
+  @Column(DataType.INTEGER)
+  declare status: number; // Khớp với status?
 
   @AllowNull(true)
   @Column(DataType.INTEGER)
@@ -100,10 +100,6 @@ export class UserEntity extends BaseModel<UserEntity> {
   @Default(false)
   @Column(DataType.BOOLEAN)
   declare is_active: boolean;
-
-  @AllowNull(true)
-  @Column(DataType.STRING)
-  declare avatar: string;
 
   @AllowNull(true)
   @Default(DataType.NOW)

@@ -1,10 +1,10 @@
 import { CreateUserUseCase } from '@modules/users/use-cases/create-user/create-user.use-case';
-import { CreateMemberRequestDto } from '@modules/users/dto/create-member.request.dto';
+import { CreatedUserAdminRequestDto } from '@modules/users/dto/create-member.request.dto';
 import { USER_ERROR } from '@modules/users/constants/user.constant';
 import { ConflictException } from '@nestjs/common';
 
 describe('CreateUserUseCase', () => {
-  const dto: CreateMemberRequestDto = {
+  const dto: CreatedUserAdminRequestDto = {
     fullname: 'Nguyen Van A',
     email: 'member@example.com',
     password: 'secret123',

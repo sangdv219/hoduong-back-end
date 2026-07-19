@@ -10,7 +10,13 @@ export interface IPaginationDTO {
   keyword: string;
   orderBy: string;
   sortOrder?: 'ASC' | 'DESC'
+  sortBy?: string;
 }
+
+// export interface IUserPaginationDTO extends IPaginationDTO {
+//   is_active?: boolean;
+//   role?: string;
+// }
 
 export interface IBaseRepository<T> {
   search(params: IPaginationDTO, options: FindOptions<T>);
@@ -54,7 +60,7 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
     });
 
     return {
-      items: rows,
+      items: rows,  
       total: count,
       page,
       limit,
@@ -99,7 +105,7 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
         }
       }
     }
-
+    
     return where;
   }
 

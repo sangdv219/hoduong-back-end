@@ -15,7 +15,7 @@ export function mapUserToVModel(user: UserEntity | Record<string, unknown>): Nod
     fullname: u.fullname,
     otherName: u.other_name,
     gender: u.gender,
-    yearOfBirth: u.year_of_birth,
+    yearOfBirth: u.birth_date,
     yearOfDeath: u.year_of_death,
     burialPlace: u.burial_place,
     address: u.address,

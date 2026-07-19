@@ -21,6 +21,10 @@ async function bootstrap() {
   );
   app.setGlobalPrefix('api')
   app.enableVersioning({ type: VersioningType.URI })
+  app.enableCors({
+    origin: 'http://localhost:3001', 
+    credentials: true,
+  });
   // app.useGlobalInterceptors(new UserContextInterceptor());     inject global
 
   const config = new DocumentBuilder()
@@ -43,8 +47,8 @@ async function bootstrap() {
   SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
 
-  console.log(`🚀 HTTP server running on port http://localhost:${configService.getOrThrow('PORT')}/api#/`);
+  console.log(`🚀 HTTP server running on port ----------- http://localhost:${configService.getOrThrow('PORT')}/api#/ -----------`);
 
-  await app.listen(process.env.PORT ?? 3001);
+  await app.listen(process.env.PORT ?? configService.getOrThrow('PORT'));
 }
 bootstrap();

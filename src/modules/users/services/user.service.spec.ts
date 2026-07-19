@@ -1,5 +1,5 @@
 import { UserService } from '@modules/users/services/user.service';
-import { CreateMemberRequestDto } from '@modules/users/dto/create-member.request.dto';
+import { CreatedUserAdminRequestDto } from '@modules/users/dto/create-member.request.dto';
 import { USER_ERROR } from '@modules/users/constants/user.constant';
 import { ConflictException } from '@nestjs/common';
 import * as argon2 from 'argon2';
@@ -7,7 +7,7 @@ import * as argon2 from 'argon2';
 jest.mock('argon2');
 
 describe('UserService.createMember (PR-081)', () => {
-  const dto: CreateMemberRequestDto = {
+  const dto: CreatedUserAdminRequestDto = {
     fullname: 'Nguyen Van A',
     email: 'member@example.com',
     password: 'secret123',

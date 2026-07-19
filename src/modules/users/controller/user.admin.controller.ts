@@ -20,9 +20,7 @@ import {
   Version
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
-import { UpdatedUserAdminRequestDto } from '@modules/users/dto/user.admin.request.dto';
-import { CreateMemberRequestDto } from '@modules/users/dto/create-member.request.dto';
-import { CreateMemberResponseDto } from '@modules/users/dto/create-member.response.dto';
+import { CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
 import { UserEntity } from '@infrastructure/models/user.model';
 import { UserService } from '@modules/users/services/user.service';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
@@ -47,9 +45,9 @@ export class UserAdminController {
   @Get()
   @HttpCode(HttpStatus.OK)
   // @UseGuards(JWTAuthGuard)
-  async getPagination(@Query() query: PaginationQueryDto): Promise<GetAllUserAdminResponseDto> {
+  async getPagination(@Query() query: UserPaginationDTO): Promise<GetAllUserAdminResponseDto> {
     try {
-      return this.userService.getPagination(query);
+      return this.userService.searchUser(query);
     } catch (error) {
       throw error;
     }
@@ -86,8 +84,8 @@ export class UserAdminController {
   // @UseGuards(JWTAuthGuard)
   // @UseInterceptors(UserContextInterceptor)
   @Post()
-  @ApiOkResponse({ description: 'Create new member', type: CreateMemberResponseDto })
-  async create(@Body() dto: CreateMemberRequestDto): Promise<CreateMemberResponseDto> {
+  @ApiOkResponse({ description: 'Create new member', type: CreatedUserAdminRequestDto })
+  async create(@Body() dto: CreatedUserAdminRequestDto): Promise<any> {
     return await this.createUserUseCase.execute(dto);
   }
   

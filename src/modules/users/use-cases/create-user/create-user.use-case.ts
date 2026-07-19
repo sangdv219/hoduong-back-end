@@ -1,11 +1,11 @@
 import { BaseTransactionService } from '@/infrastructure/database/transaction.service';
 import { PostgresUserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
 import { NodeService } from '@modules/nodes/services/node.service';
-import { CreateMemberRequestDto } from '@modules/users/dto/create-member.request.dto';
-import { CreateMemberResponseDto } from '@modules/users/dto/create-member.response.dto';
-import { toSafeUserResponse } from '@modules/users/helpers/user-response.helper';
+// import { toSafeUserResponse } from '@modules/users/helpers/user-response.helper';
 import { UserService } from '@modules/users/services/user.service';
 import { Injectable } from '@nestjs/common';
+import { CreatedUserAdminRequestDto } from '@modules/users/dto/user.admin.request.dto';
+import { toSafeUserResponse } from '@modules/users/helpers/user-response.helper';
 
 @Injectable()
 export class CreateUserUseCase {
@@ -16,7 +16,7 @@ export class CreateUserUseCase {
     private readonly baseTransactionService: BaseTransactionService,
   ) {}
 
-  async execute(dto: CreateMemberRequestDto): Promise<CreateMemberResponseDto> {
+  async execute(dto: CreatedUserAdminRequestDto): Promise<any> {
     return this.baseTransactionService.runInTransaction(async (transaction) => {
       const user = await this.userService.createMember(dto, transaction);
       const roleId = await this.userService.resolveRoleId(dto.roleId);

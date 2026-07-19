@@ -4,7 +4,6 @@ import { PostgresUserRolesRepository } from '@modules/associations/repositories/
 import { PasswordService } from '@modules/password/services/password.service';
 import { PostgresRoleRepository } from '@modules/roles/infrastructure/repository/postgres-role.repository';
 import { USER_ENTITY, USER_ERROR, DEFAULT_MEMBER_ROLE_NAME } from '@modules/users/constants/user.constant';
-import { CreateMemberRequestDto } from '@modules/users/dto/create-member.request.dto';
 import { CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto } from '@modules/users/dto/user.admin.request.dto';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
@@ -18,8 +17,9 @@ import {
 import { InjectConnection } from '@nestjs/sequelize';
 import { RedisService } from '@redis/redis.service';
 import { toAsciiName } from '@shared/utils/string.util';
-import { Transaction } from 'sequelize';
+import { FindOptions, Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
+import { IPaginationDTO } from '@/domain/repositories/base.repository';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -44,6 +44,7 @@ export class UserService extends BaseService<
     private readonly nodeService: NodeService,
   ) {
     super(repository);
+    this.searchableFields = ['fullname', 'other_name', 'email', 'phone', 'gender', 'age', 'birth_date'];
     this.entityName = USER_ENTITY.NAME;
   }
 
@@ -170,7 +171,7 @@ export class UserService extends BaseService<
   }
 
   async createMember(
-    dto: CreateMemberRequestDto,
+    dto: CreatedUserAdminRequestDto,
     transaction?: Transaction,
   ): Promise<Record<string, unknown>> {
     await this.ensureUniqueContact(dto.email, dto.phone);
@@ -179,18 +180,31 @@ export class UserService extends BaseService<
 
     const userEntity = {
       fullname: dto.fullname,
+      other_name: dto.other_name,
       ascii_name: toAsciiName(dto.fullname),
       email: dto.email,
       phone: dto.phone,
       password_hash: passwordHash,
       gender: dto.gender,
       age: dto.age,
+      birth_date: dto.birth_date,
+      year_of_death: dto.year_of_death,
+      burial_place: dto.burial_place,
+      biography: dto.biography,
+      address: dto.address,
+      status: dto.status,
+      avatar_file_id: dto.avatar_file_id,
       is_root: false,
       is_active: dto.is_active ?? true,
-      avatar: dto.avatar ?? null,
+
     };
+    console.log('userEntity', userEntity)
 
     this.cleanCacheRedis();
     return this.userRepository.create(userEntity, { transaction });
+  }
+
+  async searchUser(params: IPaginationDTO & Record<string, any>): Promise<any> {
+    return this.search(params);
   }
 }

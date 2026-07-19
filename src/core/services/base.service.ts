@@ -1,4 +1,4 @@
-import { IBaseRepository, IPaginationDTO } from '@/domain/repositories/base.repository';
+import { IBaseRepository, IPaginationDTO } from '@domain/repositories/base.repository';
 import {
   BeforeApplicationShutdown,
   Logger,
@@ -79,36 +79,52 @@ export abstract class BaseService<
   }
 
   async search(
-    params: IPaginationDTO, 
-    queryBuilder?: (options: FindOptions<TEntity>) => FindOptions<TEntity> | Promise<FindOptions<TEntity>>): Promise<any>{
-    let options: FindOptions<TEntity> = {};
-    let whereClause: any = { [Op.and]: [] };
+    params: IPaginationDTO & Record<string, any>, // Chấp nhận các filter động đi kèm
+    queryBuilder?: (options: FindOptions<TEntity>) => FindOptions<TEntity> | Promise<FindOptions<TEntity>>
+  ): Promise<any> {
+    const options: FindOptions<TEntity> = {};
+    const andConditions: any[] = [];
+    // 1. Xử lý tìm kiếm toàn văn theo từ khóa (Keyword Search)
     if (params.keyword && this.searchableFields.length > 0) {
-      const searchCondition = {
+      andConditions.push({
         [Op.or]: this.searchableFields.map(field => ({
           [field]: { [Op.iLike]: `%${params.keyword}%` }
         }))
-      };
-      this.booleanFields.forEach(field => {
-        if (params[field] !== undefined) {
-          // Ép kiểu vì param từ URL luôn là string "true" hoặc "false"
-          const boolValue = params[field] === 'true' || params[field] === true;
-          whereClause[Op.and].push({ [field]: boolValue });
-        }
       });
-
-      // Logger.log("booleanFields", this.booleanFields)
-      // Logger.log("whereClause", whereClause)
-      whereClause = { [Op.and]: [whereClause, searchCondition] };
     }
-    // Logger.log("options", options)
-
-    options.where = whereClause;
-
-    if(queryBuilder){
-      options = await queryBuilder(options)
+  
+    // 2. Tự động trích xuất tất cả bộ lọc động (ví dụ: is_active, status...)
+    const basePaginationKeys = ['page', 'limit', 'keyword', 'sortOrder'];
+    const filters: Record<string, any> = {};
+    
+    Object.keys(params).forEach(key => {
+      // Nếu thuộc tính nằm ngoài thông số phân trang gốc và có giá trị hợp lệ
+      if (!basePaginationKeys.includes(key) && params[key] !== undefined && params[key] !== null && params[key] !== '') {
+        let value = params[key];
+        // Chuẩn hóa kiểu dữ liệu Boolean khi nhận từ URL (Query string)
+        if (value === 'true') value = true;
+        if (value === 'false') value = false;
+        
+        filters[key] = value;
+      }
+    });
+  
+    if (Object.keys(filters).length > 0) {
+      andConditions.push(filters);
     }
-    return this.repository.search(params, options)
+  
+    // Gán tất cả các điều kiện vào điều kiện chung WHERE
+    if (andConditions.length > 0) {
+      options.where = { [Op.and]: andConditions };
+    }
+  
+    // 3. Cho phép bổ sung logic thông qua callback queryBuilder nếu cần cấu trúc truy vấn nâng cao
+    let finalOptions = options;
+    if (queryBuilder) {
+      finalOptions = await queryBuilder(options);
+    }
+  
+    return this.repository.search(params, finalOptions);
   }
 
   async create(dto: TCreateDto) {
