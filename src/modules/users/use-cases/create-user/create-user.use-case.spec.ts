@@ -27,7 +27,7 @@ describe('CreateUserUseCase', () => {
   const treeAttachment = {
     nodeId: 'node-uuid',
     coupleId: 'couple-uuid',
-    level: 2,
+    couple_order: 2,
     parentNodeId: 'parent-node-uuid',
     parentUserId: 'parent-user-uuid',
   };
@@ -95,7 +95,7 @@ describe('CreateUserUseCase', () => {
     expect(result).toMatchObject({
       nodeId: 'node-uuid',
       coupleId: 'couple-uuid',
-      level: 2,
+      couple_order: 2,
       parentNodeId: 'parent-node-uuid',
       parentUserId: 'parent-user-uuid',
     });

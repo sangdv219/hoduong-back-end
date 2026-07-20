@@ -46,6 +46,7 @@ export class UserAdminController {
   @HttpCode(HttpStatus.OK)
   // @UseGuards(JWTAuthGuard)
   async getPagination(@Query() query: UserPaginationDTO): Promise<GetAllUserAdminResponseDto> {
+    console.log('query', query)
     try {
       return this.userService.searchUser(query);
     } catch (error) {

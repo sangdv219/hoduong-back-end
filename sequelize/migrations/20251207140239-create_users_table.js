@@ -38,18 +38,22 @@ module.exports = {
       },
       phone: {
         type: Sequelize.STRING(100),
-        allowNull: true,
+        allowNull: false,
         defaultValue: Sequelize.phone
       },
       gender: {
-        type: Sequelize.STRING(255),
-        allowNull: true,
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        validate: {
+          isIn: [[0, 1]] // Chỉ chấp nhận giá trị nằm trong mảng này
+        } 
       },
       age: {
         type: Sequelize.INTEGER,
         allowNull: true,
         unique: false,
       },
+
       status: {
         type: Sequelize.INTEGER,
         allowNull: false,

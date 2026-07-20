@@ -35,12 +35,15 @@ export class CoupleModel extends BaseModel<CoupleModel> {
 
   @AllowNull(false)
   @Column(DataType.INTEGER)
-  declare level: number;
+  declare couple_order: number;
 
-  @AllowNull(false)
-  @Default(true)
-  @Column(DataType.BOOLEAN)
-  declare is_active: boolean;
+  @AllowNull(true)
+  @Column(DataType.DATE)
+  declare marriage_date: Date;
+
+  @AllowNull(true)
+  @Column(DataType.DATE)
+  declare divorce_date: Date;
 
   @BelongsTo(() => UserEntity, 'user_id')
   declare user: UserEntity;

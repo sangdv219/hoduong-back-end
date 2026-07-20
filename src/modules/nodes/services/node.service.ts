@@ -29,7 +29,7 @@ import { UserEntity } from '@/infrastructure/models/user.model';
 export interface TreeAttachmentResult {
   nodeId: string;
   coupleId: string;
-  level: number;
+  couple_order: number;
   parentNodeId?: string;
   parentUserId?: string;
 }
@@ -83,7 +83,7 @@ export class NodeService {
 
       let node: NodeModel;
 
-      if (!dto.parentId) {
+      if (!dto.fatherId) {
         node = await this.createRootNode(dto, actor, transaction);
       } else {
         node = await this.createChildNode(dto, actor, transaction);
@@ -117,12 +117,12 @@ export class NodeService {
       }
 
       if (dto.members !== undefined && dto.members !== entity.members) {
-        if (!entity.parent_id && !dto.parentId) {
+        if (!entity.father_id && !dto.fatherId) {
           throw new BadRequestException(NODE_ERROR.CANNOT_PROVIDE_MEMBERS_WITHOUT_PARENT);
         }
-        const parentId = dto.parentId ?? entity.parent_id;
-        if (parentId) {
-          await this.validateMemberOrder(parentId, dto.members!, nodeId, transaction);
+        const fatherId = dto.fatherId ?? entity.father_id;
+        if (fatherId) {
+          await this.validateMemberOrder(fatherId, dto.members!, nodeId, transaction);
         }
       }
 
@@ -130,7 +130,7 @@ export class NodeService {
         nodeId,
         {
           user_id: dto.userId ?? entity.user_id,
-          parent_id: dto.parentId ?? entity.parent_id,
+          father_id: dto.fatherId ?? entity.father_id,
           members: dto.members ?? entity.members,
           is_active: dto.is_active ?? entity.is_active,
           updated_by: actor,
@@ -150,7 +150,7 @@ export class NodeService {
         throw new NotFoundException(NODE_ERROR.NODE_NOT_FOUND);
       }
 
-      if (!entity.parent_id) {
+      if (!entity.father_id) {
         throw new BadRequestException(NODE_ERROR.CANNOT_DELETE_ROOT_NODE);
       }
 
@@ -161,7 +161,7 @@ export class NodeService {
 
       await this.nodeRepository.softDeactivate(nodeId, actor, transaction);
       await this.coupleRepository.deactivateByNodeId(nodeId, transaction);
-      await this.nodeRepository.decrementMembers(entity.parent_id!, transaction);
+      await this.nodeRepository.decrementMembers(entity.father_id!, transaction);
     });
   }
 
@@ -187,7 +187,7 @@ export class NodeService {
         return;
       }
 
-      if (!node.parent_id) {
+      if (!node.father_id) {
         await this.nodeRepository.softDeactivate(node.id, 'system', tx);
         await this.coupleRepository.deactivateByNodeId(node.id, tx);
         return;
@@ -200,7 +200,7 @@ export class NodeService {
 
       await this.nodeRepository.softDeactivate(node.id, 'system', tx);
       await this.coupleRepository.deactivateByUserId(userId, tx);
-      await this.nodeRepository.decrementMembers(node.parent_id, tx);
+      await this.nodeRepository.decrementMembers(node.father_id, tx);
     };
 
     if (transaction) {
@@ -239,7 +239,7 @@ export class NodeService {
     const users = await this.userRepository.findAll(userIds);
     const userMap = new Map(users?.map((u) => [u.id, u]) ?? []);
 
-    const rootNodeEntity = allNodes?.find((x) => x.parent_id === null || x.parent_id === undefined);
+    const rootNodeEntity = allNodes?.find((x) => x.father_id === null || x.father_id === undefined);
     if (!rootNodeEntity) {
       throw new NotFoundException('Family tree root not found');
     }
@@ -272,11 +272,11 @@ export class NodeService {
 
   async getParents(userId: string): Promise<NodeGetVModel[]> {
     const currentNode = await this.nodeRepository.findByUserId(userId);
-    if (!currentNode?.parent_id) {
+    if (!currentNode?.father_id) {
       return [];
     }
 
-    const parent = await this.getById(currentNode.parent_id);
+    const parent = await this.getById(currentNode.father_id);
     return parent ? [parent] : [];
   }
 
@@ -303,12 +303,12 @@ export class NodeService {
     }
 
     const parentCouple = await this.coupleRepository.findByUserId(parentNode.user_id, transaction);
-    const level = (parentCouple?.level ?? ROOT_TREE_LEVEL) + 1;
+    const couple_order = (parentCouple?.couple_order ?? ROOT_TREE_LEVEL) + 1;
 
     const childNode = await this.nodeRepository.create(
       {
         user_id: newUserId,
-        parent_id: parentNodeId,
+        father_id: parentNodeId,
         members,
         is_active: true,
       },
@@ -319,7 +319,7 @@ export class NodeService {
       {
         user_id: newUserId,
         node_id: childNode.id,
-        level,
+        couple_order,
         is_active: true,
       },
       { transaction },
@@ -330,7 +330,7 @@ export class NodeService {
     return {
       nodeId: childNode.id,
       coupleId: couple.id,
-      level,
+      couple_order,
       parentNodeId,
       parentUserId: parentUserId ?? parentNode.user_id,
     };
@@ -353,7 +353,7 @@ export class NodeService {
     const node = await this.nodeRepository.create(
       {
         user_id: dto.userId,
-        parent_id: null,
+        father_id: null,
         members: 1,
         is_active: dto.is_active ?? true,
         created_by: actor,
@@ -365,7 +365,7 @@ export class NodeService {
       {
         user_id: dto.userId,
         node_id: node.id,
-        level: ROOT_TREE_LEVEL,
+        couple_order: ROOT_TREE_LEVEL,
         is_active: true,
       },
       { transaction },
@@ -379,17 +379,17 @@ export class NodeService {
     actor: string,
     transaction: Transaction,
   ): Promise<NodeModel> {
-    const parentNode = await this.nodeRepository.findByPk(dto.parentId!, [], false, { transaction }); // TODO: Fix this
+    const parentNode = await this.nodeRepository.findByPk(dto.fatherId!, [], false, { transaction }); // TODO: Fix this
     if (!parentNode) {
       throw new NotFoundException(NODE_ERROR.PARENT_NODE_NOT_FOUND);
     }
 
     const members = dto.members ?? 1;
-    await this.validateMemberOrder(dto.parentId!, members, undefined, transaction);
+    await this.validateMemberOrder(dto.fatherId!, members, undefined, transaction);
 
     const attachment = await this.attachToParentNode(
       dto.userId!, // TODO: Fix this
-      dto.parentId!,
+      dto.fatherId!,
       members,
       transaction,
     );
@@ -424,13 +424,13 @@ export class NodeService {
     }
 
     const ownerCouple = await this.coupleRepository.findByUserId(node.user_id, transaction);
-    const level = ownerCouple?.level ?? ROOT_TREE_LEVEL;
+    const couple_order = ownerCouple?.couple_order ?? ROOT_TREE_LEVEL;
 
     await this.coupleRepository.create(
       {
         user_id: coupleUserId,
         node_id: nodeId,
-        level,
+        couple_order,
         is_active: true,
       },
       { transaction },
@@ -438,12 +438,12 @@ export class NodeService {
   }
 
   private async validateMemberOrder(
-    parentId: string,
+    fatherId: string,
     members: number,
     excludeNodeId: string | undefined,
     transaction: Transaction,
   ): Promise<void> {
-    const sibling = await this.nodeRepository.findByParentId(parentId, transaction);
+    const sibling = await this.nodeRepository.findByParentId(fatherId, transaction);
     if (sibling && sibling.id !== excludeNodeId && sibling.members === members) {
       throw new BadRequestException(NODE_ERROR.MEMBER_ORDER_ALREADY_EXISTS);
     }

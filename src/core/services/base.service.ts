@@ -92,7 +92,7 @@ export abstract class BaseService<
         }))
       });
     }
-  
+    
     // 2. Tự động trích xuất tất cả bộ lọc động (ví dụ: is_active, status...)
     const basePaginationKeys = ['page', 'limit', 'keyword', 'sortOrder'];
     const filters: Record<string, any> = {};

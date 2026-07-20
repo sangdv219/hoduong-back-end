@@ -37,7 +37,7 @@ export class NodeModel extends BaseModel<NodeModel> {
 
   @AllowNull(true)
   @Column(DataType.UUID)
-  declare parent_id: string | null;
+  declare father_id: string | null;
 
   @AllowNull(false)
   @Default(false)
@@ -47,10 +47,10 @@ export class NodeModel extends BaseModel<NodeModel> {
   @BelongsTo(() => UserEntity, 'user_id')
   declare user: UserEntity;
 
-  @BelongsTo(() => NodeModel, { foreignKey: 'parent_id', as: 'parent' })
+  @BelongsTo(() => NodeModel, { foreignKey: 'father_id', as: 'parent' })
   declare parent?: NodeModel;
 
-  @HasMany(() => NodeModel, { foreignKey: 'parent_id', as: 'children' })
+  @HasMany(() => NodeModel, { foreignKey: 'father_id', as: 'children' })
   declare children?: NodeModel[];
 
   @HasMany(() => CoupleModel, 'node_id')

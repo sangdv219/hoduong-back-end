@@ -39,16 +39,16 @@ export class PostgresNodeRepository extends AbstractNodeRepository {
     });
   }
 
-  async findByParentId(parentId: string, transaction?: Transaction): Promise<NodeModel | null> {
+  async findByParentId(fatherId: string, transaction?: Transaction): Promise<NodeModel | null> {
     return this.model.findOne({
-      where: { parent_id: parentId, is_active: true },
+      where: { father_id: fatherId, is_active: true },
       transaction,
     });
   }
 
   async findRootNode(transaction?: Transaction): Promise<NodeModel | null> {
     return this.model.findOne({
-      where: { parent_id: null, is_active: true },
+      where: { father_id: null, is_active: true },
       transaction,
     });
   }

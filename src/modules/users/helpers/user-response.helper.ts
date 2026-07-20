@@ -45,7 +45,7 @@ export function toSafeUserResponse(
     roleId: safe.roleId as string,
     // nodeId: tree?.nodeId,
     // coupleId: tree?.coupleId,
-    // level: tree?.level,
+    // couple_order: tree?.couple_order,
     // parentNodeId: tree?.parentNodeId,
     parentUserId: safe.parentUserId as string,
     // created_at: safe.created_at as Date,

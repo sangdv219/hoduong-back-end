@@ -29,7 +29,7 @@ export class NodeUserVModel {
 
 export class CoupleGetVModel {
   id?: string;
-  level?: number;
+  couple_order?: number;
   userId?: string | null;
   createdAt?: Date | null;
   createdBy?: string | null;
@@ -41,7 +41,7 @@ export class CoupleGetVModel {
 export class NodeGetVModel {
   nodeId?: string;
   userId?: string | null;
-  parentId?: string;
+  fatherId?: string;
   createdAt?: Date;
   createdBy?: string;
   updatedAt?: Date;
@@ -56,7 +56,7 @@ export class NodeGetVModel {
 export class NodeTreeVModel {
   id?: string;
   userId?: string | null;
-  parentId?: string;
+  fatherId?: string;
   createdAt?: Date;
   createdBy?: string;
   updatedAt?: Date;
@@ -91,7 +91,7 @@ export class NodeFilterQueryDto {
 
   @IsOptional()
   @IsUUID()
-  parentId?: string | null;
+  fatherId?: string | null;
 
   @IsOptional()
   @Type(() => Boolean)
@@ -124,7 +124,7 @@ export class CreateNodeRequestDto {
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional({ description: 'Parent node ID' })
-  parentId?: string | null = null;
+  fatherId?: string | null = null;
 
   @IsOptional()
   @IsUUID()
@@ -154,7 +154,7 @@ export class UpdateNodeRequestDto {
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional({ description: 'Parent node ID' })
-  parentId?: string | null = null;
+  fatherId?: string | null = null;
 
   @IsOptional()
   @Type(() => Number)

@@ -183,7 +183,7 @@ export class UserService extends BaseService<
       other_name: dto.other_name,
       ascii_name: toAsciiName(dto.fullname),
       email: dto.email,
-      phone: dto.phone,
+      phone: dto.phone || null,
       password_hash: passwordHash,
       gender: dto.gender,
       age: dto.age,
@@ -196,15 +196,14 @@ export class UserService extends BaseService<
       avatar_file_id: dto.avatar_file_id,
       is_root: false,
       is_active: dto.is_active ?? true,
-
     };
-    console.log('userEntity', userEntity)
 
     this.cleanCacheRedis();
     return this.userRepository.create(userEntity, { transaction });
   }
 
   async searchUser(params: IPaginationDTO & Record<string, any>): Promise<any> {
+    console.log('params user', params)
     return this.search(params);
   }
 }

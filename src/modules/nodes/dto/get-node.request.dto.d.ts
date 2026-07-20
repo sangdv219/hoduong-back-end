@@ -2,7 +2,7 @@ interface DmnNodeFilterParams {
     pageNumber: number;
     pageSize: number;
     keyword?: string;
-    parentId?: number;
+    fatherId?: number;
     isActive?: boolean;
     createdBy?: string;
     createdDate?: Date;
@@ -16,7 +16,7 @@ interface PaginationModel<T> {
 interface DmnNodeGetVModel {
     id: number;
     userId: string;
-    parentId?: number;
+    fatherId?: number;
     createdDate?: Date;
     createdBy?: string;
     updatedDate?: Date;
@@ -31,7 +31,7 @@ interface DmnNodeGetVModel {
 
 interface DmnCoupleGetVModel {
     id: number;
-    level: number;
+    couple_order: number;
     userId: string;
     createdDate?: Date;
     createdBy?: string;
@@ -43,7 +43,7 @@ interface DmnCoupleGetVModel {
 interface DmnNodeGetAsTree {
     id: number;
     userId: string;
-    parentId?: number;
+    fatherId?: number;
     createdDate?: Date;
     createdBy?: string;
     updatedDate?: Date;

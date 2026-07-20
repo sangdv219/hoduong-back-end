@@ -49,14 +49,15 @@ export class UserEntity extends BaseModel<UserEntity> {
   @Unique
   @Column({ type: DataType.STRING(500) })
   declare email: string;
-
+  
   @AllowNull(false)
   @Default('')
+  @Unique
   @Column({ type: DataType.STRING(100) })
   declare phone: string;
 
-  @AllowNull(true)
-  @Column({ type: DataType.STRING(255) })
+  @AllowNull(false)
+  @Column(DataType.INTEGER)
   declare gender: string;
 
   @AllowNull(true)

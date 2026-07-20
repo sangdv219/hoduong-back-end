@@ -73,10 +73,9 @@ export class CreatedUserAdminRequestDto implements CreatedUserAdminRequest {
   @ApiProperty({ description: 'age', example: 22 })
   @IsNumber({}, { message: 'Age must be a number' })
   age!: number;
-
+  
+  @IsOptional()
   @ApiProperty({ description: 'phone', example: '0919 528 956' })
-  @IsNotEmpty({ message: 'Phone is required' })
-  @IsString({ message: 'Phone must be a string' })
   phone!: string;
 
   @IsOptional()
@@ -89,7 +88,7 @@ export class CreatedUserAdminRequestDto implements CreatedUserAdminRequest {
   @Transform(({ value }) => value === 'true' || value === true)
   @ApiProperty({ description: 'is_active', example: true })
   @IsBoolean({ message: 'is_active must be a boolean (true/false)' })
-  is_active: boolean = true;
+  is_active!: boolean;
 
   @IsOptional()
   @IsString()
@@ -147,10 +146,14 @@ export class UpdatedUserAdminRequestDto extends PartialType(OmitType(CreatedUser
 
 export class UserPaginationDTO extends PaginationQueryDto{
   @IsOptional()
-  @ApiPropertyOptional({ example: true, description: 'Is active' })
-  @Transform(({ value }) => value === 'true' || value === true)
+  @ApiPropertyOptional()
+  @Transform(({ value }) => {
+    if (value === 'true' || value === 1 || value === '1' || value === true) return true;
+    if (value === 'false' || value === 0 || value === '0' || value === false) return false;
+    return undefined; // Hoặc giữ nguyên value tùy thuộc vào logic validation phía dưới
+  })
   @IsBoolean({ message: 'is_active must be a boolean (true/false)' })
-  is_active: boolean = true;
+  is_active!: boolean;
 
   // @IsOptional()
   // @ApiPropertyOptional({ example: '026e2174-aff3-4461-9f43-0e16c9a88f17', description: 'Role' })

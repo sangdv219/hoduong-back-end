@@ -11,7 +11,7 @@ module.exports = {
       },
       user_id: {
         type: Sequelize.UUID,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: 'users', // bảng users
           key: 'id',
@@ -19,19 +19,26 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      members: {
+      generation_order: {
         type: Sequelize.INTEGER,
-        allowNull:false,
-        defaultValue: 1
+        allowNull: false,
       },
-      parent_id: {
+      father_id: {
         type: Sequelize.UUID,
         allowNull:true,
       },
-      is_active: {
-        type: Sequelize.BOOLEAN,
+      mother_id: {
+        type: Sequelize.UUID, 
+        allowNull: true, 
+      },
+      parent_branch_id:{
+        type: Sequelize.UUID, 
+        allowNull: false, 
+      },
+      child_order: {
+        type: Sequelize.INTEGER,
         allowNull:false,
-        defaultValue: false
+        defaultValue: 1
       },
       created_at: {
         type: Sequelize.DATE,
@@ -55,9 +62,9 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex('nodes', ['parent_id'], {
+    await queryInterface.addIndex('nodes', ['father_id'], {
       unique: true,
-      name: 'idx_nodes_parent_id',
+      name: 'idx_nodes_father_id',
     });
     await queryInterface.addIndex('nodes', ['user_id'], {
       unique: true,

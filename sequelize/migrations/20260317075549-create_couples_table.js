@@ -29,15 +29,19 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      level: {
+      couple_order: {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      is_active: {
-        type: Sequelize.BOOLEAN,
+      marriage_date: {
+        type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: true
       },
+      divorce_date: {
+        type: Sequelize.DATE,
+        allowNull: false,
+      },
+
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
