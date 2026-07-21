@@ -13,6 +13,17 @@ import {
 import { UserEntity } from './user.model';
 import { NodeModel } from './node.model';
 
+
+export enum MarriageStatus {
+  MARRIED = 'MARRIED',
+  DIVORCED = 'DIVORCED',
+  WIDOWED = 'WIDOWED',
+}
+export enum MarriageDateStatus {
+  SOLAR = 'SOLAR',
+  LUNAR = 'LUNAR',
+}
+
 @Table({
   tableName: 'couples',
   timestamps: true,
@@ -40,6 +51,18 @@ export class CoupleModel extends BaseModel<CoupleModel> {
   @AllowNull(true)
   @Column(DataType.DATE)
   declare marriage_date: Date;
+
+  @AllowNull(true)
+  @Column({
+    type: DataType.ENUM(...Object.values(MarriageStatus)),
+  })
+  declare marriage_status: MarriageStatus;
+
+  @AllowNull(true)
+  @Column({
+    type: DataType.ENUM(...Object.values(MarriageDateStatus)),
+  })
+  declare marriage_date_type: MarriageDateStatus;
 
   @AllowNull(true)
   @Column(DataType.DATE)

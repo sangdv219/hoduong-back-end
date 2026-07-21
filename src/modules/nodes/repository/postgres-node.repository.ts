@@ -68,7 +68,7 @@ export class PostgresNodeRepository extends AbstractNodeRepository {
   }
 
   async incrementMembers(nodeId: string, transaction?: Transaction): Promise<void> {
-    await this.model.increment('members', {
+    await this.model.increment('child_order', {
       by: 1,
       where: { id: nodeId },
       transaction,
@@ -76,7 +76,7 @@ export class PostgresNodeRepository extends AbstractNodeRepository {
   }
 
   async decrementMembers(nodeId: string, transaction?: Transaction): Promise<void> {
-    await this.model.decrement('members', {
+    await this.model.decrement('child_order', {
       by: 1,
       where: { id: nodeId },
       transaction,

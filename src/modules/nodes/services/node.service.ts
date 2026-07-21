@@ -116,13 +116,13 @@ export class NodeService {
         }
       }
 
-      if (dto.members !== undefined && dto.members !== entity.members) {
+      if (dto.child_order !== undefined && dto.child_order !== entity.child_order) {
         if (!entity.father_id && !dto.fatherId) {
           throw new BadRequestException(NODE_ERROR.CANNOT_PROVIDE_MEMBERS_WITHOUT_PARENT);
         }
         const fatherId = dto.fatherId ?? entity.father_id;
         if (fatherId) {
-          await this.validateMemberOrder(fatherId, dto.members!, nodeId, transaction);
+          await this.validateMemberOrder(fatherId, dto.child_order!, nodeId, transaction);
         }
       }
 
@@ -131,8 +131,7 @@ export class NodeService {
         {
           user_id: dto.userId ?? entity.user_id,
           father_id: dto.fatherId ?? entity.father_id,
-          members: dto.members ?? entity.members,
-          is_active: dto.is_active ?? entity.is_active,
+          child_order: dto.child_order ?? entity.child_order,
           updated_by: actor,
         },
         transaction,
@@ -172,7 +171,6 @@ export class NodeService {
     }
 
     await this.nodeRepository.updateNode(nodeId, {
-      is_active: !entity.is_active,
       updated_by: actor,
     });
 
@@ -183,7 +181,7 @@ export class NodeService {
   async detachMemberByUserId(userId: string, transaction?: Transaction): Promise<void> {
     const run = async (tx: Transaction) => {
       const node = await this.nodeRepository.findByUserId(userId, tx);
-      if (!node || !node.is_active) {
+      if (!node) {
         return;
       }
 
@@ -283,7 +281,7 @@ export class NodeService {
   private async attachToParentNode(
     newUserId: string,
     parentNodeId: string,
-    members: number,
+    child_order: number,
     transaction: Transaction,
     parentUserId?: string,
   ): Promise<TreeAttachmentResult> {
@@ -309,7 +307,7 @@ export class NodeService {
       {
         user_id: newUserId,
         father_id: parentNodeId,
-        members,
+        child_order,
         is_active: true,
       },
       { transaction },
@@ -346,7 +344,7 @@ export class NodeService {
       throw new ConflictException(NODE_ERROR.ROOT_NODE_ALREADY_EXISTS);
     }
 
-    if (dto.members !== undefined && dto.members !== null) {
+    if (dto.child_order !== undefined && dto.child_order !== null) {
       throw new BadRequestException(NODE_ERROR.CANNOT_PROVIDE_MEMBERS_WITHOUT_PARENT);
     }
 
@@ -354,7 +352,7 @@ export class NodeService {
       {
         user_id: dto.userId,
         father_id: null,
-        members: 1,
+        child_order: 1,
         is_active: dto.is_active ?? true,
         created_by: actor,
       },
@@ -384,13 +382,13 @@ export class NodeService {
       throw new NotFoundException(NODE_ERROR.PARENT_NODE_NOT_FOUND);
     }
 
-    const members = dto.members ?? 1;
-    await this.validateMemberOrder(dto.fatherId!, members, undefined, transaction);
+    const child_order = dto.child_order ?? 1;
+    await this.validateMemberOrder(dto.fatherId!, child_order, undefined, transaction);
 
     const attachment = await this.attachToParentNode(
       dto.userId!, // TODO: Fix this
       dto.fatherId!,
-      members,
+      child_order,
       transaction,
     );
 
@@ -439,12 +437,12 @@ export class NodeService {
 
   private async validateMemberOrder(
     fatherId: string,
-    members: number,
+    child_order: number,
     excludeNodeId: string | undefined,
     transaction: Transaction,
   ): Promise<void> {
     const sibling = await this.nodeRepository.findByParentId(fatherId, transaction);
-    if (sibling && sibling.id !== excludeNodeId && sibling.members === members) {
+    if (sibling && sibling.id !== excludeNodeId && sibling.child_order === child_order) {
       throw new BadRequestException(NODE_ERROR.MEMBER_ORDER_ALREADY_EXISTS);
     }
   }

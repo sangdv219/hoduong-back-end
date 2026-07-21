@@ -50,8 +50,7 @@ export function mapEntityToVModel(entity: NodeModel | Record<string, unknown>): 
     createdBy: node.created_by ?? undefined,
     updatedAt: node.updated_at,
     updatedBy: node.updated_by ?? undefined,
-    is_active: node.is_active,
-    members: node.members,
+    child_order: node.child_order,
     user: node.user ? mapUserToVModel(node.user) : undefined,
     parent: node.parent?.user ? mapUserToVModel(node.parent.user) : undefined,
   };
@@ -78,8 +77,7 @@ export function mapEntityToTree(
     createdBy: entity.created_by ?? undefined,
     updatedAt: entity.updated_at,
     updatedBy: entity.updated_by ?? undefined,
-    is_active: entity.is_active,
-    members: entity.members,
+    child_order: entity.child_order,
     children,
     user: userModel,
   };

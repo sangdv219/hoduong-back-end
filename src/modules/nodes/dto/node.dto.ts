@@ -47,7 +47,7 @@ export class NodeGetVModel {
   updatedAt?: Date;
   updatedBy?: string;
   is_active?: boolean;
-  members?: number;
+  child_order?: number;
   parent?: NodeUserVModel;
   user?: NodeUserVModel;
   couples?: CoupleGetVModel[];
@@ -62,7 +62,7 @@ export class NodeTreeVModel {
   updatedAt?: Date;
   updatedBy?: string;
   is_active?: boolean;
-  members?: number;
+  child_order?: number;
   children?: NodeTreeVModel[] | null;
   user?: NodeUserVModel;
 }
@@ -136,7 +136,7 @@ export class CreateNodeRequestDto {
   @IsInt()
   @Min(1)
   @ApiPropertyOptional({ description: 'Member order among siblings', default: 1 })
-  members?: number | null = 1;
+  child_order?: number | null = 1;
 
   @IsOptional()
   @Type(() => Boolean)
@@ -161,7 +161,7 @@ export class UpdateNodeRequestDto {
   @IsInt()
   @Min(1)
   @ApiPropertyOptional({ description: 'Member order among siblings' })
-  members?: number | null = 1;
+  child_order?: number | null = 1;
 
   @IsOptional()
   @Type(() => Boolean)

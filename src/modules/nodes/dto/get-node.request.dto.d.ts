@@ -22,7 +22,7 @@ interface DmnNodeGetVModel {
     updatedDate?: Date;
     updatedBy?: string;
     isActive: boolean;
-    members?: number;
+    child_order?: number;
     avatarPath?: string;
     parent?: AspNetUsersGetVModel;
     user?: AspNetUsersGetVModel;
@@ -49,7 +49,7 @@ interface DmnNodeGetAsTree {
     updatedDate?: Date;
     updatedBy?: string;
     isActive: boolean;
-    members?: number;
+    child_order?: number;
     children: DmnNodeGetAsTree[];
     user?: AspNetUsersGetVModel;
   }

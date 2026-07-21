@@ -30,19 +30,26 @@ export class NodeModel extends BaseModel<NodeModel> {
   @Column(DataType.UUID)
   declare user_id: string;
 
-  @AllowNull(false)
-  @Default(1)
-  @Column(DataType.INTEGER)
-  declare members: number;
+  @AllowNull(true)
+  @Column(DataType.UUID)
+  declare parent_branch_id: string | null;
 
   @AllowNull(true)
   @Column(DataType.UUID)
   declare father_id: string | null;
+  
+  @AllowNull(true)
+  @Column(DataType.UUID)
+  declare mother_id: string | null;
+  
+  @AllowNull(false)
+  @Default(1)
+  @Column(DataType.INTEGER)
+  declare child_order: number;
 
   @AllowNull(false)
-  @Default(false)
-  @Column(DataType.BOOLEAN)
-  declare is_active: boolean;
+  @Column(DataType.INTEGER)
+  declare generation_order: number;
 
   @BelongsTo(() => UserEntity, 'user_id')
   declare user: UserEntity;

@@ -1,5 +1,7 @@
 'use strict';
 
+const { type } = require("os");
+
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('couples', {
@@ -37,9 +39,17 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: false,
       },
+      marriage_status: {
+        type: Sequelize.ENUM('MARRIED', 'DIVORCED', 'WIDOWED'),
+        allowNull: false
+      },
+      marriage_date_type: {
+        type: Sequelize.ENUM('SOLAR', 'LUNAR'),
+        allowNull: false
+      },
       divorce_date: {
         type: Sequelize.DATE,
-        allowNull: false,
+        allowNull: true,
       },
 
       created_at: {
