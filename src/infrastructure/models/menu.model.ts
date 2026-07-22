@@ -53,7 +53,7 @@ export class MenuModel extends BaseModel<MenuModel> {
   @AllowNull(false)
   @Default(true)
   @Column(DataType.BOOLEAN)
-  declare is_active: boolean;
+  declare status: boolean;
 
   @BelongsTo(() => MenuModel, { foreignKey: 'father_id', as: 'parent' })
   declare parent?: MenuModel;

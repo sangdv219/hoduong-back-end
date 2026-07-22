@@ -19,7 +19,7 @@ describe('CreateUserUseCase', () => {
     phone: dto.phone,
     password_hash: 'hashed-value',
     is_root: false,
-    is_active: true,
+    status: true,
     created_at: new Date('2026-01-01'),
     updated_at: new Date('2026-01-01'),
   };

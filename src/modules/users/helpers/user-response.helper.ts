@@ -1,6 +1,7 @@
 // import { TreeAttachmentResult } from '@modules/nodes/services/node.service';
 // import { CreatedUserAdminRequestDto } from '../dto/user.admin.request.dto';
 
+import { Status } from "@/infrastructure/models/user.model";
 import { TreeAttachmentResult } from "@modules/nodes/services/node.service";
 import { CreatedUserAdminRequestDto } from "@modules/users/dto/user.admin.request.dto";
 
@@ -32,16 +33,16 @@ export function toSafeUserResponse(
     other_name: safe.other_name as string,
     email: safe.email as string,
     phone: safe.phone as string,
-    gender: safe.gender as string,
+    gender: safe.gender as number,
     age: safe.age as number,
-    status: safe.status as number,
+    life_status: safe.life_status as 0 | 1,
     address: safe.address as string,
     birth_date: safe.birth_date as Date,
     year_of_death: safe.year_of_death as Date,
     biography: safe.biography as string,
     burial_place: safe.burial_place as string,
     is_root: safe.is_root as boolean,
-    is_active: safe.is_active as boolean,
+    // status: safe.status as Status,
     roleId: safe.roleId as string,
     // nodeId: tree?.nodeId,
     // coupleId: tree?.coupleId,

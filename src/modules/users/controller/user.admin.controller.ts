@@ -46,7 +46,6 @@ export class UserAdminController {
   @HttpCode(HttpStatus.OK)
   // @UseGuards(JWTAuthGuard)
   async getPagination(@Query() query: UserPaginationDTO): Promise<GetAllUserAdminResponseDto> {
-    console.log('query', query)
     try {
       return this.userService.searchUser(query);
     } catch (error) {
@@ -58,7 +57,7 @@ export class UserAdminController {
   // @UseGuards(JWTAuthGuard)
   async getUserAdminById(@Param('id') id: string): Promise<GetByIdUserAdminResponseDto | null> {
     try {
-      return await this.userService.getById(id);
+      return await this.userService.getUserById(id);
     } catch (error) {
       throw error;
     }
@@ -95,6 +94,7 @@ export class UserAdminController {
   // @UseGuards(JWTAuthGuard)
   // @UseInterceptors(UserContextInterceptor)
   async updateUserAdmin(@Param('id') id: string, @Body() dto: UpdatedUserAdminRequestDto) {
+
     try {
       return await this.userService.update(id, dto);
     } catch (error) {

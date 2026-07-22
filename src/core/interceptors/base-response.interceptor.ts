@@ -23,7 +23,7 @@ export class BaseResponseInterceptor<T> implements NestInterceptor<T, BaseRespon
         return next
             .handle()
             .pipe(
-                map(value => value && ({ records: value })),
+                map(value => value && ({ ...value })),
                 catchError((err) => {
                     if (err instanceof HttpException) {
                         const status = err.getStatus();

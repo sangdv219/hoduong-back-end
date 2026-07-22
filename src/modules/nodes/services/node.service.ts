@@ -232,7 +232,7 @@ export class NodeService {
   }
 
   async getAllAsTree(): Promise<NodeTreeVModel> {
-    const allNodes = await this.nodeRepository.findAll({ is_active: true });
+    const allNodes = await this.nodeRepository.findAll({ status: true });
     const userIds = allNodes?.map((n) => n.user_id) ?? [];
     const users = await this.userRepository.findAll(userIds);
     const userMap = new Map(users?.map((u) => [u.id, u]) ?? []);
@@ -308,7 +308,7 @@ export class NodeService {
         user_id: newUserId,
         father_id: parentNodeId,
         child_order,
-        is_active: true,
+        status: true,
       },
       { transaction },
     );
@@ -318,7 +318,7 @@ export class NodeService {
         user_id: newUserId,
         node_id: childNode.id,
         couple_order,
-        is_active: true,
+        status: true,
       },
       { transaction },
     );
@@ -353,7 +353,7 @@ export class NodeService {
         user_id: dto.userId,
         father_id: null,
         child_order: 1,
-        is_active: dto.is_active ?? true,
+        status: dto.status ?? true,
         created_by: actor,
       },
       { transaction },
@@ -364,7 +364,7 @@ export class NodeService {
         user_id: dto.userId,
         node_id: node.id,
         couple_order: ROOT_TREE_LEVEL,
-        is_active: true,
+        status: true,
       },
       { transaction },
     );
@@ -429,7 +429,7 @@ export class NodeService {
         user_id: coupleUserId,
         node_id: nodeId,
         couple_order,
-        is_active: true,
+        status: true,
       },
       { transaction },
     );

@@ -65,7 +65,7 @@ describe('NodeService.attachMemberToTree', () => {
         user_id: 'new-user-id',
         father_id: 'parent-node-id',
         child_order: 1,
-        is_active: true,
+        status: true,
       },
       { transaction },
     );
@@ -74,7 +74,7 @@ describe('NodeService.attachMemberToTree', () => {
         user_id: 'new-user-id',
         node_id: 'child-node-id',
         level: 2,
-        is_active: true,
+        status: true,
       },
       { transaction },
     );

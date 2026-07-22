@@ -20,7 +20,7 @@ export class UserAdminBaseDto {
   is_root: boolean = true;
 
   @Expose()
-  is_active: boolean = true;
+  status: boolean = true;
 }
 
 export class GetAllUserAdminResponseDto {

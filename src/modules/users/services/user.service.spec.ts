@@ -58,7 +58,7 @@ describe('UserService.createMember (PR-081)', () => {
       phone: dto.phone,
       password_hash: 'argon2-hashed-password',
       is_root: false,
-      is_active: true,
+      status: true,
     });
   });
 

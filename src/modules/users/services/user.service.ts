@@ -4,7 +4,7 @@ import { PostgresUserRolesRepository } from '@modules/associations/repositories/
 import { PasswordService } from '@modules/password/services/password.service';
 import { PostgresRoleRepository } from '@modules/roles/infrastructure/repository/postgres-role.repository';
 import { USER_ENTITY, USER_ERROR, DEFAULT_MEMBER_ROLE_NAME } from '@modules/users/constants/user.constant';
-import { CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto } from '@modules/users/dto/user.admin.request.dto';
+import { CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
 import { NodeService } from '@modules/nodes/services/node.service';
@@ -20,6 +20,9 @@ import { toAsciiName } from '@shared/utils/string.util';
 import { FindOptions, Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { IPaginationDTO } from '@/domain/repositories/base.repository';
+import { buildRedisKeyQuery } from '@/redis/helpers/redis-key.helper';
+import { RedisContext } from '@/redis/enums/redis-key.enum';
+import { sensitiveFields } from '@/shared/config/sensitive-fields.config';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -77,31 +80,33 @@ export class UserService extends BaseService<
     if (!user) throw new NotFoundException(`User with id ${id} not found!`);
 
     await this.nodeService.detachMemberByUserId(id);
-    user.is_active = false;
     user.deleted_at = new Date();
     await user.save();
   }
 
   async update(id: string, dto: UpdatedUserAdminRequestDto) {
-    this.getById(id);
-    this.cleanCacheRedis();
+    // this.cleanCacheRedis();
     const entity = await this.userRepository.findByPk(id);
     if (!entity) throw new NotFoundException(`User with id ${id} not found!`);
     Object.assign(entity, dto);
-    await entity.save();
+    // entity.set(dto); 
+    // console.log('entity cux', entity)
+    // await entity.save();
+    await entity.update(dto);
+
     return entity;
   }
 
   async restoreUser(id: string): Promise<any> {
     const user = await this.userRepository.findByOneByRaw({
-      where: { id, is_active: false },
+      where: { id, status: false },
       paranoid: false,
     });
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
     const result = await this.userRepository.update(id, {
-      is_active: true,
+      status: true,
       deleted_at: null,
     });
 
@@ -175,7 +180,7 @@ export class UserService extends BaseService<
     transaction?: Transaction,
   ): Promise<Record<string, unknown>> {
     await this.ensureUniqueContact(dto.email, dto.phone);
-
+    
     const passwordHash = await this.passwordService.hashPassword(dto.password);
 
     const userEntity = {
@@ -192,18 +197,32 @@ export class UserService extends BaseService<
       burial_place: dto.burial_place,
       biography: dto.biography,
       address: dto.address,
-      status: dto.status,
+      life_status: dto.life_status,
       avatar_file_id: dto.avatar_file_id,
       is_root: false,
-      is_active: dto.is_active ?? true,
     };
 
     this.cleanCacheRedis();
     return this.userRepository.create(userEntity, { transaction });
   }
 
-  async searchUser(params: IPaginationDTO & Record<string, any>): Promise<any> {
-    console.log('params user', params)
+  async searchUser(params: UserPaginationDTO & Record<string, any>): Promise<any> {
     return this.search(params);
+  }
+
+  async getUserById(id: string): Promise<any>{
+    const redisKey = buildRedisKeyQuery(this.entityName.toLocaleLowerCase(), RedisContext.DETAIL, {}, id);
+
+    const cached = await this.cacheManage.get(redisKey);
+
+    const exclude = sensitiveFields[this.entityName] ?? [];
+    const dataCache = cached && JSON.parse(cached);
+    if (cached) return dataCache;
+    
+    const entity = await this.repository.findByPk(id, exclude);
+    if (!entity) {
+      throw new NotFoundException(`${this.entityName} with id ${id} not found`);
+    }
+    await this.cacheManage.set(redisKey, JSON.stringify(entity), 'EX', 30);
   }
 }

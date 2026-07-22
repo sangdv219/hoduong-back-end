@@ -39,6 +39,6 @@ export class ConfigurationModel extends BaseModel<ConfigurationModel> {
   @AllowNull(false)
   @Default(true)
   @Column(DataType.BOOLEAN)
-  declare is_active: boolean;
+  declare status: boolean;
 }
 

@@ -17,6 +17,23 @@ import {
   Unique
 } from 'sequelize-typescript';
 
+export enum Status {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  PENDING = 'pending',
+  SUSPENDED = 'suspended',
+  ARCHIVED = 'archived',
+}
+export enum GenderEnum {
+  NAM = 0,
+  NU = 1,
+}
+// PENDING: Mới đăng ký, chưa verify email/chờ Admin duyệt.
+// ACTIVE: Đang hoạt động bình thường.
+// INACTIVE: Người dùng tự tắt tài khoản / chưa kích hoạt xong.
+// SUSPENDED: Bị Admin khóa / vi phạm tiêu chuẩn.
+// ARCHIVED: Đã xóa mềm / Đưa vào lưu trữ.
+
 @Table({
   tableName: 'users',
   timestamps: true,
@@ -56,9 +73,12 @@ export class UserEntity extends BaseModel<UserEntity> {
   @Column({ type: DataType.STRING(100) })
   declare phone: string;
 
-  @AllowNull(false)
-  @Column(DataType.INTEGER)
-  declare gender: string;
+  @Column({
+    type: DataType.SMALLINT, // Hoặc DataType.INTEGER
+    allowNull: true,
+    comment: '0: Nam, 1: Nữ',
+  })
+  gender?: GenderEnum;
 
   @AllowNull(true)
   @Column(DataType.INTEGER)
@@ -86,7 +106,7 @@ export class UserEntity extends BaseModel<UserEntity> {
 
   @AllowNull(true)
   @Column(DataType.INTEGER)
-  declare status: number; // Khớp với status?
+  declare life_status: 0 | 1; // Khớp với life_status?
 
   @AllowNull(true)
   @Column(DataType.INTEGER)
@@ -98,9 +118,11 @@ export class UserEntity extends BaseModel<UserEntity> {
   declare is_root: boolean;
 
   @AllowNull(false)
-  @Default(false)
-  @Column(DataType.BOOLEAN)
-  declare is_active: boolean;
+  @Default('pending')
+  @Column({
+    type: DataType.ENUM(...Object.values(Status)),
+  })
+  declare status: Status;
 
   @AllowNull(true)
   @Default(DataType.NOW)

@@ -20,9 +20,9 @@ export function mapUserToVModel(user: UserEntity | Record<string, unknown>): Nod
     burialPlace: u.burial_place,
     address: u.address,
     biography: u.biography,
-    status: u.status,
+    life_status: u.life_status,
     email: u.email || '',
-    is_active: u.is_active,
+    status: u.status,
     createdAt: u.created_at,
     updatedBy: u.updated_by,
   };
@@ -67,7 +67,7 @@ export function mapEntityToTree(
   const children = allNodes
     .filter((node) => node.father_id === entity.id)
     .map((child) => mapEntityToTree(child, allNodes, userMap))
-    .filter((childTree) => childTree.user?.is_active !== false);
+    .filter((childTree) => childTree.user?.status !== 'active');
 
   return {
     id: entity.id,

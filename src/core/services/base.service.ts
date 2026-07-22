@@ -84,6 +84,7 @@ export abstract class BaseService<
   ): Promise<any> {
     const options: FindOptions<TEntity> = {};
     const andConditions: any[] = [];
+
     // 1. Xử lý tìm kiếm toàn văn theo từ khóa (Keyword Search)
     if (params.keyword && this.searchableFields.length > 0) {
       andConditions.push({
@@ -93,7 +94,7 @@ export abstract class BaseService<
       });
     }
     
-    // 2. Tự động trích xuất tất cả bộ lọc động (ví dụ: is_active, status...)
+    // 2. Tự động trích xuất tất cả bộ lọc động (ví dụ: status, status...)
     const basePaginationKeys = ['page', 'limit', 'keyword', 'sortOrder'];
     const filters: Record<string, any> = {};
     
@@ -137,7 +138,6 @@ export abstract class BaseService<
   async update(id: string, dto: TUpdateDto): Promise<any> {
     this.cleanCacheRedis()
     const entity = await this.repository.findByPk(id, [], false) as Model<any, any>
-    
     if (!entity) return null;
     try {
       Object.assign(entity, dto)
@@ -155,7 +155,7 @@ export abstract class BaseService<
     const cached = await this.cacheManage.get(redisKey);
 
     const dataCache = cached && JSON.parse(cached);
-
+    console.log('dataCache', dataCache)
     if (cached) return dataCache;
 
     const exclude = sensitiveFields[this.entityName] ?? [];

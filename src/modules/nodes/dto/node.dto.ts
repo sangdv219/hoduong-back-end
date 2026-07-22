@@ -1,3 +1,4 @@
+import { Status } from '@/infrastructure/models/user.model';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
@@ -14,15 +15,15 @@ export class NodeUserVModel {
   id?: string;
   fullname?: string;
   otherName?: string;
-  gender?: string;
+  gender?: number;
   yearOfBirth?: Date;
   yearOfDeath?: Date;
   burialPlace?: string;
   address?: string;
   biography?: string;
-  status?: number;
+  life_status?: number;
   email?: string;
-  is_active?: boolean;
+  status?: Status;
   createdAt?: Date;
   updatedBy?: string;
 }
@@ -33,7 +34,7 @@ export class CoupleGetVModel {
   userId?: string | null;
   createdAt?: Date | null;
   createdBy?: string | null;
-  is_active?: boolean | null;
+  status?: boolean | null;
   nodeId?: string | null;
   user?: NodeUserVModel | null;
 }
@@ -46,7 +47,7 @@ export class NodeGetVModel {
   createdBy?: string;
   updatedAt?: Date;
   updatedBy?: string;
-  is_active?: boolean;
+  status?: boolean;
   child_order?: number;
   parent?: NodeUserVModel;
   user?: NodeUserVModel;
@@ -61,7 +62,7 @@ export class NodeTreeVModel {
   createdBy?: string;
   updatedAt?: Date;
   updatedBy?: string;
-  is_active?: boolean;
+  status?: boolean;
   child_order?: number;
   children?: NodeTreeVModel[] | null;
   user?: NodeUserVModel;
@@ -96,7 +97,7 @@ export class NodeFilterQueryDto {
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
-  is_active?: boolean | null;
+  status?: boolean | null;
 
   @IsOptional()
   @IsString()
@@ -142,7 +143,7 @@ export class CreateNodeRequestDto {
   @Type(() => Boolean)
   @IsBoolean()
   @ApiPropertyOptional({ default: true })
-  is_active?: boolean | null = true;
+  status?: boolean | null = true;
 }
 
 export class UpdateNodeRequestDto {
@@ -167,5 +168,5 @@ export class UpdateNodeRequestDto {
   @Type(() => Boolean)
   @IsBoolean()
   @ApiPropertyOptional()
-  is_active?: boolean | null = true ;
+  status?: boolean | null = true ;
 }

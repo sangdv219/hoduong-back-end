@@ -27,7 +27,7 @@ export class PostgresNodeRepository extends AbstractNodeRepository {
 
   async findAllAsTree(transaction?: Transaction): Promise<NodeModel[] | null> {
     return this.model.findAll({
-      where: { is_active: true },
+      where: { status: true },
       transaction,
     });
   }
@@ -41,14 +41,14 @@ export class PostgresNodeRepository extends AbstractNodeRepository {
 
   async findByParentId(fatherId: string, transaction?: Transaction): Promise<NodeModel | null> {
     return this.model.findOne({
-      where: { father_id: fatherId, is_active: true },
+      where: { father_id: fatherId, status: true },
       transaction,
     });
   }
 
   async findRootNode(transaction?: Transaction): Promise<NodeModel | null> {
     return this.model.findOne({
-      where: { father_id: null, is_active: true },
+      where: { father_id: null, status: true },
       transaction,
     });
   }
@@ -98,7 +98,7 @@ export class PostgresNodeRepository extends AbstractNodeRepository {
 
   async softDeactivate(id: string, updatedBy: string, transaction?: Transaction): Promise<void> {
     await this.model.update(
-      { is_active: false, updated_by: updatedBy },
+      { status: false, updated_by: updatedBy },
       { where: { id }, transaction },
     );
   }

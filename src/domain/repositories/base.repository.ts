@@ -14,7 +14,7 @@ export interface IPaginationDTO {
 }
 
 // export interface IUserPaginationDTO extends IPaginationDTO {
-//   is_active?: boolean;
+//   status?: boolean;
 //   role?: string;
 // }
 
@@ -131,8 +131,12 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
     return record as unknown as T[K];
   }
 
-  async findByPk(id: string, exclude = [''], raw = false, options?: { transaction?: Transaction }): Promise<T | null> {
-    return this.model.findByPk(id, { ...exclude, raw, transaction: options?.transaction })
+  async findByPk(id: string, exclude:string[] = [], raw = false, options?: { transaction?: Transaction }): Promise<T | null> {
+    return this.model.findByPk(id, {
+      attributes: exclude.length > 0 ? { exclude } : undefined,
+      raw,
+      transaction: options?.transaction
+    })
   }
 
   async findByOneByRaw(condition) {

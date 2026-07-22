@@ -2,6 +2,7 @@
 
 const { last } = require('rxjs');
 
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -45,7 +46,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         validate: {
-          isIn: [[0, 1]] // Chỉ chấp nhận giá trị nằm trong mảng này
+          isIn: [[0, 1]] // 1: Nữ, 0: Nam
         } 
       },
       age: {
@@ -54,7 +55,7 @@ module.exports = {
         unique: false,
       },
 
-      status: {
+      life_status: {
         type: Sequelize.INTEGER,
         allowNull: false,
         validate: {
@@ -86,10 +87,18 @@ module.exports = {
         allowNull: false,
         defaultValue: false
       },
-      is_active: {
-        type: Sequelize.BOOLEAN,
+      status: {
+        type: Sequelize.STRING(10),
         allowNull: false,
-        defaultValue: true
+        validate: {
+          isIn: [['active', 'inactive', 'pending', 'suspended', 'archived']] // Chỉ chấp nhận giá trị nằm trong mảng này
+        },
+// PENDING: Mới đăng ký, chưa verify email/chờ Admin duyệt.
+// ACTIVE: Đang hoạt động bình thường.
+// INACTIVE: Người dùng tự tắt tài khoản / chưa kích hoạt xong.
+// SUSPENDED: Bị Admin khóa / vi phạm tiêu chuẩn.
+// ARCHIVED: Đã xóa mềm / Đưa vào lưu trữ.
+        defaultValue: 'pending' 
       },
       avatar_file_id: {
         type: Sequelize.INTEGER,
@@ -152,12 +161,12 @@ module.exports = {
     await queryInterface.addIndex('users', ['phone'], {
       unique: true,
       name: 'idx_users_phone',
-      include: ['age', 'gender', 'email', 'is_root', 'is_active', 'created_at', 'updated_at', 'created_by', 'created_by']
+      include: ['age', 'gender', 'email', 'is_root', 'status', 'created_at', 'updated_at', 'created_by', 'created_by']
     });
     await queryInterface.addIndex('users', ['email'], {
       unique: true,
       name: 'idx_users_email',
-      include: ['name', 'age', 'gender', 'phone', 'is_root', 'is_active', 'created_at', 'updated_at', 'created_by', 'created_by']
+      include: ['name', 'age', 'gender', 'phone', 'is_root', 'status', 'created_at', 'updated_at', 'created_by', 'created_by']
     });
   },
 
