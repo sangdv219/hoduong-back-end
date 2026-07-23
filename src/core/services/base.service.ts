@@ -124,7 +124,7 @@ export abstract class BaseService<
     if (queryBuilder) {
       finalOptions = await queryBuilder(options);
     }
-  
+    console.log('___')
     return this.repository.search(params, finalOptions);
   }
 
@@ -155,7 +155,6 @@ export abstract class BaseService<
     const cached = await this.cacheManage.get(redisKey);
 
     const dataCache = cached && JSON.parse(cached);
-    console.log('dataCache', dataCache)
     if (cached) return dataCache;
 
     const exclude = sensitiveFields[this.entityName] ?? [];

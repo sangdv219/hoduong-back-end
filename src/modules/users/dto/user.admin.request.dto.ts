@@ -150,7 +150,6 @@ export class UserPaginationDTO extends PaginationQueryDto{
   // @ApiPropertyOptional()
   // @IsEnum({ message: 'active | inactive | pending | suspended | archived' })
   // status!: Status;
-  
   @IsOptional()
   @Type(() => Number)
   @IsEnum([0, 1], { message: 'Giới tính phải là 0 hoặc 1' })

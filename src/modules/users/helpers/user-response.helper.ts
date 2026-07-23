@@ -53,3 +53,37 @@ export function toSafeUserResponse(
     // updated_at: safe.updated_at as Date,
   };
 }
+
+export function prepareSearchParams(rawInput: string) {
+  const cleanInput = rawInput.trim();
+
+  // 1. Chuẩn hóa cho Phone: Bỏ toàn bộ ký tự không phải số
+  const phoneKeyword = cleanInput.replace(/\D/g, '');
+
+  // 2. Chuẩn hóa cho Ascii Name (Chuyển tiếng Việt có dấu -> không dấu -> thay khoảng trắng thành dấu gạch ngang '-')
+  const asciiKeyword = cleanInput
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+
+  // 3. Tạo pattern linh hoạt cho Ascii Name (thay khoảng trắng bằng '%') phòng trường hợp format khác nhau
+  const flexibleAsciiPattern = cleanInput
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .replace(/[^a-z0-9\s]/g, '')
+    .trim()
+    .replace(/\s+/g, '%');
+
+  return {
+    rawInput,
+    phoneKeyword,
+    asciiKeyword,
+    flexibleAsciiPattern,
+  };
+}

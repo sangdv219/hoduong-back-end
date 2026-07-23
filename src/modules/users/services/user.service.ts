@@ -85,13 +85,11 @@ export class UserService extends BaseService<
   }
 
   async update(id: string, dto: UpdatedUserAdminRequestDto) {
-    // this.cleanCacheRedis();
+    this.cleanCacheRedis();
     const entity = await this.userRepository.findByPk(id);
     if (!entity) throw new NotFoundException(`User with id ${id} not found!`);
     Object.assign(entity, dto);
-    // entity.set(dto); 
-    // console.log('entity cux', entity)
-    // await entity.save();
+
     await entity.update(dto);
 
     return entity;
