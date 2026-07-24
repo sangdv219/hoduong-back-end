@@ -2,29 +2,29 @@ import { Expose } from 'class-transformer';
 
 export class PermissionsBaseDto {
   @Expose()
-  id: string;
+  id!: string;
 
   @Expose()
-  name: string;
+  name!: string;
 
   @Expose()
-  description: string;
+  description!: string;
 }
 
 export class GetAllPermissionsResponseDto {
   @Expose()
-  items: PermissionsBaseDto[];
+  items!: PermissionsBaseDto[];
 
   @Expose()
-  totalRecord: number;
+  totalRecord!: number;
 }
 
 export class CreatedPermissionsReponseDto extends PermissionsBaseDto {
   @Expose()
-  created_at: Date;
+  created_at!: Date;
   
   @Expose()
-  updated_at: Date;
+  updated_at!: Date;
 }
 
 

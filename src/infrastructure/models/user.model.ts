@@ -42,36 +42,39 @@ export enum GenderEnum {
 
 export class UserEntity extends BaseModel<UserEntity> {
   @PrimaryKey
-  @Default(Sequelize.literal('gen_random_uuid()'))
-  @Column(DataType.UUID)
+  @Column({
+    type: DataType.UUID,
+    primaryKey: true,
+    defaultValue: DataType.UUIDV4, // 🟢 Dùng DataType.UUIDV4 thay cho Sequelize.literal
+  })
   declare id: string;
 
-  @AllowNull(false)
+  // @AllowNull(false)
   @Column({ type: DataType.STRING(500) })
-  declare fullname: string;
+  fullname!: string;
 
   @AllowNull(false)
   @Column({ type: DataType.STRING(500) })
-  declare ascii_name: string;
+  ascii_name!: string;
 
   @AllowNull(true)
   @Column({ type: DataType.STRING(500) })
-  declare other_name: string; // Khớp với otherName?
+  other_name!: string; // Khớp với otherName?
 
   @AllowNull(true)
   @Column(DataType.TEXT)
-  declare password_hash: string;
+  password_hash!: string;
 
   @AllowNull(true)
   @Unique
   @Column({ type: DataType.STRING(500) })
-  declare email: string;
+  email!: string;
   
   @AllowNull(false)
-  @Default('')
+  // @Default('')
   @Unique
   @Column({ type: DataType.STRING(100) })
-  declare phone: string;
+  phone!: string;
 
   @Column({
     type: DataType.SMALLINT, // Hoặc DataType.INTEGER
@@ -82,62 +85,52 @@ export class UserEntity extends BaseModel<UserEntity> {
 
   @AllowNull(true)
   @Column(DataType.INTEGER)
-  declare age: number;
+  age!: number;
 
   @AllowNull(true)
   @Column(DataType.DATE)
-  declare birth_date: Date; // Khớp với yearOfBirth?
+  birth_date!: Date; // Khớp với yearOfBirth?
 
   @AllowNull(true)
   @Column(DataType.DATE)
-  declare year_of_death: Date; // Khớp với yearOfDeath?
+  year_of_death!: Date; // Khớp với yearOfDeath?
 
   @AllowNull(true)
   @Column({ type: DataType.STRING(1000) })
-  declare burial_place: string; // Khớp với burialPlace?
+  burial_place!: string; // Khớp với burialPlace?
 
   @AllowNull(true)
   @Column({ type: DataType.STRING(1000) })
-  declare address: string; // Khớp với address?
+  address!: string; // Khớp với address?
 
   @AllowNull(true)
   @Column(DataType.TEXT)
-  declare biography: string; // Khớp với biography?
+  biography! : string; // Khớp với biography?
 
   @AllowNull(true)
   @Column(DataType.INTEGER)
-  declare life_status: 0 | 1; // Khớp với life_status?
+  life_status!: 0 | 1; // Khớp với life_status?
 
   @AllowNull(true)
   @Column(DataType.INTEGER)
-  declare avatar_file_id: number; 
+  avatar_file_id!: number; 
   
   @AllowNull(false)
-  @Default(false)
+  // @Default(false)
   @Column(DataType.BOOLEAN)
-  declare is_root: boolean;
+  is_root!: boolean;
 
   @AllowNull(false)
-  @Default('pending')
+  // @Default('pending')
   @Column({
     type: DataType.ENUM(...Object.values(Status)),
   })
-  declare status: Status;
-
-  @AllowNull(true)
-  @Default(DataType.NOW)
-  @Column(DataType.DATE)
-  declare created_at: Date;
+  status!: Status;
 
   @AllowNull(true)
   @Default(null)
   @Column(DataType.STRING)
-  declare updated_by: string;
-
-  @AllowNull(true)
-  @Default(null)
-  @Column(DataType.STRING)
-  declare deleted_by: string;
+  deleted_by!: string;
 
   @BeforeUpdate
   static setDeteledBy(instance: UserEntity) {
@@ -148,31 +141,27 @@ export class UserEntity extends BaseModel<UserEntity> {
   }
 
   @AllowNull(true)
-  @Default(null)
   @Column(DataType.DATE)
-  declare deleted_at: Date;
+  deleted_at!: Date;
 
   @AllowNull(true)
-  @Default(0)
   @Column(DataType.INTEGER)
-  declare failed_login_attempts: number;
+  failed_login_attempts!: number;
 
   @AllowNull(true)
-  @Default(null)
   @Column(DataType.DATE)
-  declare last_failed_login_at: Date;
+  last_failed_login_at!: Date;
 
   @AllowNull(true)
-  @Default(null)
   @Column(DataType.DATE)
-  declare locked_until: Date; // New field to track when the account is locked until
+   locked_until!: Date; // New field to track when the account is locked until
 
   @HasMany(() => UserRolesModel)
-  declare userRoles: UserRolesModel[];
+  userRoles!: UserRolesModel[];
 
   @HasMany(() => NodeModel)
-  declare nodes: NodeModel[];
+  nodes!: NodeModel[];
 
   @HasMany(() => CoupleModel)
-  declare couples: CoupleModel[];
+  couples!: CoupleModel[];
 }

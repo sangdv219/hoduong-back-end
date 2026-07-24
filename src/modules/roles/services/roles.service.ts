@@ -18,6 +18,7 @@ export class RolesService extends
     GetAllRoleResponseDto> {
   protected entityName: string;
   private Roles: string[] = [];
+  protected readonly getAllDtoClass = GetAllRoleResponseDto;
   constructor(
     protected repository: PostgresRoleRepository,
     protected rolesRepository: PostgresRoleRepository,

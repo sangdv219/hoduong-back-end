@@ -42,7 +42,6 @@ import { UserStatusStrategyFactory } from './strategies/userStatusStrategy';
     OTPService,
     JwtModule,
     UserStatusStrategyFactory,
-
     {
       provide: 'TokenSecretResolver',
       useClass: DefaultTokenSecretResolverStrategy,

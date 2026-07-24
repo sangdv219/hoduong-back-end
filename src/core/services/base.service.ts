@@ -12,6 +12,7 @@ import { buildRedisKeyQuery } from '@redis/helpers/redis-key.helper';
 import { RedisService } from '@redis/redis.service';
 import { sensitiveFields } from '@shared/config/sensitive-fields.config';
 import { FindOptions, Model, Op } from 'sequelize';
+import { plainToInstance } from 'class-transformer';
 
 export abstract class BaseService<
   TEntity,
@@ -34,10 +35,15 @@ export abstract class BaseService<
   private readonly logger = new Logger(BaseService.name);
   protected searchableFields: string[] = [];
   protected booleanFields: string[] = [];
+
+  protected abstract readonly getAllDtoClass: new () => GetAllResponseDto;
+
   constructor(
     protected readonly repository: IBaseRepository<TEntity>,
     protected readonly mapper?: (dto: TCreateDto) => Partial<TEntity>,
-  ) { }
+  ) { 
+    
+  }
 
   async onModuleInit() {
     await this.moduleInit();
@@ -64,7 +70,6 @@ export abstract class BaseService<
     const cached = await this.cacheManage.get(redisKey);
 
     const dataCache = cached && JSON.parse(cached);
-
     if (cached) return dataCache;
 
     const exclude = sensitiveFields[this.entityName] ?? [];
@@ -124,8 +129,9 @@ export abstract class BaseService<
     if (queryBuilder) {
       finalOptions = await queryBuilder(options);
     }
-    console.log('___')
-    return this.repository.search(params, finalOptions);
+
+    const res = await this.repository.search(params, finalOptions)
+    return this.transformToDto(res);
   }
 
   async create(dto: TCreateDto) {
@@ -179,5 +185,43 @@ export abstract class BaseService<
     await this.cleanCacheRedis();
     await this.getById(id);
     await this.repository.delete(id);
+  }
+
+  private transformToDto(res: any): any {
+    if (!res) return res;
+  
+    // Hàm chuyển 1 Sequelize Model thành Plain Object an toàn
+    const toPlain = (item: any) => 
+      item && typeof item.get === 'function' ? item.get({ plain: true }) : item;
+  
+    // Trường hợp 1: res là Object phân trang (ví dụ { data: [...], totalRecord: 10 })
+    if (typeof res === 'object' && !Array.isArray(res)) {
+      const listKey = res.data ? 'data' : res.items ? 'items' : null;
+  
+      if (listKey && Array.isArray(res[listKey])) {
+        const plainList = res[listKey].map(toPlain);
+        const formattedResponse = {
+          items: plainList,
+          totalRecord: res.totalRecord || res.total || 0,
+        };
+
+        return plainToInstance(this.getAllDtoClass, formattedResponse, {
+          excludeExtraneousValues: true,
+        });
+      }
+    }
+  
+    // Trường hợp 2: res là Mảng danh sách các Model Instance ([User1, User2])
+    if (Array.isArray(res)) {
+      const plainList = res.map(toPlain);
+      return plainToInstance(this.getAllDtoClass, plainList, {
+        excludeExtraneousValues: true,
+      });
+    }
+  
+    // Trường hợp 3: res là 1 Model Instance đơn lẻ
+    return plainToInstance(this.getAllDtoClass, toPlain(res), {
+      excludeExtraneousValues: true,
+    });
   }
 }

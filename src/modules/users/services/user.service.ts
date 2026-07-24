@@ -36,6 +36,7 @@ export class UserService extends BaseService<
 > {
   protected entityName: string;
   private users: string[] = [];
+  protected readonly getAllDtoClass = GetAllUserAdminResponseDto;
 
   constructor(
     @InjectConnection()
@@ -50,7 +51,7 @@ export class UserService extends BaseService<
     private readonly statusStrategyFactory: UserStatusStrategyFactory, 
   ) {
     super(repository);
-    this.searchableFields = ['fullname', 'other_name', 'email', 'phone', 'gender', 'age', 'birth_date'];
+    this.searchableFields = ['fullname', 'other_name', 'email' ];
     this.entityName = USER_ENTITY.NAME;
   }
 
@@ -102,14 +103,11 @@ export class UserService extends BaseService<
       return user; 
     }
 
-    // 1. Lấy Strategy tương ứng với trạng thái muốn chuyển tới
     const strategy = this.statusStrategyFactory.getStrategy(dto.status);
 
-    // 2. Validate xem luật lệ có cho phép chuyển không
     strategy.validateTransition(currentStatus);
     // strategy.handleLogic();
 
-    // 3. Thực thi Transaction để đảm bảo tính toàn vẹn dữ liệu
     const transaction = await this.sequelize.transaction();
     try {
       // 3.1 Thực thi các logic đi kèm (Gửi mail, huỷ token...)

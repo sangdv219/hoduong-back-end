@@ -11,8 +11,11 @@ export interface IRole{
 @Table({ tableName: ROLES_ENTITY.TABLE_NAME })
 export class RolesModel extends BaseModel<RolesModel> implements IRole{
   @PrimaryKey
-  @Default(Sequelize.literal('gen_random_uuid()'))
-  @Column(DataType.UUID)
+  @Column({
+    type: DataType.UUID,
+    primaryKey: true,
+    defaultValue: DataType.UUIDV4, // 🟢 Dùng DataType.UUIDV4 thay cho Sequelize.literal
+  })
   declare id: string;
 
   @Column({ type: DataType.STRING(100) })
