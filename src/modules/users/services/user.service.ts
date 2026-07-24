@@ -1,15 +1,20 @@
 import { Status, UserEntity } from '@/infrastructure/models/user.model';
+import { RedisContext } from '@/redis/enums/redis-key.enum';
+import { buildRedisKeyQuery } from '@/redis/helpers/redis-key.helper';
+import { sensitiveFields } from '@/shared/config/sensitive-fields.config';
 import { BaseService } from '@core/services/base.service';
 import { PostgresUserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
+import { NodeService } from '@modules/nodes/services/node.service';
 import { PasswordService } from '@modules/password/services/password.service';
 import { PostgresRoleRepository } from '@modules/roles/infrastructure/repository/postgres-role.repository';
-import { USER_ENTITY, USER_ERROR, DEFAULT_MEMBER_ROLE_NAME } from '@modules/users/constants/user.constant';
+import { DEFAULT_MEMBER_ROLE_NAME, USER_ENTITY, USER_ERROR } from '@modules/users/constants/user.constant';
 import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
-import { NodeService } from '@modules/nodes/services/node.service';
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   Logger,
   NotFoundException,
@@ -17,12 +22,8 @@ import {
 import { InjectConnection } from '@nestjs/sequelize';
 import { RedisService } from '@redis/redis.service';
 import { toAsciiName } from '@shared/utils/string.util';
-import { FindOptions, Transaction } from 'sequelize';
+import { Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
-import { IPaginationDTO } from '@/domain/repositories/base.repository';
-import { buildRedisKeyQuery } from '@/redis/helpers/redis-key.helper';
-import { RedisContext } from '@/redis/enums/redis-key.enum';
-import { sensitiveFields } from '@/shared/config/sensitive-fields.config';
 import { UserStatusStrategyFactory } from '../strategies/userStatusStrategy';
 
 @Injectable()
@@ -128,17 +129,17 @@ export class UserService extends BaseService<
       throw error;
     }
   }
-  
+
   async restoreUser(id: string): Promise<any> {
     const user = await this.userRepository.findByOneByRaw({
-      where: { id, status: false },
-      paranoid: false,
+      where: { id, status: Status.ARCHIVED },
+      // paranoid: false,
     });
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
     const result = await this.userRepository.update(id, {
-      status: true,
+      status: Status.PENDING,
       deleted_at: null,
     });
 
@@ -210,32 +211,39 @@ export class UserService extends BaseService<
   async createMember(
     dto: CreatedUserAdminRequestDto,
     transaction?: Transaction,
-  ): Promise<Record<string, unknown>> {
-    await this.ensureUniqueContact(dto.email, dto.phone);
-    
-    const passwordHash = await this.passwordService.hashPassword(dto.password);
-
-    const userEntity = {
-      fullname: dto.fullname,
-      other_name: dto.other_name,
-      ascii_name: toAsciiName(dto.fullname),
-      email: dto.email,
-      phone: dto.phone || null,
-      password_hash: passwordHash,
-      gender: dto.gender,
-      age: dto.age,
-      birth_date: dto.birth_date,
-      year_of_death: dto.year_of_death,
-      burial_place: dto.burial_place,
-      biography: dto.biography,
-      address: dto.address,
-      life_status: dto.life_status,
-      avatar_file_id: dto.avatar_file_id,
-      is_root: false,
-    };
-
-    this.cleanCacheRedis();
-    return this.userRepository.create(userEntity, { transaction });
+  ): Promise<any> {
+    try {
+      await this.ensureUniqueContact(dto.email, dto.phone);
+      
+      const passwordHash = await this.passwordService.hashPassword(dto.password);
+  
+      const userEntity = {
+        fullname: dto.fullname,
+        other_name: dto.other_name,
+        ascii_name: toAsciiName(dto.fullname),
+        email: dto.email,
+        phone: dto.phone || null,
+        password_hash: passwordHash,
+        gender: dto.gender,
+        age: dto.age,
+        birth_date: dto.birth_date,
+        year_of_death: dto.year_of_death,
+        burial_place: dto.burial_place,
+        biography: dto.biography,
+        address: dto.address,
+        life_status: dto.life_status,
+        avatar_file_id: dto.avatar_file_id,
+        is_root: false,
+      };
+  
+      this.cleanCacheRedis();
+      return this.userRepository.create(userEntity, { transaction });
+    } catch (error:any) {
+      throw new HttpException(
+        'Đã có sẵn trong thùng rác, vui lòng khôi phục lại!',
+        HttpStatus.CONFLICT,
+      );
+    }
   }
 
   async searchUser(params: UserPaginationDTO & Record<string, any>): Promise<any> {
