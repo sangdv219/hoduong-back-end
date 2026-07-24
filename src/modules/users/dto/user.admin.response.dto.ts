@@ -8,8 +8,7 @@ export class UserAdminBaseDto {
   @Expose()
   fullname!: string; // 🟢 Bỏ { name: 'fullname' } nếu key DB trùng tên
 
-  @Expose()
-  ascii_name!: string; // 🟢 Bỏ 'declare'
+
 
   @Expose()
   other_name!: string; // 🟢 Bỏ 'declare'
