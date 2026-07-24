@@ -161,12 +161,10 @@ module.exports = {
     await queryInterface.addIndex('users', ['phone'], {
       unique: true,
       name: 'idx_users_phone',
-      include: ['age', 'gender', 'email', 'is_root', 'status', 'created_at', 'updated_at', 'created_by', 'created_by']
     });
     await queryInterface.addIndex('users', ['email'], {
       unique: true,
       name: 'idx_users_email',
-      include: ['name', 'age', 'gender', 'phone', 'is_root', 'status', 'created_at', 'updated_at', 'created_by', 'created_by']
     });
   },
 
