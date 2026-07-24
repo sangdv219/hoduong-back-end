@@ -20,8 +20,8 @@ import {
   Version
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
-import { CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
-import { UserEntity } from '@infrastructure/models/user.model';
+import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
+import { Status, UserEntity } from '@infrastructure/models/user.model';
 import { UserService } from '@modules/users/services/user.service';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
 import { JWTAuthGuard } from '@core/guards/jwt.guard';
@@ -102,24 +102,20 @@ export class UserAdminController {
     }
   }
   
-  @Delete(':id')
-  @HttpCode(HttpStatus.CREATED)
-  // @UseGuards(JWTAuthGuard)
-  // @UseInterceptors(UserContextInterceptor)
-  async deleteUserAdmin(@Param('id') id: string): Promise<void> {
-    try {
-      return await this.userService.delete(id);
-    } catch (error) {
-      console.log("error: ", error);
-      throw error;
-    }
-  }
-  
   @Patch('/restore/:id')
   // @UseGuards(JWTAuthGuard)
   // @UseInterceptors(UserContextInterceptor)
   @HttpCode(HttpStatus.NO_CONTENT)
   async restoreUserAdmin(@Param('id') id: string): Promise<any> {
     return await this.userService.restoreUser(id);
+  }
+
+
+  @Patch('changeUserStatus/:id')
+  // @UseGuards(JWTAuthGuard)
+  // @UseInterceptors(UserContextInterceptor)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async changeUserStatus(@Param('id') id: string, @Body() dto: ChangeStatusUserAdminRequestDto): Promise<any> {
+    return await this.userService.changeUserStatus(id, dto);
   }
 }

@@ -138,11 +138,16 @@ export class UpdatedUserAdminRequestDto extends PartialType(OmitType(CreatedUser
   @IsString({ message: 'deleted_by must be a string' })
   deleted_by!: string;
 
-  @IsOptional()
-  @ApiProperty({ description: 'status', example: 'active' })
+  // @IsOptional()
+  // @ApiProperty({ description: 'status', example: 'pending' })
+  // @IsString({ message: 'active | inactive | pending | suspended | archived' })
+  // status!: Status;
+}
+export class ChangeStatusUserAdminRequestDto  {
+  @ApiProperty({ description: 'status', example: 'pending' })
   @IsString({ message: 'active | inactive | pending | suspended | archived' })
   status!: Status;
- }
+}
 
 
 export class UserPaginationDTO extends PaginationQueryDto{

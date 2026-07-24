@@ -20,6 +20,7 @@ import { RolePermissionsModel } from '@modules/associations/models/role-permissi
 import { RegisterUserUseCase } from './use-cases/sign-up/signup.use-case';
 import { CreateUserUseCase } from './use-cases/create-user/create-user.use-case';
 import { OTPService } from '../auth/services/OTP.service';
+import { UserStatusStrategyFactory } from './strategies/userStatusStrategy';
 
 @Module({
   imports: [
@@ -40,6 +41,8 @@ import { OTPService } from '../auth/services/OTP.service';
     CreateUserUseCase,
     OTPService,
     JwtModule,
+    UserStatusStrategyFactory,
+
     {
       provide: 'TokenSecretResolver',
       useClass: DefaultTokenSecretResolverStrategy,

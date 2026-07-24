@@ -1,10 +1,10 @@
-import { UserEntity } from '@/infrastructure/models/user.model';
+import { Status, UserEntity } from '@/infrastructure/models/user.model';
 import { BaseService } from '@core/services/base.service';
 import { PostgresUserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
 import { PasswordService } from '@modules/password/services/password.service';
 import { PostgresRoleRepository } from '@modules/roles/infrastructure/repository/postgres-role.repository';
 import { USER_ENTITY, USER_ERROR, DEFAULT_MEMBER_ROLE_NAME } from '@modules/users/constants/user.constant';
-import { CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
+import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
 import { NodeService } from '@modules/nodes/services/node.service';
@@ -23,6 +23,7 @@ import { IPaginationDTO } from '@/domain/repositories/base.repository';
 import { buildRedisKeyQuery } from '@/redis/helpers/redis-key.helper';
 import { RedisContext } from '@/redis/enums/redis-key.enum';
 import { sensitiveFields } from '@/shared/config/sensitive-fields.config';
+import { UserStatusStrategyFactory } from '../strategies/userStatusStrategy';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -45,6 +46,7 @@ export class UserService extends BaseService<
     private readonly passwordService: PasswordService,
     private readonly roleRepository: PostgresRoleRepository,
     private readonly nodeService: NodeService,
+    private readonly statusStrategyFactory: UserStatusStrategyFactory, 
   ) {
     super(repository);
     this.searchableFields = ['fullname', 'other_name', 'email', 'phone', 'gender', 'age', 'birth_date'];
@@ -75,26 +77,58 @@ export class UserService extends BaseService<
     Logger.log('🗑️onModuleDestroy -> users: ', this.users);
   }
 
-  async delete(id: string): Promise<void> {
-    const user = await this.userRepository.findByPk(id);
-    if (!user) throw new NotFoundException(`User with id ${id} not found!`);
-
-    await this.nodeService.detachMemberByUserId(id);
-    user.deleted_at = new Date();
-    await user.save();
-  }
-
   async update(id: string, dto: UpdatedUserAdminRequestDto) {
     this.cleanCacheRedis();
     const entity = await this.userRepository.findByPk(id);
     if (!entity) throw new NotFoundException(`User with id ${id} not found!`);
-    Object.assign(entity, dto);
 
+    if (dto['status']) {
+      delete dto['status']; 
+    }
+    Object.assign(entity, dto);
     await entity.update(dto);
 
     return entity;
   }
 
+  async changeUserStatus(id: string, dto: ChangeStatusUserAdminRequestDto): Promise<UserEntity> {
+    const user = await this.userRepository.findByPk(id);
+    if (!user) throw new NotFoundException(`User with id ${id} not found`);
+
+    const currentStatus = user.status as Status; 
+
+    if (currentStatus === dto.status) {
+      return user; 
+    }
+
+    // 1. Lấy Strategy tương ứng với trạng thái muốn chuyển tới
+    const strategy = this.statusStrategyFactory.getStrategy(dto.status);
+
+    // 2. Validate xem luật lệ có cho phép chuyển không
+    strategy.validateTransition(currentStatus);
+    // strategy.handleLogic();
+
+    // 3. Thực thi Transaction để đảm bảo tính toàn vẹn dữ liệu
+    const transaction = await this.sequelize.transaction();
+    try {
+      // 3.1 Thực thi các logic đi kèm (Gửi mail, huỷ token...)
+      await strategy.handleLogic(user, transaction);
+
+      // 3.2 Cập nhật trạng thái trong DB
+      user.status = dto.status;
+      await user.save({ transaction });
+
+      await transaction.commit();
+      this.cleanCacheRedis(); // Xoá cache
+      console.log("Đã thay đổi status thành công")
+      return user;
+    } catch (error) {
+      console.log("Thay đổi status thất bại")
+      await transaction.rollback();
+      throw error;
+    }
+  }
+  
   async restoreUser(id: string): Promise<any> {
     const user = await this.userRepository.findByOneByRaw({
       where: { id, status: false },
