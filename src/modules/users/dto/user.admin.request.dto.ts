@@ -1,4 +1,4 @@
-import { GenderEnum, Status } from '@/infrastructure/models/user.model';
+import { Status } from '@/infrastructure/models/user.model';
 import { PaginationQueryDto } from '@/shared/dto/common';
 import { ApiProperty, ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
@@ -137,11 +137,6 @@ export class UpdatedUserAdminRequestDto extends PartialType(OmitType(CreatedUser
   @ApiProperty({ description: 'deleted_by', example: 'system' })
   @IsString({ message: 'deleted_by must be a string' })
   deleted_by!: string;
-
-  // @IsOptional()
-  // @ApiProperty({ description: 'status', example: 'pending' })
-  // @IsString({ message: 'active | inactive | pending | suspended | archived' })
-  // status!: Status;
 }
 export class ChangeStatusUserAdminRequestDto  {
   @ApiProperty({ description: 'status', example: 'pending' })
@@ -151,10 +146,6 @@ export class ChangeStatusUserAdminRequestDto  {
 
 
 export class UserPaginationDTO extends PaginationQueryDto{
-  // @IsOptional()
-  // @ApiPropertyOptional()
-  // @IsEnum({ message: 'active | inactive | pending | suspended | archived' })
-  // status!: Status;
   @IsOptional()
   @Type(() => Number)
   @IsEnum([0, 1], { message: 'Giới tính phải là 0 hoặc 1' })
@@ -164,10 +155,6 @@ export class UserPaginationDTO extends PaginationQueryDto{
     example: 0,
   })
   gender?: 0 | 1;
-  // @IsOptional()
-  // @ApiPropertyOptional({ example: '026e2174-aff3-4461-9f43-0e16c9a88f17', description: 'Role' })
-  // @IsString({ message: 'status must be a boolean (true/false)' })
-  // role_id: string = '026e2174-aff3-4461-9f43-0e16c9a88f17';
 
   @IsOptional()
   @IsEnum(['active' , 'inactive' , 'pending' , 'suspended' , 'archived'], 

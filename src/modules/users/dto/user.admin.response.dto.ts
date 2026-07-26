@@ -8,7 +8,8 @@ export class UserAdminBaseDto {
   @Expose()
   fullname!: string; // 🟢 Bỏ { name: 'fullname' } nếu key DB trùng tên
 
-
+  @Expose()
+  life_status!: string; // 🟢 Bỏ 'declare'
 
   @Expose()
   other_name!: string; // 🟢 Bỏ 'declare'
@@ -61,9 +62,6 @@ export class GetByIdUserAdminResponseDto extends CreatedUserAdminReponseDto {
 
   @Expose()
   biography!: string; // Khớp với biography?
-
-  @Expose()
-  life_status!: 0 | 1; // Khớp với life_status?
 
   @Expose()
   avatar_file_id!: number; 

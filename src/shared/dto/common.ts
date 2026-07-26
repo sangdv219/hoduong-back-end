@@ -30,7 +30,7 @@ export class PaginationQueryDto implements IPaginationDTO {
   @ApiPropertyOptional({ example: '', description: 'Order by field' })
   @Type(() => String)
   @IsString()
-  orderBy!: string;
+  sortBy!: string;
 
   @IsOptional()
   @IsEnum(['ASC', 'DESC'])
@@ -38,12 +38,6 @@ export class PaginationQueryDto implements IPaginationDTO {
     enum: ['ASC', 'DESC'],
   })
   sortOrder!: 'ASC' | 'DESC';
-
-  @IsOptional()
-  @ApiPropertyOptional({ example: 'created_at', description: 'Sort by field' })
-  @Type(() => String)
-  @IsString()
-  sortBy!: string;
 }
 
 

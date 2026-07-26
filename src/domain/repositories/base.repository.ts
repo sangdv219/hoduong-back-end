@@ -8,7 +8,6 @@ export interface IPaginationDTO {
   page: number;
   limit: number;
   keyword: string;
-  orderBy: string;
   sortOrder?: 'ASC' | 'DESC'
   sortBy?: string;
 }
@@ -40,7 +39,6 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
   ) {}
   
   async search(params: IPaginationDTO, options: FindOptions<T> = {}){
-    console.log('__???_')
     const page = Number(params.page) || 1;
     const limit = Number(params.limit) || 10;
     const offset = (page - 1) * limit;

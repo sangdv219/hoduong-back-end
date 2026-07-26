@@ -27,18 +27,33 @@ export class PostgresUserRepository extends AbstractUserRepository {
 
   
   async search(params: UserPaginationDTO){
-    const {page, limit, keyword, sortOrder} = params;
+    const {page, limit, keyword, sortBy, sortOrder} = params;
     const offset = (page - 1) * limit;
     // 1. Xử lý Sắp xếp (Order)
-    let order: any = [['created_at', 'DESC']];
-    if (sortOrder) {
-        const direction = sortOrder.startsWith('-') ? 'DESC' : 'ASC';
-        const column = sortOrder.replace('-', '');
-        order = [[column, direction]];
-    }
+
+   // 1. Xử lý Sắp xếp (Order) đa ngữ cảnh
+   let column = 'created_at';
+   let direction = 'DESC';
+
+   if (sortBy) {
+     // Trường hợp 1: Chuẩn RESTful mới (sortBy = 'name', sortOrder = 'asc' hoặc sortBy = '-name')
+     if (sortBy.startsWith('-')) {
+       column = sortBy.substring(1);
+       direction = 'DESC';
+     } else {
+       column = sortBy;
+       direction = sortOrder && String(sortOrder).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+     }
+   } else if (sortOrder) {
+     // Trường hợp 2: Fallback logic cũ (truyền sortOrder = '-name' hoặc 'name')
+     direction = sortOrder.startsWith('-') ? 'DESC' : 'ASC';
+     column = sortOrder.replace('-', '');
+   }
+
+   const order: any = [[column, direction]];
    
     // 2. Bóc tách các tham số phân trang/sắp xếp ra khỏi điều kiện filter
-    const { page: _p, limit: _l, sortOrder: _s, keyword: _k, status, life_status, ...otherFilters } = params as any;
+    const { page: _p, limit: _l, sortOrder: _s, sortBy: _sb, keyword: _k, status, life_status, ...otherFilters } = params as any;
 
     // 3. Khởi tạo điều kiện filter cơ bản từ các params còn lại
     const whereClause: any = {};

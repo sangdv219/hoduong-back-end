@@ -217,7 +217,7 @@ export class NodeService {
       page,
       limit,
       keyword: query.keyword ?? '',
-      orderBy: 'created_at',
+      sortBy: 'created_at',
     });
 
     const records: NodeGetVModel[] = [];

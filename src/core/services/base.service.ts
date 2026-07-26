@@ -89,7 +89,6 @@ export abstract class BaseService<
   ): Promise<any> {
     const options: FindOptions<TEntity> = {};
     const andConditions: any[] = [];
-
     // 1. Xử lý tìm kiếm toàn văn theo từ khóa (Keyword Search)
     if (params.keyword && this.searchableFields.length > 0) {
       andConditions.push({
@@ -119,7 +118,7 @@ export abstract class BaseService<
       andConditions.push(filters);
     }
   
-    // Gán tất cả các điều kiện vào điều kiện chung WHERE
+    // Gán tất cả các điều kiện vào điều kiện chung WHERE`
     if (andConditions.length > 0) {
       options.where = { [Op.and]: andConditions };
     }
@@ -202,7 +201,7 @@ export abstract class BaseService<
         const plainList = res[listKey].map(toPlain);
         const formattedResponse = {
           items: plainList,
-          totalRecord: res.totalRecord || res.total || 0,
+          totalPages: res.totalRecord || res.total || 0,
         };
 
         return plainToInstance(this.getAllDtoClass, formattedResponse, {
