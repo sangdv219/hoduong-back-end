@@ -96,15 +96,14 @@ export class UserService extends BaseService<
   async changeUserStatus(id: string, dto: ChangeStatusUserAdminRequestDto): Promise<UserEntity> {
     const user = await this.userRepository.findByPk(id);
     if (!user) throw new NotFoundException(`User with id ${id} not found`);
+    const currentStatus = user.get('status') as Status; 
 
-    const currentStatus = user.status as Status; 
-
+    console.log('dto.status', dto.status)
     if (currentStatus === dto.status) {
       return user; 
     }
 
     const strategy = this.statusStrategyFactory.getStrategy(dto.status);
-
     strategy.validateTransition(currentStatus);
     // strategy.handleLogic();
 
@@ -112,9 +111,8 @@ export class UserService extends BaseService<
     try {
       // 3.1 Thực thi các logic đi kèm (Gửi mail, huỷ token...)
       await strategy.handleLogic(user, transaction);
-
       // 3.2 Cập nhật trạng thái trong DB
-      user.status = dto.status;
+      user.set('status', dto.status);
       await user.save({ transaction });
 
       await transaction.commit();
