@@ -33,7 +33,7 @@ export class UserService extends BaseService<
   UpdatedUserAdminRequestDto,
   GetByIdUserAdminResponseDto,
   GetAllUserAdminResponseDto
-> {
+  > {
   protected entityName: string;
   private users: string[] = [];
   protected readonly getAllDtoClass = GetAllUserAdminResponseDto;
@@ -98,7 +98,6 @@ export class UserService extends BaseService<
     if (!user) throw new NotFoundException(`User with id ${id} not found`);
     const currentStatus = user.get('status') as Status; 
 
-    console.log('dto.status', dto.status)
     if (currentStatus === dto.status) {
       return user; 
     }
@@ -112,7 +111,6 @@ export class UserService extends BaseService<
       // 3.1 Thực thi các logic đi kèm (Gửi mail, huỷ token...)
       await strategy.handleLogic(user, transaction);
       // 3.2 Cập nhật trạng thái trong DB
-      user.set('status', dto.status);
       await user.save({ transaction });
 
       await transaction.commit();

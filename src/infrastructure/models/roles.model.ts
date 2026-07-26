@@ -1,8 +1,9 @@
-import { BaseModel } from '@shared/model/base.model';
-import { Column, DataType, Default, HasMany, PrimaryKey, Sequelize, Table } from 'sequelize-typescript';
-import { ROLES_ENTITY } from '@modules/roles/constants/roles.constant';
+import { UserRolesModel } from '@infrastructure/models/user_roles.model';
 import { RolePermissionsModel } from '@modules/associations/models/role-permissions.model';
-import { UserRolesModel } from '@modules/associations/models/user-roles.model';
+import { ROLES_ENTITY } from '@modules/roles/constants/roles.constant';
+import { BaseModel } from '@shared/model/base.model';
+import { BelongsToMany, Column, DataType, HasMany, PrimaryKey, Table } from 'sequelize-typescript';
+import { UserEntity } from './user.model';
 
 export interface IRole{
   id: string,
@@ -29,4 +30,11 @@ export class RolesModel extends BaseModel<RolesModel> implements IRole{
 
   @HasMany(() => RolePermissionsModel)
   declare rolePermission: RolePermissionsModel[]
+
+  @BelongsToMany(() => UserEntity, {
+    through: () => UserRolesModel,
+    foreignKey: 'role_id',
+    otherKey: 'user_id',
+  })
+  users!: UserEntity[];
 }

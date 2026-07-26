@@ -12,7 +12,7 @@ import { RedisService } from '@redis/redis.service';
 import { DefaultTokenSecretResolverStrategy } from '@core/strategies/default-token-secret-resolver.strategy';
 import { CoupleModel } from '@/infrastructure/models/couple.model';
 import { NodeModel } from '@/infrastructure/models/node.model';
-import { UserRolesModel } from '@modules/associations/models/user-roles.model';
+import { UserRolesModel } from '@infrastructure/models/user_roles.model';
 import { PostgresUserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
 import { PostgresRolePermissionsRepository } from '@modules/associations/repositories/role-permissions.repository';
 import { AssociationsModule } from '@modules/associations/associations.module';

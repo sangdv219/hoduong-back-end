@@ -1,6 +1,6 @@
 import { DefaultTokenSecretResolverStrategy } from '@core/strategies/default-token-secret-resolver.strategy';
 import { RolePermissionsModel } from '@modules/associations/models/role-permissions.model';
-import { UserRolesModel } from '@modules/associations/models/user-roles.model';
+import { UserRolesModel } from '@infrastructure/models/user_roles.model';
 import { RolesController } from '@modules/roles/controller/roles.controller';
 import { RolesModel } from '@/infrastructure/models/roles.model';
 import { RolesService } from '@modules/roles/services/roles.service';

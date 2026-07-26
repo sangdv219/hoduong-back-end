@@ -28,6 +28,9 @@ export class UserAdminBaseDto {
 
   @Expose()
   status!: Status;
+
+  @Expose()
+  roles!: string;
 }
 
 export class GetAllUserAdminResponseDto {

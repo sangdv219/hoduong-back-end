@@ -1,12 +1,12 @@
-// import { UserRolesModel } from '@modules/associations/models/user-roles.model';
 import { NodeModel } from '@/infrastructure/models/node.model';
 import { CoupleModel } from '@/infrastructure/models/couple.model';
-import { UserRolesModel } from '@modules/associations/models/user-roles.model';
+import { UserRolesModel } from '@infrastructure/models/user_roles.model';
 import { BaseModel } from '@shared/model/base.model';
 import { ClsServiceManager } from 'nestjs-cls';
 import {
   AllowNull,
   BeforeUpdate,
+  BelongsToMany,
   Column,
   DataType,
   Default,
@@ -16,6 +16,7 @@ import {
   Table,
   Unique
 } from 'sequelize-typescript';
+import { RolesModel } from './roles.model';
 
 export enum Status {
   ACTIVE = 'active',
@@ -154,14 +155,23 @@ export class UserEntity extends BaseModel<UserEntity> {
 
   @AllowNull(true)
   @Column(DataType.DATE)
-   locked_until!: Date; // New field to track when the account is locked until
+  locked_until!: Date; // New field to track when the account is locked until
 
-  @HasMany(() => UserRolesModel)
-  userRoles!: UserRolesModel[];
+  // @HasMany(() => UserRolesModel)
+  // userRoles!: UserRolesModel[];
 
   @HasMany(() => NodeModel)
   nodes!: NodeModel[];
 
   @HasMany(() => CoupleModel)
   couples!: CoupleModel[];
+
+  @BelongsToMany(() => RolesModel, {
+    through: () => UserRolesModel,
+    foreignKey: 'user_id',
+    otherKey: 'role_id',
+  })
+  roles!: RolesModel[];
+
+
 }
