@@ -257,7 +257,6 @@ export class UserService extends BaseService<
             through: { attributes: [] },
         };
 
-        // 3. Nếu người dùng muốn lọc theo role_id cụ thể, kích hoạt INNER JOIN
         if (role_id) {
           roleInclude.where = { id: role_id };
           roleInclude.required = true; 
@@ -266,7 +265,6 @@ export class UserService extends BaseService<
         options.include = [...includes, roleInclude];
       return options;
     });
-    // return this.search(params)
   }
 
   async getUserById(id: string): Promise<any>{

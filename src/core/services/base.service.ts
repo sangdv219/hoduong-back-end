@@ -13,7 +13,7 @@ import { RedisService } from '@redis/redis.service';
 import { sensitiveFields } from '@shared/config/sensitive-fields.config';
 import { FindOptions, Model, Op } from 'sequelize';
 import { plainToInstance } from 'class-transformer';
-
+ // BaseService không cần biết Thực thế có field gì.
 export abstract class BaseService<
   TEntity,
   TCreateDto,
@@ -86,52 +86,19 @@ export abstract class BaseService<
   async search(
     params: IPaginationDTO & Record<string, any>, // Chấp nhận các filter động đi kèm
     queryBuilder?: (options: FindOptions<TEntity>) => FindOptions<TEntity> | Promise<FindOptions<TEntity>>
-  ): Promise<any> {
-    const options: FindOptions<TEntity> = {};
-    const andConditions: any[] = [];
-    // console.log('params', params)
-    // 1. Xử lý tìm kiếm toàn văn theo từ khóa (Keyword Search)
-    if (params.keyword && this.searchableFields.length > 0) {
-      andConditions.push({
-        [Op.or]: this.searchableFields.map(field => ({
-          [field]: { [Op.iLike]: `%${params.keyword}%` }
-        }))
-      });
-    }
-    
-    // 2. Tự động trích xuất tất cả bộ lọc động (ví dụ: status, status...)
-    const basePaginationKeys = ['page', 'limit', 'keyword', 'sortOrder'];
-    const filters: Record<string, any> = {};
-    
-    Object.keys(params).forEach(key => {
-      // Nếu thuộc tính nằm ngoài thông số phân trang gốc và có giá trị hợp lệ
-      if (!basePaginationKeys.includes(key) && params[key] !== undefined && params[key] !== null && params[key] !== '') {
-        let value = params[key];
-        // Chuẩn hóa kiểu dữ liệu Boolean khi nhận từ URL (Query string)
-        if (value === 'true') value = true;
-        if (value === 'false') value = false;
-        
-        filters[key] = value;
-      }
-    });
-  
-    if (Object.keys(filters).length > 0) {
-      andConditions.push(filters);
-    }
-  
-    // Gán tất cả các điều kiện vào điều kiện chung WHERE`
-    if (andConditions.length > 0) {
-      options.where = { [Op.and]: andConditions };
-    }
-  
-    // 3. Cho phép bổ sung logic thông qua callback queryBuilder nếu cần cấu trúc truy vấn nâng cao
-    let finalOptions = options;
+  ): Promise<GetAllResponseDto> {
+    let options: FindOptions<TEntity> = {};
+   
     if (queryBuilder) {
-      finalOptions = await queryBuilder(options);
+      options = await queryBuilder(options);
     }
 
-    const res = await this.repository.search(params, finalOptions)
-    return this.transformToDto(res);
+    const result = await this.repository.search(
+      params,
+      options,
+    );
+
+    return this.transformToDto(result);
   }
 
   async create(dto: TCreateDto) {
