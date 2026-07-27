@@ -111,6 +111,7 @@ export class UserService extends BaseService<
       // 3.1 Thực thi các logic đi kèm (Gửi mail, huỷ token...)
       await strategy.handleLogic(user, transaction);
       // 3.2 Cập nhật trạng thái trong DB
+      user.set('status', dto.status);
       await user.save({ transaction });
 
       await transaction.commit();
@@ -118,7 +119,7 @@ export class UserService extends BaseService<
       console.log("Đã thay đổi status thành công")
       return user;
     } catch (error) {
-      console.log("Thay đổi status thất bại")
+      console.log("Thay đổi status thất bại", error)
       await transaction.rollback();
       throw error;
     }
@@ -241,7 +242,23 @@ export class UserService extends BaseService<
   }
 
   async searchUser(params: UserPaginationDTO & Record<string, any>): Promise<any> {
-    return this.search(params);
+    // const { role_id, ...baseParams } = params;
+    // return super.search(baseParams, (options) => {
+    //   if(role_id){
+    //     options.include = [
+    //       ...(options.include || []),
+    //       {
+    //         association: 'roles',
+    //         where: { id: role_id },
+    //         required: true,
+    //         attributes: [],
+    //       }
+    //     ]
+    //   }
+
+    //   return options;
+    // });
+    return this.search(params)
   }
 
   async getUserById(id: string): Promise<any>{
