@@ -23,8 +23,8 @@ export class AuthService implements OnModuleInit {
     private readonly passwordService: PasswordService,
     private readonly jwtService: JwtService,
     private readonly OTPService: OTPService,
-    // @InjectModel(UserEntity)
-    // protected readonly UserEntity: typeof UserEntity,
+    // @InjectModel(UserModel)
+    // protected readonly UserModel: typeof UserModel,
     private readonly userRepository: PostgresUserRepository, // Assuming Redis is injected for cache management
     private readonly configService: ConfigService,
     private readonly userService: UserService,

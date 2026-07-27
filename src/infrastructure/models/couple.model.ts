@@ -10,7 +10,7 @@ import {
   Sequelize,
   Table,
 } from 'sequelize-typescript';
-import { UserEntity } from './user.model';
+import { UserModel } from './user.model';
 import { NodeModel } from './node.model';
 
 
@@ -35,7 +35,7 @@ export class CoupleModel extends BaseModel<CoupleModel> {
   @Column(DataType.UUID)
   declare id: string;
   
-  @ForeignKey(() => UserEntity)
+  @ForeignKey(() => UserModel)
   @AllowNull(false)
   @Column(DataType.UUID)
   declare user_id: string;
@@ -68,8 +68,8 @@ export class CoupleModel extends BaseModel<CoupleModel> {
   @Column(DataType.DATE)
   declare divorce_date: Date;
 
-  @BelongsTo(() => UserEntity, 'user_id')
-  declare user: UserEntity;
+  @BelongsTo(() => UserModel, 'user_id')
+  declare user: UserModel;
 
   @BelongsTo(() => NodeModel, 'node_id')
   declare node: NodeModel;

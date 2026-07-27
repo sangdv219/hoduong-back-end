@@ -267,7 +267,7 @@
 //   //   const order = await this.orderRepository.findByOneByRaw({
 //   //     where: { id },
 //   //     include: [{
-//   //       model: UserEntity,
+//   //       model: UserModel,
 //   //       // attributes: {exclude: ['password_hash', 'created_by']}
 //   //       attributes: ['name', 'email', 'phone', 'age', 'gender']
 //   //     },
@@ -296,7 +296,7 @@
 //   //     ],
 //   //     include: [
 //   //       {
-//   //         model: UserEntity,
+//   //         model: UserModel,
 //   //         attributes: [],
 //   //       },
 //   //       {

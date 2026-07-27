@@ -1,16 +1,11 @@
-import { UserEntity } from '@/infrastructure/models/user.model';
+import { UserModel } from '@/infrastructure/models/user.model';
 import { PaginationQueryDto } from '@/shared/dto/common';
+import { IPaginationDTO } from '@/shared/interface/common';
 import { NotFoundException } from '@nestjs/common';
 import { FindOptions, Op, FindAndCountOptions, QueryTypes, Transaction, WhereOptions } from 'sequelize';
 import { Sequelize } from "sequelize-typescript";
 
-export interface IPaginationDTO {
-  page: number;
-  limit: number;
-  keyword: string;
-  sortOrder?: 'ASC' | 'DESC'
-  sortBy?: string;
-}
+
 
 // export interface IUserPaginationDTO extends IPaginationDTO {
 //   status?: boolean;

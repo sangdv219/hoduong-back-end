@@ -1,6 +1,6 @@
 import { BaseRepository } from '@/domain/repositories/base.repository';
 import { NodeModel } from '@/infrastructure/models/node.model';
-import { UserEntity } from '@/infrastructure/models/user.model';
+import { UserModel } from '@/infrastructure/models/user.model';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';
@@ -56,11 +56,11 @@ export class PostgresNodeRepository extends AbstractNodeRepository {
   async findByPkWithRelations(id: string, transaction?: Transaction): Promise<NodeModel | null> {
     return this.model.findByPk(id, {
       include: [
-        { model: UserEntity, as: 'user' },
+        { model: UserModel, as: 'user' },
         {
           model: NodeModel,
           as: 'parent',
-          include: [{ model: UserEntity, as: 'user' }],
+          include: [{ model: UserModel, as: 'user' }],
         },
       ],
       transaction,

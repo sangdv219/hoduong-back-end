@@ -3,7 +3,7 @@ import { AuthService } from '@modules/auth/services/auth.service';
 import { EmailService } from '@modules/auth/services/mail.service';
 import { OTPService } from '@modules/auth/services/OTP.service';
 import { PasswordModule } from '@modules/password/password.module';
-import { UserEntity } from '@/infrastructure/models/user.model';
+import { UserModel } from '@/infrastructure/models/user.model';
 import { UserModule } from '@modules/users/user.module';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
@@ -14,7 +14,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([UserEntity]),
+    SequelizeModule.forFeature([UserModel]),
     EventEmitterModule.forRoot(),
     UserModule,
     PasswordModule,

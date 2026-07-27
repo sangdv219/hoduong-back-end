@@ -1,7 +1,7 @@
 import { GenderEnum, Status } from '@/infrastructure/models/user.model';
 import { Expose, Type } from 'class-transformer';
 
-interface UserAdmin{
+export interface IUserAdmin{
   id: string;
   fullname: string; 
   life_status: string; 
@@ -14,15 +14,15 @@ interface UserAdmin{
   roles: string;
 }
 
-interface PaginatedResult<T> {
+interface IPaginatedResult<T> {
   items: T[];
   total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  // page: number;
+  // limit: number;
+  // totalPages: number;
 }
 
-export class UserAdminBaseDto {
+export class UserAdminBaseDto implements IUserAdmin {
   @Expose()
   id!: string;
 
@@ -42,7 +42,7 @@ export class UserAdminBaseDto {
   phone!: string; 
 
   @Expose()
-  gender?: GenderEnum;
+  gender!: GenderEnum;
 
   @Expose()
   age!: number;
@@ -54,19 +54,19 @@ export class UserAdminBaseDto {
   roles!: string;
 }
 
-export class GetAllUserAdminResponseDto implements PaginatedResult<UserAdmin> {
+export class GetAllUserAdminResponseDto implements IPaginatedResult<IUserAdmin> {
   @Expose()
   @Type(() => UserAdminBaseDto)
-  items!: UserAdmin[];
+  items!: IUserAdmin[];
 
   @Expose()
   total!: number;
   
-  @Expose()
-  page!: number;
+  // @Expose()
+  // page!: number;
   
-  @Expose()
-  limit!: number;
+  // @Expose()
+  // limit!: number;
   
   @Expose()
   totalPages!: number;

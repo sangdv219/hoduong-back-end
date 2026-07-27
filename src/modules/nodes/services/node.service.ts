@@ -24,7 +24,7 @@ import {
 } from '@nestjs/common';
 import { Transaction } from 'sequelize';
 import { NodeModel } from '@/infrastructure/models/node.model';
-import { UserEntity } from '@/infrastructure/models/user.model';
+import { UserModel } from '@/infrastructure/models/user.model';
 
 export interface TreeAttachmentResult {
   nodeId: string;
@@ -242,7 +242,7 @@ export class NodeService {
       throw new NotFoundException('Family tree root not found');
     }
 
-    return mapEntityToTree(rootNodeEntity, allNodes ?? [], userMap as Map<string, UserEntity>);
+    return mapEntityToTree(rootNodeEntity, allNodes ?? [], userMap as Map<string, UserModel>);
   }
 
   async getById(id: string): Promise<NodeGetVModel | null> {

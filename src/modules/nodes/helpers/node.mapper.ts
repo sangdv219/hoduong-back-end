@@ -1,6 +1,6 @@
 import { CoupleModel } from '@/infrastructure/models/couple.model';
 import { NodeModel } from '@/infrastructure/models/node.model';
-import { UserEntity } from '@/infrastructure/models/user.model';
+import { UserModel } from '@/infrastructure/models/user.model';
 import {
   CoupleGetVModel,
   NodeGetVModel,
@@ -8,8 +8,8 @@ import {
   NodeUserVModel,
 } from '@modules/nodes/dto/node.dto';
 
-export function mapUserToVModel(user: UserEntity | Record<string, unknown>): NodeUserVModel {
-  const u = user as UserEntity;
+export function mapUserToVModel(user: UserModel | Record<string, unknown>): NodeUserVModel {
+  const u = user as UserModel;
   return {
     id: u.id,
     fullname: u.fullname,
@@ -28,7 +28,7 @@ export function mapUserToVModel(user: UserEntity | Record<string, unknown>): Nod
   };
 }
 
-export function mapCoupleToVModel(couple: CoupleModel, user?: UserEntity): CoupleGetVModel {
+export function mapCoupleToVModel(couple: CoupleModel, user?: UserModel): CoupleGetVModel {
   return {
     id: couple.id,
     couple_order: couple.couple_order,
@@ -59,7 +59,7 @@ export function mapEntityToVModel(entity: NodeModel | Record<string, unknown>): 
 export function mapEntityToTree(
   entity: NodeModel,
   allNodes: NodeModel[],
-  userMap: Map<string, UserEntity>,
+  userMap: Map<string, UserModel>,
 ): NodeTreeVModel {
   const userEntity = userMap.get(entity.user_id);
   const userModel = userEntity ? mapUserToVModel(userEntity) : undefined;

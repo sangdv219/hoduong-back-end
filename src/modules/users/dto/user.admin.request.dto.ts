@@ -15,7 +15,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-interface CreatedUserAdminRequest {
+interface ICreatedUserAdminRequest {
   fullname: string;
   other_name: string;
   email: string;
@@ -40,7 +40,7 @@ interface CreatedUserAdminRequest {
   deleted_by?: string;
 }
 
-export class CreatedUserAdminRequestDto implements CreatedUserAdminRequest {
+export class CreatedUserAdminRequestDto implements ICreatedUserAdminRequest {
   @IsNotEmpty()
   @ApiProperty({ description: 'email', example: 'sangdv219@gmail.com' })
   @IsEmail()

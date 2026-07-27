@@ -9,7 +9,7 @@ import {
   Sequelize,
   Table,
 } from 'sequelize-typescript';
-import { UserEntity } from './user.model';
+import { UserModel } from './user.model';
 
 @Table({
   tableName: 'articles',
@@ -64,7 +64,7 @@ export class ArticleModel extends BaseModel<ArticleModel> {
   @Column(DataType.BOOLEAN)
   declare is_highlight: boolean;
 
-  @BelongsTo(() => UserEntity, 'user_id')
-  declare user: UserEntity;
+  @BelongsTo(() => UserModel, 'user_id')
+  declare user: UserModel;
 }
 

@@ -1,4 +1,4 @@
-import { Status, UserEntity } from '@/infrastructure/models/user.model';
+import { Status, UserModel } from '@/infrastructure/models/user.model';
 import { RedisContext } from '@/redis/enums/redis-key.enum';
 import { buildRedisKeyQuery } from '@/redis/helpers/redis-key.helper';
 import { sensitiveFields } from '@/shared/config/sensitive-fields.config';
@@ -29,7 +29,7 @@ import { RolesModel } from '@/infrastructure/models/roles.model';
 
 @Injectable()
 export class UserService extends BaseService<
-  UserEntity,
+  UserModel,
   CreatedUserAdminRequestDto,
   UpdatedUserAdminRequestDto,
   GetByIdUserAdminResponseDto,
@@ -94,7 +94,7 @@ export class UserService extends BaseService<
     return entity;
   }
 
-  async changeUserStatus(id: string, dto: ChangeStatusUserAdminRequestDto): Promise<UserEntity> {
+  async changeUserStatus(id: string, dto: ChangeStatusUserAdminRequestDto): Promise<UserModel> {
     const user = await this.userRepository.findByPk(id);
     if (!user) throw new NotFoundException(`User with id ${id} not found`);
     const currentStatus = user.get('status') as Status; 
@@ -143,12 +143,12 @@ export class UserService extends BaseService<
       return { success: false, message: 'User not found or restore failed' };
     }
 
-    const restoredUser = result[1][0] as UserEntity;
+    const restoredUser = result[1][0] as UserModel;
     const { password_hash, ...safeData } = restoredUser.get({ plain: true });
 
     return {
       success: true,
-      data: safeData as Partial<UserEntity>,
+      data: safeData as Partial<UserModel>,
     };
   }
 
@@ -242,28 +242,39 @@ export class UserService extends BaseService<
     }
   }
 
-  async searchUser(params: UserPaginationDTO & Record<string, any>): Promise<any> {
+  async searchUser(params: UserPaginationDTO):Promise<GetAllUserAdminResponseDto> {
     const { role_id, ...baseParams } = params;
-    return super.search(baseParams, (options) => {
-        const includes = Array.isArray(options.include)
-        ? options.include
-        : options.include
-          ? [options.include]
-          : [];
 
-        const roleInclude: any = {
+    return super.search(baseParams, options => {
+
+        const include = Array.isArray(options.include)
+            ? options.include
+            : options.include
+                ? [options.include]
+                : [];
+
+        const roleInclude:any = {
             model: RolesModel,
             attributes: ['name'],
-            through: { attributes: [] },
+            through: {
+                attributes: [],
+            },
         };
 
         if (role_id) {
-          roleInclude.where = { id: role_id };
-          roleInclude.required = true; 
+            roleInclude.where = {
+                id: role_id,
+            };
+
+            roleInclude.required = true;
         }
 
-        options.include = [...includes, roleInclude];
-      return options;
+        options.include = [
+            ...include,
+            roleInclude,
+        ];
+
+        return options;
     });
   }
 

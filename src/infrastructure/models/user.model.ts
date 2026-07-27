@@ -35,13 +35,40 @@ export enum GenderEnum {
 // SUSPENDED: Bị Admin khóa / vi phạm tiêu chuẩn.
 // ARCHIVED: Đã xóa mềm / Đưa vào lưu trữ.
 
+export interface IUser{
+  id: string;
+  fullname: string;
+  ascii_name: string;
+  other_name: string;
+  password_hash: string;
+  email: string;
+  gender?: GenderEnum;
+  birth_date: Date;
+  year_of_death: Date;
+  burial_place: string;
+  address: string;
+  biography: string;
+  life_status: 0 | 1;
+  avatar_file_id?: number;
+  is_root: boolean;
+  status: Status;
+  deleted_by: string;
+  deleted_at: Date;
+  failed_login_attempts?: number;
+  last_failed_login_at: Date;
+  locked_until: Date;
+  nodes: NodeModel[];
+  couples: CoupleModel[];
+  roles: RolesModel[];
+}
+
 @Table({
   tableName: 'users',
   timestamps: true,
   underscored: true,
 })
 
-export class UserEntity extends BaseModel<UserEntity> {
+export class UserModel extends BaseModel<UserModel> implements IUser {
   @PrimaryKey
   @Column({
     type: DataType.UUID,
@@ -134,7 +161,7 @@ export class UserEntity extends BaseModel<UserEntity> {
   deleted_by!: string;
 
   @BeforeUpdate
-  static setDeteledBy(instance: UserEntity) {
+  static setDeteledBy(instance: UserModel) {
     const userId = ClsServiceManager.getClsService().get('userId');
     if (userId) {
       instance.deleted_by = userId;

@@ -2,7 +2,7 @@ import { USER_ROLES_ENTITY } from '@/modules/associations/constants/user-roles.c
 import { BaseModel } from '@shared/model/base.model';
 import { AllowNull, BelongsTo, Column, DataType, ForeignKey, PrimaryKey, Table } from 'sequelize-typescript';
 import { RolesModel } from './roles.model';
-import { UserEntity } from './user.model';
+import { UserModel } from './user.model';
 
 export interface IUserRoles{
   id: string,
@@ -28,7 +28,7 @@ export class UserRolesModel extends BaseModel<UserRolesModel> implements IUserRo
   declare id: string;
 
   @AllowNull(false)
-  @ForeignKey(() => UserEntity)
+  @ForeignKey(() => UserModel)
   @Column({
     type: DataType.UUID,
   })
@@ -41,8 +41,8 @@ export class UserRolesModel extends BaseModel<UserRolesModel> implements IUserRo
   })
   role_id!: string;
 
-  @BelongsTo(() => UserEntity)
-  user!: UserEntity;
+  @BelongsTo(() => UserModel)
+  user!: UserModel;
 
   @BelongsTo(() => RolesModel)
   role!: RolesModel;

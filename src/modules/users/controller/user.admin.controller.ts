@@ -1,12 +1,16 @@
 import { AllExceptionsFilter } from '@core/filters/sequelize-exception.filter';
 import { BaseResponseInterceptor } from '@core/interceptors/base-response.interceptor';
 import { LoggingInterceptor } from '@core/interceptors/logging.interceptor';
-import { PaginationQueryDto } from '@shared/dto/common';
-import { BaseGetResponse } from '@shared/interface/common';
+import { UserModel } from '@infrastructure/models/user.model';
+import { RegisterDto } from '@modules/auth/dto/register.dto';
+import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
+import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
+import { UserService } from '@modules/users/services/user.service';
+import { CreateUserUseCase } from '@modules/users/use-cases/create-user/create-user.use-case';
+import { RegisterUserUseCase } from '@modules/users/use-cases/sign-up/signup.use-case';
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -15,20 +19,11 @@ import {
   Post,
   Query,
   UseFilters,
-  UseGuards,
   UseInterceptors,
   Version
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
-import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
-import { Status, UserEntity } from '@infrastructure/models/user.model';
-import { UserService } from '@modules/users/services/user.service';
-import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
-import { JWTAuthGuard } from '@core/guards/jwt.guard';
-import { UserContextInterceptor } from '@core/interceptors/user-context.interceptor';
-import { RegisterDto } from '@modules/auth/dto/register.dto';
-import { RegisterUserUseCase } from '@modules/users/use-cases/sign-up/signup.use-case';
-import { CreateUserUseCase } from '@modules/users/use-cases/create-user/create-user.use-case';
+import { BaseGetResponse } from '@shared/interface/common';
 
 @ApiBearerAuth('Authorization')
 @Controller({ path:'user-admin', version: '1' })
@@ -41,7 +36,7 @@ export class UserAdminController {
     private readonly createUserUseCase: CreateUserUseCase,
   ) { }
 
-  @ApiOkResponse({ description: 'Danh sách user phân trang', type: BaseGetResponse<UserEntity> })
+  @ApiOkResponse({ description: 'Danh sách user phân trang', type: BaseGetResponse<UserModel> })
   @Get()
   @HttpCode(HttpStatus.OK)
   // @UseGuards(JWTAuthGuard)

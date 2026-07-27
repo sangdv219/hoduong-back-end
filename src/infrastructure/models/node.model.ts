@@ -12,7 +12,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { CoupleModel } from '@/infrastructure/models/couple.model';
-import { UserEntity } from './user.model';
+import { UserModel } from './user.model';
 
 @Table({
   tableName: 'nodes',
@@ -25,7 +25,7 @@ export class NodeModel extends BaseModel<NodeModel> {
   @Column(DataType.UUID)
   declare id: string;
 
-  @ForeignKey(() => UserEntity)
+  @ForeignKey(() => UserModel)
   @AllowNull(false)
   @Column(DataType.UUID)
   declare user_id: string;
@@ -51,8 +51,8 @@ export class NodeModel extends BaseModel<NodeModel> {
   @Column(DataType.INTEGER)
   declare generation_order: number;
 
-  @BelongsTo(() => UserEntity, 'user_id')
-  declare user: UserEntity;
+  @BelongsTo(() => UserModel, 'user_id')
+  declare user: UserModel;
 
   @BelongsTo(() => NodeModel, { foreignKey: 'father_id', as: 'parent' })
   declare parent?: NodeModel;

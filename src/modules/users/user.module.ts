@@ -2,7 +2,7 @@ import { PasswordModule } from '@modules/password/password.module';
 import { RolesModule } from '@modules/roles/roles.module';
 import { NodeModule } from '@modules/nodes/node.module';
 import { UserAdminController } from '@modules/users/controller/user.admin.controller';
-import { UserEntity } from '@/infrastructure/models/user.model';
+import { UserModel } from '@/infrastructure/models/user.model';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
 import { UserService } from '@modules/users/services/user.service';
 import { Module } from '@nestjs/common';
@@ -21,10 +21,11 @@ import { RegisterUserUseCase } from './use-cases/sign-up/signup.use-case';
 import { CreateUserUseCase } from './use-cases/create-user/create-user.use-case';
 import { OTPService } from '../auth/services/OTP.service';
 import { UserStatusStrategyFactory } from './strategies/userStatusStrategy';
+import { UserQueryBuilder } from './query/user.query.builder';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([UserEntity, UserRolesModel, RolePermissionsModel, NodeModel, CoupleModel]),
+    SequelizeModule.forFeature([UserModel, UserRolesModel, RolePermissionsModel, NodeModel, CoupleModel]),
     AssociationsModule,
     PasswordModule,
     RolesModule,
@@ -42,6 +43,7 @@ import { UserStatusStrategyFactory } from './strategies/userStatusStrategy';
     OTPService,
     JwtModule,
     UserStatusStrategyFactory,
+    UserQueryBuilder,
     {
       provide: 'TokenSecretResolver',
       useClass: DefaultTokenSecretResolverStrategy,

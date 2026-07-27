@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotImplementedException } from '@nestjs/common';
-import { Status, UserEntity } from '@/infrastructure/models/user.model';
+import { Status, UserModel } from '@/infrastructure/models/user.model';
 import { Transaction } from 'sequelize';
 
 // 1. Định nghĩa Interface chung cho tất cả các Strategy
@@ -12,7 +12,7 @@ export interface IUserStatusStrategy {
   /**
    * Xử lý logic nghiệp vụ (side-effects) khi chuyển trạng thái
    */
-  handleLogic(user: UserEntity, transaction?: Transaction): Promise<void>;
+  handleLogic(user: UserModel, transaction?: Transaction): Promise<void>;
 }
 
 // 2. Triển khai Strategy cho trạng thái ACTIVE
@@ -24,7 +24,7 @@ export class ActiveStatusStrategy implements IUserStatusStrategy {
     }
   }
 
-  async handleLogic(user: UserEntity, transaction?: Transaction): Promise<void> {
+  async handleLogic(user: UserModel, transaction?: Transaction): Promise<void> {
     // Logic ví dụ: Gửi email Welcome (nếu từ Pending) hoặc Gửi email khôi phục tài khoản
     // EmailService.sendUserActivatedEmail(user.email);
   }
@@ -39,7 +39,7 @@ export class InactiveStatusStrategy implements IUserStatusStrategy {
     }
   }
 
-  async handleLogic(user: UserEntity, transaction?: Transaction): Promise<void> {
+  async handleLogic(user: UserModel, transaction?: Transaction): Promise<void> {
     // Logic: Xóa token đăng nhập, force logout...
   }
 }
@@ -54,7 +54,7 @@ export class SuspendedStatusStrategy implements IUserStatusStrategy {
     }
   }
 
-  async handleLogic(user: UserEntity, transaction?: Transaction): Promise<void> {
+  async handleLogic(user: UserModel, transaction?: Transaction): Promise<void> {
     // Logic: Gửi cảnh báo vi phạm, thu hồi quyền hạn, ngắt kết nối session...
   }
 }
@@ -68,7 +68,7 @@ export class ArchivedStatusStrategy implements IUserStatusStrategy {
     }
   }
 
-  async handleLogic(user: UserEntity, transaction?: Transaction): Promise<void> {
+  async handleLogic(user: UserModel, transaction?: Transaction): Promise<void> {
     // Logic: Xóa dữ liệu nhạy cảm (GDPR), gỡ avatar_file_id...
   }
 }

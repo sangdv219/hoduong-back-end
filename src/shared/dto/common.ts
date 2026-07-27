@@ -1,7 +1,7 @@
-import { IPaginationDTO } from '@/domain/repositories/base.repository';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IPaginationDTO } from '../interface/common';
 
 export class PaginationQueryDto implements IPaginationDTO {
   @IsOptional()

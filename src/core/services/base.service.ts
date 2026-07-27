@@ -1,4 +1,4 @@
-import { IBaseRepository, IPaginationDTO } from '@domain/repositories/base.repository';
+import { IBaseRepository } from '@domain/repositories/base.repository';
 import {
   BeforeApplicationShutdown,
   Logger,
@@ -13,6 +13,8 @@ import { RedisService } from '@redis/redis.service';
 import { sensitiveFields } from '@shared/config/sensitive-fields.config';
 import { FindOptions, Model, Op } from 'sequelize';
 import { plainToInstance } from 'class-transformer';
+import { UserPaginationDTO } from '@/modules/users/dto/user.admin.request.dto';
+import { IPaginationDTO } from '@/shared/interface/common';
  // BaseService không cần biết Thực thế có field gì.
 export abstract class BaseService<
   TEntity,
@@ -83,22 +85,32 @@ export abstract class BaseService<
     return response as GetAllResponseDto;
   }
 
-  async search(
-    params: IPaginationDTO & Record<string, any>, // Chấp nhận các filter động đi kèm
-    queryBuilder?: (options: FindOptions<TEntity>) => FindOptions<TEntity> | Promise<FindOptions<TEntity>>
-  ): Promise<GetAllResponseDto> {
-    let options: FindOptions<TEntity> = {};
+  // async search(
+  //   params: IPaginationDTO & Record<string, any>, // Chấp nhận các filter động đi kèm
+  //   queryBuilder?: (options: FindOptions<TEntity>) => FindOptions<TEntity> | Promise<FindOptions<TEntity>>
+  // ): Promise<GetAllResponseDto> {
+  //   let options: FindOptions<TEntity> = {};
    
-    if (queryBuilder) {
-      options = await queryBuilder(options);
+  //   if (queryBuilder) {
+  //     options = await queryBuilder(options);
+  //   }
+
+  //   const result = await this.repository.search(
+  //     params,
+  //     options,
+  //   );
+
+  //   return this.transformToDto(result);
+  // }
+
+  async search(params: UserPaginationDTO, callback){
+    let options={};
+    if(callback){
+        options = await callback(options);
     }
+    const result = await this.repository.search( params, options );
 
-    const result = await this.repository.search(
-      params,
-      options,
-    );
-
-    return this.transformToDto(result);
+    return this.transformToDto( result );
   }
 
   async create(dto: TCreateDto) {
