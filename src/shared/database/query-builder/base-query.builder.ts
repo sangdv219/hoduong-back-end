@@ -1,6 +1,6 @@
 import { FindOptions, Op, Order, WhereOptions } from "sequelize";
 
-export interface QueryBuilderConfig<T> {
+export interface IQueryBuilderConfig<T> {
     sortableFields: string[];
     defaultSort: string;
     defaultDirection: "ASC" | "DESC";
@@ -8,7 +8,7 @@ export interface QueryBuilderConfig<T> {
 }
 
 export class BaseQueryBuilder<T> {
-    constructor(private readonly config: QueryBuilderConfig<T>) {}
+    constructor(private readonly config: IQueryBuilderConfig<T>) {}
 
     build(params: Record<string, any>): FindOptions<T> {
 

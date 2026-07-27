@@ -1,5 +1,5 @@
-import { Status } from '@/infrastructure/models/user.model';
-import { PaginationQueryDto } from '@/shared/dto/common';
+import { Status } from '@infrastructure/models/user.model';
+import { PaginationQueryDto } from '@shared/dto/common';
 import { ApiProperty, ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {

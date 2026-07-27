@@ -1,5 +1,5 @@
-import { UserModel } from "@/infrastructure/models/user.model";
-import { BaseQueryBuilder } from "@/shared/database/query-builder/base-query.builder";
+import { UserModel } from "@infrastructure/models/user.model";
+import { BaseQueryBuilder } from "@shared/database/query-builder/base-query.builder";
 
 export class UserQueryBuilder extends BaseQueryBuilder<UserModel>{
     constructor(){

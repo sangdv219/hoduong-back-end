@@ -13,8 +13,8 @@ import { RedisService } from '@redis/redis.service';
 import { sensitiveFields } from '@shared/config/sensitive-fields.config';
 import { FindOptions, Model, Op } from 'sequelize';
 import { plainToInstance } from 'class-transformer';
-import { UserPaginationDTO } from '@/modules/users/dto/user.admin.request.dto';
-import { IPaginationDTO } from '@/shared/interface/common';
+import { UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
+import { IPaginationDTO } from '@shared/interface/common';
  // BaseService không cần biết Thực thế có field gì.
 export abstract class BaseService<
   TEntity,
