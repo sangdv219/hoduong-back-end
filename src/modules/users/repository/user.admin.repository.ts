@@ -7,6 +7,7 @@ import { prepareSearchParams } from '@modules/users/helpers/user-response.helper
 import { UserRolesModel } from '@infrastructure/models/user_roles.model';
 import { includes } from 'zod';
 import { RolesModel } from '@/infrastructure/models/roles.model';
+import { GetAllUserAdminResponseDto } from '../dto/user.admin.response.dto';
 
 export abstract class AbstractUserRepository extends BaseRepository<UserEntity> {}
 
@@ -29,11 +30,12 @@ export class PostgresUserRepository extends AbstractUserRepository {
   }
 
   
-  async search(params: UserPaginationDTO):Promise<any>{
+  async search(params: UserPaginationDTO): Promise<GetAllUserAdminResponseDto>{
     const {page, limit, keyword, sortBy, sortOrder} = params;
     const offset = (page - 1) * limit;
-    // 1. Xử lý Sắp xếp (Order)
-    try {
+
+    console.log('params repository', params)
+    // try {
       
       let column = 'created_at';
       let direction = 'DESC';
@@ -126,9 +128,9 @@ export class PostgresUserRepository extends AbstractUserRepository {
          limit,
          totalPages: Math.ceil(count / limit),
        };
-    } catch (error) {
-        console.log('error_', error)
-    }
+    // } catch (error) {
+    //     console.log('error_', error)
+    // }
    // 1. Xử lý Sắp xếp (Order) đa ngữ cảnh
   }
 

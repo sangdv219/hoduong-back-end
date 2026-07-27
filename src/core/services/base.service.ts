@@ -76,7 +76,7 @@ export abstract class BaseService<
 
     const { items, total } = await this.repository.findWithPagination(query, exclude);
 
-    const response = { data: items, totalRecord: total };
+    const response = { items: items, totalRecord: total };
 
     await this.cacheManage.set(redisKey, JSON.stringify(response), 'EX', 30);
 
@@ -89,6 +89,7 @@ export abstract class BaseService<
   ): Promise<any> {
     const options: FindOptions<TEntity> = {};
     const andConditions: any[] = [];
+    // console.log('params', params)
     // 1. Xử lý tìm kiếm toàn văn theo từ khóa (Keyword Search)
     if (params.keyword && this.searchableFields.length > 0) {
       andConditions.push({

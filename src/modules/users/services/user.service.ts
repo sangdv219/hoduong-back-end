@@ -25,6 +25,7 @@ import { toAsciiName } from '@shared/utils/string.util';
 import { Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { UserStatusStrategyFactory } from '../strategies/userStatusStrategy';
+import { RolesModel } from '@/infrastructure/models/roles.model';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -242,23 +243,29 @@ export class UserService extends BaseService<
   }
 
   async searchUser(params: UserPaginationDTO & Record<string, any>): Promise<any> {
-    // const { role_id, ...baseParams } = params;
-    // return super.search(baseParams, (options) => {
-    //   if(role_id){
-    //     options.include = [
-    //       ...(options.include || []),
-    //       {
-    //         association: 'roles',
-    //         where: { id: role_id },
-    //         required: true,
-    //         attributes: [],
-    //       }
-    //     ]
-    //   }
+    const { role_id, ...baseParams } = params;
+    return super.search(baseParams, (options) => {
+      if(role_id){
+        const include = Array.isArray(options.include)
+        ? options.include
+        : options.include
+          ? [options.include]
+          : [];
 
-    //   return options;
-    // });
-    return this.search(params)
+        options.include = [
+          ...include,
+          {
+            model: RolesModel,
+            where: { id: role_id },
+            required: true,
+            attributes: [],
+          }
+        ]
+      }
+      console.log(';options', options)
+      return options;
+    });
+    // return this.search(params)
   }
 
   async getUserById(id: string): Promise<any>{

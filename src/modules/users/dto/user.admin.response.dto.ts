@@ -39,7 +39,16 @@ export class GetAllUserAdminResponseDto {
   items!: UserAdminBaseDto[];
 
   @Expose()
-  totalRecord!: number;
+  total!: number;
+  
+  @Expose()
+  page!: number;
+  
+  @Expose()
+  limit!: number;
+  
+  @Expose()
+  totalPages!: number;
 }
 
 export class CreatedUserAdminReponseDto extends UserAdminBaseDto {

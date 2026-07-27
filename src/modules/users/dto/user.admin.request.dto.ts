@@ -152,7 +152,7 @@ export class UserPaginationDTO extends PaginationQueryDto{
   @ApiPropertyOptional({
     enum: [0, 1],
     description: '0: Nam, 1: Nữ',
-    example: 0,
+    example: null,
   })
   gender?: 0 | 1;
 
@@ -170,7 +170,11 @@ export class UserPaginationDTO extends PaginationQueryDto{
   @ApiPropertyOptional({
     enum: [0, 1],
     description: '0: Đã mất 1: Sống',
-    example: 0,
+    example: null,
   })
   life_status!: number;
+
+  @IsOptional()
+  @ApiPropertyOptional({ description: 'Role', example: "026e2174-aff3-4461-9f43-0e16c9a88f17" })
+  role_id?: string;
 }
