@@ -1,30 +1,51 @@
 import { GenderEnum, Status } from '@/infrastructure/models/user.model';
 import { Expose, Type } from 'class-transformer';
 
+interface UserAdmin{
+  id: string;
+  fullname: string; 
+  life_status: string; 
+  other_name: string;
+  email: string;
+  phone: string; 
+  gender: GenderEnum;
+  age: number; 
+  status: Status;
+  roles: string;
+}
+
+interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export class UserAdminBaseDto {
   @Expose()
   id!: string;
 
   @Expose()
-  fullname!: string; // 🟢 Bỏ { name: 'fullname' } nếu key DB trùng tên
+  fullname!: string; 
 
   @Expose()
-  life_status!: string; // 🟢 Bỏ 'declare'
+  life_status!: string;
 
   @Expose()
-  other_name!: string; // 🟢 Bỏ 'declare'
+  other_name!: string;
 
   @Expose()
-  email!: string; // 🟢 Bỏ 'declare'
+  email!: string; 
 
   @Expose()
-  phone!: string; // 🟢 Bỏ 'declare'
+  phone!: string; 
 
   @Expose()
   gender?: GenderEnum;
 
   @Expose()
-  age!: number; // 🟢 Bỏ 'declare'
+  age!: number;
 
   @Expose()
   status!: Status;
@@ -33,10 +54,10 @@ export class UserAdminBaseDto {
   roles!: string;
 }
 
-export class GetAllUserAdminResponseDto {
+export class GetAllUserAdminResponseDto implements PaginatedResult<UserAdmin> {
   @Expose()
   @Type(() => UserAdminBaseDto)
-  items!: UserAdminBaseDto[];
+  items!: UserAdmin[];
 
   @Expose()
   total!: number;

@@ -245,24 +245,25 @@ export class UserService extends BaseService<
   async searchUser(params: UserPaginationDTO & Record<string, any>): Promise<any> {
     const { role_id, ...baseParams } = params;
     return super.search(baseParams, (options) => {
-      if(role_id){
-        const include = Array.isArray(options.include)
+        const includes = Array.isArray(options.include)
         ? options.include
         : options.include
           ? [options.include]
           : [];
 
-        options.include = [
-          ...include,
-          {
+        const roleInclude: any = {
             model: RolesModel,
-            where: { id: role_id },
-            required: true,
-            attributes: [],
-          }
-        ]
-      }
-      console.log(';options', options)
+            attributes: ['name'],
+            through: { attributes: [] },
+        };
+
+        // 3. Nếu người dùng muốn lọc theo role_id cụ thể, kích hoạt INNER JOIN
+        if (role_id) {
+          roleInclude.where = { id: role_id };
+          roleInclude.required = true; 
+        }
+
+        options.include = [...includes, roleInclude];
       return options;
     });
     // return this.search(params)

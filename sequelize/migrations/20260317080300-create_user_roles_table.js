@@ -3,8 +3,13 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('user_roles', {
-      user_id: {
+      id: {
+        type: Sequelize.UUID,
+        allowNull: false,
         primaryKey: true,
+        defaultValue: Sequelize.literal('gen_random_uuid()'),
+      },
+      user_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -15,7 +20,6 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       role_id: {
-        primaryKey: true,
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -46,12 +50,10 @@ module.exports = {
         type: Sequelize.STRING,
       },
     });
-
-    await queryInterface.addIndex('user_roles', ['user_id'], {
-      name: 'idx_user_roles_user_id',
-    });
-    await queryInterface.addIndex('user_roles', ['role_id'], {
-      name: 'idx_user_roles_role_id',
+    await queryInterface.addConstraint('user_roles', {
+      fields: ['user_id', 'role_id'],
+      type: 'unique',
+      name: 'uk_user_roles_user_id_role_id',
     });
   },
 
