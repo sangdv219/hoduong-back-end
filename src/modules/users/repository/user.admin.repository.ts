@@ -1,13 +1,13 @@
 import { RolesModel } from '@/infrastructure/models/roles.model';
 import { BaseRepository } from '@domain/repositories/base.repository';
 import { Status, UserModel } from '@infrastructure/models/user.model';
-import { UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
+import { IUserPaginationDTO, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
 import { prepareSearchParams } from '@modules/users/helpers/user-response.helper';
 import { Injectable } from '@nestjs/common';
 import { FindOptions, Op, Transaction, WhereOptions } from 'sequelize';
 import { GetAllUserAdminResponseDto, IUserAdmin } from '@modules/users/dto/user.admin.response.dto';
 import { UserQueryBuilder } from '@modules/users/query/user.query.builder';
-import { IPaginatedResult } from '@/shared/interface/common';
+import { IPaginatedResult, IPaginationDTO } from '@/shared/interface/common';
 
 export abstract class AbstractUserRepository extends BaseRepository<UserModel> {}
 
@@ -124,7 +124,7 @@ export class PostgresUserRepository extends AbstractUserRepository {
   //   // }
   // }
 
-  async search(params: UserPaginationDTO, customOptions?: FindOptions<UserModel>): Promise<IPaginatedResult<UserModel> | any> {
+  async search(params: IUserPaginationDTO, customOptions: FindOptions<UserModel>){
     const options = this.userQueryBuilder.build(params);
     const finalOptions = {
       ...options,
@@ -134,14 +134,14 @@ export class PostgresUserRepository extends AbstractUserRepository {
         ...customOptions?.where,
       }
     };
-    const { rows, count } = await this.model.findAndCountAll(finalOptions);
+    const { rows, count } :{rows:any[], count: number}= await this.model.findAndCountAll(finalOptions);
     return {
              items: rows,  
              total: count,
             //  page,
             //  limit,
             //  totalPages: Math.ceil(count / limit),
-           };
+           } as any
   }
 
   async findAll(userIds: string[], transaction?: Transaction): Promise<UserModel[] | null> {

@@ -8,7 +8,7 @@ import { NodeService } from '@modules/nodes/services/node.service';
 import { PasswordService } from '@modules/password/services/password.service';
 import { PostgresRoleRepository } from '@modules/roles/infrastructure/repository/postgres-role.repository';
 import { DEFAULT_MEMBER_ROLE_NAME, USER_ENTITY, USER_ERROR } from '@modules/users/constants/user.constant';
-import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
+import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, IUserPaginationDTO, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
 import {
@@ -38,6 +38,7 @@ export class UserService extends BaseService<
   protected entityName: string;
   private users: string[] = [];
   protected readonly getAllDtoClass = GetAllUserAdminResponseDto;
+  protected readonly getByIdDtoClass = GetByIdUserAdminResponseDto;
 
   constructor(
     @InjectConnection()
@@ -212,7 +213,7 @@ export class UserService extends BaseService<
       await this.ensureUniqueContact(dto.email, dto.phone);
       
       const passwordHash = await this.passwordService.hashPassword(dto.password);
-  
+      console.log('dto', dto)
       const userEntity = {
         fullname: dto.fullname,
         other_name: dto.other_name,
@@ -230,6 +231,7 @@ export class UserService extends BaseService<
         life_status: dto.life_status,
         avatar_file_id: dto.avatar_file_id,
         is_root: false,
+        status: Status.PENDING,
       };
   
       this.cleanCacheRedis();
@@ -242,9 +244,8 @@ export class UserService extends BaseService<
     }
   }
 
-  async searchUser(params: UserPaginationDTO):Promise<GetAllUserAdminResponseDto> {
+  async searchUser(params: IUserPaginationDTO):Promise<GetAllUserAdminResponseDto> {
     const { role_id, ...baseParams } = params;
-
     return super.search(baseParams, options => {
 
         const include = Array.isArray(options.include)
@@ -279,18 +280,28 @@ export class UserService extends BaseService<
   }
 
   async getUserById(id: string): Promise<any>{
-    const redisKey = buildRedisKeyQuery(this.entityName.toLocaleLowerCase(), RedisContext.DETAIL, {}, id);
+    return super.getById(id, options => {
 
-    const cached = await this.cacheManage.get(redisKey);
+      const include = Array.isArray(options.include)
+      ? options.include
+      : options.include
+          ? [options.include]
+          : [];
 
-    const exclude = sensitiveFields[this.entityName] ?? [];
-    const dataCache = cached && JSON.parse(cached);
-    if (cached) return dataCache;
-    
-    const entity = await this.repository.findByPk(id, exclude);
-    if (!entity) {
-      throw new NotFoundException(`${this.entityName} with id ${id} not found`);
-    }
-    await this.cacheManage.set(redisKey, JSON.stringify(entity), 'EX', 30);
+      const roleInclude:any = {
+          model: RolesModel,
+          attributes: ['id','name'],
+          through: {
+              attributes: [],
+          },
+      };
+
+      options.include = [
+          ...include,
+          roleInclude,
+      ];
+
+      return options;
+    })
   }
 }

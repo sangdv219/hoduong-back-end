@@ -20,7 +20,6 @@ export class BaseQueryBuilder<T> {
             sortOrder,
             ...filters
         } = params;
-        console.log('params builder', params)
         const where: WhereOptions = {};
 
         Object.entries(filters).forEach(([key, value]) => {
@@ -49,20 +48,15 @@ export class BaseQueryBuilder<T> {
             offset: (page - 1) * limit,
             order,
         };
-
     }
 
     private buildOrder(
         sortBy?,
         sortOrder?,
     ): Order {
-
         const column = this.config.sortableFields.includes(sortBy) ? sortBy : this.config.defaultSort;
-
         const direction = String(sortOrder).toUpperCase() === "ASC" ? "ASC" : this.config.defaultDirection;
-
         return [[ column, direction ]];
-
     }
 
 }

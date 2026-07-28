@@ -20,6 +20,8 @@ export class PermissionsService extends
   protected entityName: string;
   private Permissionss: string[] = [];
   protected readonly getAllDtoClass = GetAllPermissionsResponseDto;
+  protected readonly getByIdDtoClass = GetByIdPermissionsResponseDto;
+
   constructor(
     @InjectConnection()
     private readonly sequelize: Sequelize,

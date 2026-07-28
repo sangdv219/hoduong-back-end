@@ -11,7 +11,7 @@ export interface IUserAdmin{
   gender: GenderEnum;
   age: number; 
   status: Status;
-  roles: string;
+  roles: any[]
 }
 
 interface IPaginatedResult<T> {
@@ -51,7 +51,7 @@ export class UserAdminBaseDto implements IUserAdmin {
   status!: Status;
 
   @Expose()
-  roles!: string;
+  roles!: [];
 }
 
 export class GetAllUserAdminResponseDto implements IPaginatedResult<IUserAdmin> {
@@ -72,15 +72,7 @@ export class GetAllUserAdminResponseDto implements IPaginatedResult<IUserAdmin> 
   totalPages!: number;
 }
 
-export class CreatedUserAdminReponseDto extends UserAdminBaseDto {
-  @Expose()
-  updated_at!: Date;
-}
-
-export class GetByIdUserAdminResponseDto extends CreatedUserAdminReponseDto {
-  @Expose()
-  user!: UserAdminBaseDto[];
-
+export class UserAdminDetail extends UserAdminBaseDto {
   @Expose()
   birth_date!: Date; // 🟢 Bỏ 'declare'
 
@@ -109,6 +101,9 @@ export class GetByIdUserAdminResponseDto extends CreatedUserAdminReponseDto {
   updated_by!: string;
 
   @Expose()
+  updated_at!: Date;
+
+  @Expose()
   deleted_by!: string;
 
   @Expose()
@@ -122,4 +117,9 @@ export class GetByIdUserAdminResponseDto extends CreatedUserAdminReponseDto {
 
   @Expose()
   locked_until!: Date; // 
+}
+export class GetByIdUserAdminResponseDto {
+  @Expose()
+  @Type(() => UserAdminDetail)
+  items!: UserAdminDetail;
 }

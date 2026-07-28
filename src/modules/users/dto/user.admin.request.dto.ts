@@ -14,6 +14,7 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
+import { IPaginationDTO } from '@/shared/interface/common';
 
 interface ICreatedUserAdminRequest {
   fullname: string;
@@ -38,6 +39,13 @@ interface ICreatedUserAdminRequest {
   created_by?: string;
   updated_by?: string;
   deleted_by?: string;
+}
+
+export interface IUserPaginationDTO extends IPaginationDTO{
+  gender?: 0 | 1;
+  status: 'active | inactive | pending | suspended | archived'
+  life_status: number;
+  role_id?: string;
 }
 
 export class CreatedUserAdminRequestDto implements ICreatedUserAdminRequest {
@@ -145,7 +153,8 @@ export class ChangeStatusUserAdminRequestDto  {
 }
 
 
-export class UserPaginationDTO extends PaginationQueryDto{
+
+export class UserPaginationDTO extends PaginationQueryDto implements IUserPaginationDTO{
   @IsOptional()
   @Type(() => Number)
   @IsEnum([0, 1], { message: 'Giới tính phải là 0 hoặc 1' })
