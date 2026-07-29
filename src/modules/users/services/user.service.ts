@@ -86,13 +86,67 @@ export class UserService extends BaseService<
     const entity = await this.userRepository.findByPk(id);
     if (!entity) throw new NotFoundException(`User with id ${id} not found!`);
 
+    const { roles, ...res } = dto;
     if (dto['status']) {
       delete dto['status']; 
     }
-    Object.assign(entity, dto);
-    await entity.update(dto);
 
-    return entity;
+    // Khởi tạo Transaction
+    const transaction = await this.sequelize.transaction();
+
+    try {
+      // 1. Cập nhật thông tin cơ bản của entity (Bảng users)
+      Object.assign(entity, dto);
+      await entity.update(res, { transaction });
+
+      // 2. Xử lý Logic Cập nhật mảng Roles (Sync Diff)
+      if (roles && Array.isArray(roles)) {
+        // 2.1 Loại bỏ trùng lặp từ Input bằng Set
+        const oldRoleIds = [...new Set(roles)];
+
+        // 2.2 Lấy danh sách Role hiện tại của User trong Database
+        const currentUserRoles = await this.userRolesRepository.model.findAll({
+          where: { user_id: id },
+          attributes: ['role_id'],
+          transaction,
+        });
+        const currentRole = currentUserRoles.map(item => item.get('role_id'));
+
+        // 2.3 Tính Diff (Tìm phần khác biệt)
+        const rolesToInsert = oldRoleIds.filter(roleId => !currentRole.includes(roleId));
+        const rolesToDelete = currentRole.filter(roleId => !oldRoleIds.includes(roleId));
+        // 2.4 Thực thi Xoá các Role không còn được tick
+        if (rolesToDelete.length > 0) {
+          await (this.userRolesRepository as any).model.destroy({
+            where: {
+              user_id: id,
+              role_id: rolesToDelete, // Tự động convert thành mệnh đề IN (...)
+            },
+            transaction,
+          });
+        }
+
+        // 2.5 Thực thi Thêm mới các Role được tick thêm
+        if (rolesToInsert.length > 0) {
+          const insertData = rolesToInsert.map(roleId => ({
+            user_id: id,
+            role_id: roleId,
+          }));
+          // bulkCreate tự động sinh uuid vì bạn đã set defaultValue: DataType.UUIDV4 ở Model
+          await (this.userRolesRepository as any).model.bulkCreate(insertData, { transaction });
+        }
+      }
+
+      // 3. Commit dữ liệu nếu không có lỗi
+      await transaction.commit();
+      return entity;
+
+    } catch (error) {
+      // 4. Rollback nếu có bất kỳ lỗi nào xảy ra (kể cả lỗi lúc insert role)
+      await transaction.rollback();
+      Logger.error(`Update User [${id}] failed: `, error);
+      throw error;
+    }
   }
 
   async changeUserStatus(id: string, dto: ChangeStatusUserAdminRequestDto): Promise<UserModel> {
