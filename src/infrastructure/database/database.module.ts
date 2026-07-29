@@ -19,6 +19,10 @@ import { DatabaseService } from './database.service';
         database: config.get<string>('DB_DATABASE'),
         autoLoadModels: true,
         synchronize: true,
+        timezone: '+07:00', // Ép buộc Sequelize format dạng '+07:00' thay vì 'GMT+0700'
+        dialectOptions: {
+          useUTC: false,    // Không bắt buộc ép về UTC gốc
+        },
         logging: (sql, timing) => {console.log(`[DEBUG SQL] (${timing}ms): ${sql}`)},
         benchmark: true
       }),

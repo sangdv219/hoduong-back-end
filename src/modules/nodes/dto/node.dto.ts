@@ -1,3 +1,4 @@
+import { Status } from '@/infrastructure/models/user.model';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
@@ -11,65 +12,65 @@ import {
 } from 'class-validator';
 
 export class NodeUserVModel {
-  id: string;
-  fullname: string;
+  id?: string;
+  fullname?: string;
   otherName?: string;
-  gender?: string;
-  yearOfBirth?: number;
-  yearOfDeath?: number;
+  gender?: number;
+  yearOfBirth?: Date;
+  yearOfDeath?: Date;
   burialPlace?: string;
   address?: string;
   biography?: string;
-  status?: string;
+  life_status?: number;
   email?: string;
-  is_active: boolean;
+  status?: Status;
   createdAt?: Date;
   updatedBy?: string;
 }
 
 export class CoupleGetVModel {
-  id: string;
-  level: number;
-  userId: string;
-  createdAt?: Date;
-  createdBy?: string;
-  is_active: boolean;
-  nodeId?: string;
-  user?: NodeUserVModel;
+  id?: string;
+  couple_order?: number;
+  userId?: string | null;
+  createdAt?: Date | null;
+  createdBy?: string | null;
+  status?: boolean | null;
+  nodeId?: string | null;
+  user?: NodeUserVModel | null;
 }
 
 export class NodeGetVModel {
-  nodeId: string;
-  userId: string;
-  parentId?: string;
+  nodeId?: string;
+  userId?: string | null;
+  fatherId?: string;
   createdAt?: Date;
   createdBy?: string;
   updatedAt?: Date;
   updatedBy?: string;
-  is_active: boolean;
-  members?: number;
+  status?: boolean;
+  child_order?: number;
   parent?: NodeUserVModel;
   user?: NodeUserVModel;
   couples?: CoupleGetVModel[];
 }
 
 export class NodeTreeVModel {
-  id: string;
-  userId: string;
-  parentId?: string;
+  id?: string;
+  userId?: string | null;
+  fatherId?: string;
   createdAt?: Date;
   createdBy?: string;
   updatedAt?: Date;
   updatedBy?: string;
-  is_active: boolean;
-  members?: number;
-  children: NodeTreeVModel[];
+  status?: boolean;
+  child_order?: number;
+  children?: NodeTreeVModel[] | null;
   user?: NodeUserVModel;
 }
 
 export class NodePaginationModel {
-  records: NodeGetVModel[];
-  totalRecords: number;
+  records?: NodeGetVModel[] | null;
+  totalRecords?: number | null;
 }
 
 export class NodeFilterQueryDto {
@@ -77,95 +78,95 @@ export class NodeFilterQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  pageNumber?: number = 1;
+  pageNumber?: number | null = 1;
 
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  pageSize?: number = 10;
+  pageSize?: number | null = 10;
 
   @IsOptional()
   @IsString()
-  keyword?: string;
+  keyword?: string | null;
 
   @IsOptional()
   @IsUUID()
-  parentId?: string;
+  fatherId?: string | null;
 
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
-  is_active?: boolean;
+  status?: boolean | null;
 
   @IsOptional()
   @IsString()
-  createdBy?: string;
+  createdBy?: string | null;
 
   @IsOptional()
   @IsString()
-  updatedBy?: string;
+  updatedBy?: string | null = null;
 
   @IsOptional()
   @Type(() => Date)
-  createdDate?: Date;
+  createdDate?: Date | null = null;
 
   @IsOptional()
   @Type(() => Date)
-  updatedDate?: Date;
+  updatedDate?: Date | null = null;
 }
 
 export class CreateNodeRequestDto {
   @IsUUID()
   @IsNotEmpty()
   @ApiProperty({ description: 'User ID linked to this node' })
-  userId: string;
+  userId?: string | null = null;
 
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional({ description: 'Parent node ID' })
-  parentId?: string;
+  fatherId?: string | null = null;
 
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional({ description: 'Spouse user ID to create couple relation' })
-  coupleUserId?: string;
+  coupleUserId?: string | null = null;
 
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   @ApiPropertyOptional({ description: 'Member order among siblings', default: 1 })
-  members?: number;
+  child_order?: number | null = 1;
 
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
   @ApiPropertyOptional({ default: true })
-  is_active?: boolean = true;
+  status?: boolean | null = true;
 }
 
 export class UpdateNodeRequestDto {
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional({ description: 'User ID linked to this node' })
-  userId?: string;
+  userId?: string | null = null;
 
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional({ description: 'Parent node ID' })
-  parentId?: string;
+  fatherId?: string | null = null;
 
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   @ApiPropertyOptional({ description: 'Member order among siblings' })
-  members?: number;
+  child_order?: number | null = 1;
 
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
   @ApiPropertyOptional()
-  is_active?: boolean;
+  status?: boolean | null = true ;
 }

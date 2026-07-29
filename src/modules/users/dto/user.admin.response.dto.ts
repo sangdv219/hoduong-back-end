@@ -1,45 +1,125 @@
-import { Expose } from 'class-transformer';
+import { GenderEnum, Status } from '@/infrastructure/models/user.model';
+import { Expose, Type } from 'class-transformer';
 
-export class UserAdminBaseDto {
-  @Expose()
-  fullname: string;
-
-  @Expose()
+export interface IUserAdmin{
+  id: string;
+  fullname: string; 
+  life_status: string; 
+  other_name: string;
   email: string;
-
-  @Expose()
-  phone: string;
-
-  @Expose()
-  gender: string;
-
-  @Expose()
-  age: number;
-
-  @Expose()
-  is_root: boolean = true;
-
-  @Expose()
-  is_active: boolean = true;
+  phone: string; 
+  gender: GenderEnum;
+  age: number; 
+  status: Status;
+  roles: any[]
 }
 
-export class GetAllUserAdminResponseDto {
-  @Expose()
-  items: UserAdminBaseDto[];
-
-  @Expose()
-  totalRecord: number;
+interface IPaginatedResult<T> {
+  items: T[];
+  total: number;
+  // page: number;
+  // limit: number;
+  // totalRecord: number;
 }
 
-export class CreatedUserAdminReponseDto extends UserAdminBaseDto {
+export class UserAdminBaseDto implements IUserAdmin {
   @Expose()
-  created_at: Date;
+  id!: string;
 
   @Expose()
-  updated_at: Date;
+  fullname!: string; 
+
+  @Expose()
+  life_status!: string;
+
+  @Expose()
+  other_name!: string;
+
+  @Expose()
+  email!: string; 
+
+  @Expose()
+  phone!: string; 
+
+  @Expose()
+  gender!: GenderEnum;
+
+  @Expose()
+  age!: number;
+
+  @Expose()
+  status!: Status;
+
+  @Expose()
+  roles!: [];
 }
 
-export class GetByIdUserAdminResponseDto extends CreatedUserAdminReponseDto {
+export class GetAllUserAdminResponseDto implements IPaginatedResult<IUserAdmin> {
   @Expose()
-  user: UserAdminBaseDto[];
+  @Type(() => UserAdminBaseDto)
+  items!: IUserAdmin[];
+
+  @Expose()
+  total!: number;
+  
+  // @Expose()
+  // page!: number;
+  
+  // @Expose()
+  // limit!: number;
+  
+  @Expose()
+  totalRecord!: number;
+}
+
+export class UserAdminDetail extends UserAdminBaseDto {
+  @Expose()
+  birth_date!: Date; // 🟢 Bỏ 'declare'
+
+  @Expose()
+  year_of_death!: Date; // Khớp với yearOfDeath?
+
+  @Expose()
+  burial_place!: string; // Khớp với burialPlace?
+
+  @Expose()
+  address!: string; // Khớp với address?
+
+  @Expose()
+  biography!: string; // Khớp với biography?
+
+  @Expose()
+  avatar_file_id!: number; 
+  
+  @Expose()
+  is_root!: boolean;
+
+  @Expose()
+  created_at!: Date;
+
+  @Expose()
+  updated_by!: string;
+
+  @Expose()
+  updated_at!: Date;
+
+  @Expose()
+  deleted_by!: string;
+
+  @Expose()
+  deleted_at!: Date;
+
+  @Expose()
+  failed_login_attempts!: number;
+
+  @Expose()
+  last_failed_login_at!: Date;
+
+  @Expose()
+  locked_until!: Date; // 
+}
+export class GetByIdUserAdminResponseDto {
+  @Expose()
+  @Type(() => UserAdminDetail)
+  items!: UserAdminDetail;
 }

@@ -1,6 +1,6 @@
 import { BaseRepository } from '@/domain/repositories/base.repository';
 import { NodeModel } from '@/infrastructure/models/node.model';
-import { UserEntity } from '@/infrastructure/models/user.model';
+import { UserModel } from '@/infrastructure/models/user.model';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';
@@ -27,7 +27,7 @@ export class PostgresNodeRepository extends AbstractNodeRepository {
 
   async findAllAsTree(transaction?: Transaction): Promise<NodeModel[] | null> {
     return this.model.findAll({
-      where: { is_active: true },
+      where: { status: true },
       transaction,
     });
   }
@@ -39,16 +39,16 @@ export class PostgresNodeRepository extends AbstractNodeRepository {
     });
   }
 
-  async findByParentId(parentId: string, transaction?: Transaction): Promise<NodeModel | null> {
+  async findByParentId(fatherId: string, transaction?: Transaction): Promise<NodeModel | null> {
     return this.model.findOne({
-      where: { parent_id: parentId, is_active: true },
+      where: { father_id: fatherId, status: true },
       transaction,
     });
   }
 
   async findRootNode(transaction?: Transaction): Promise<NodeModel | null> {
     return this.model.findOne({
-      where: { parent_id: null, is_active: true },
+      where: { father_id: null, status: true },
       transaction,
     });
   }
@@ -56,11 +56,11 @@ export class PostgresNodeRepository extends AbstractNodeRepository {
   async findByPkWithRelations(id: string, transaction?: Transaction): Promise<NodeModel | null> {
     return this.model.findByPk(id, {
       include: [
-        { model: UserEntity, as: 'user' },
+        { model: UserModel, as: 'user' },
         {
           model: NodeModel,
           as: 'parent',
-          include: [{ model: UserEntity, as: 'user' }],
+          include: [{ model: UserModel, as: 'user' }],
         },
       ],
       transaction,
@@ -68,7 +68,7 @@ export class PostgresNodeRepository extends AbstractNodeRepository {
   }
 
   async incrementMembers(nodeId: string, transaction?: Transaction): Promise<void> {
-    await this.model.increment('members', {
+    await this.model.increment('child_order', {
       by: 1,
       where: { id: nodeId },
       transaction,
@@ -76,7 +76,7 @@ export class PostgresNodeRepository extends AbstractNodeRepository {
   }
 
   async decrementMembers(nodeId: string, transaction?: Transaction): Promise<void> {
-    await this.model.decrement('members', {
+    await this.model.decrement('child_order', {
       by: 1,
       where: { id: nodeId },
       transaction,
@@ -98,7 +98,7 @@ export class PostgresNodeRepository extends AbstractNodeRepository {
 
   async softDeactivate(id: string, updatedBy: string, transaction?: Transaction): Promise<void> {
     await this.model.update(
-      { is_active: false, updated_by: updatedBy },
+      { status: false, updated_by: updatedBy },
       { where: { id }, transaction },
     );
   }

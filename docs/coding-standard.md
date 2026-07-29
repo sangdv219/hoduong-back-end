@@ -188,7 +188,7 @@ Required Indexes:
 
 - family_id
 - person_id
-- parent_id
+- father_id
 - spouse_id
 
 Use:

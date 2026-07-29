@@ -2,6 +2,7 @@
 
 const { last } = require('rxjs');
 
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -17,7 +18,11 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.name
       },
-
+      other_name: {
+        type: Sequelize.STRING(100),
+        allowNull: true,
+        defaultValue: Sequelize.name
+      },
       ascii_name: {
         type: Sequelize.STRING(100),
         allowNull: true,
@@ -29,7 +34,7 @@ module.exports = {
       },
       email: {
         type: Sequelize.STRING(500),
-        allowNull: true,
+        allowNull: false,
         unique: true,
       },
       phone: {
@@ -38,38 +43,67 @@ module.exports = {
         defaultValue: Sequelize.phone
       },
       gender: {
-        type: Sequelize.STRING(255),
-        allowNull: true,
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        validate: {
+          isIn: [[0, 1]] // 1: Nữ, 0: Nam
+        } 
       },
       age: {
         type: Sequelize.INTEGER,
         allowNull: true,
         unique: false,
       },
+
+      life_status: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        validate: {
+          isIn: [[0, 1]] // Chỉ chấp nhận giá trị nằm trong mảng này
+        } 
+      },
+      biography: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
+      address: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
+      burial_place: {
+        type: Sequelize.STRING(255),
+        allowNull: true,
+      },
+      birth_date: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      year_of_death: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
       is_root: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false
       },
-      is_active: {
-        type: Sequelize.BOOLEAN,
+      status: {
+        type: Sequelize.STRING(10),
         allowNull: false,
-        defaultValue: false
+        validate: {
+          isIn: [['active', 'inactive', 'pending', 'suspended', 'archived']] // Chỉ chấp nhận giá trị nằm trong mảng này
+        },
+// PENDING: Mới đăng ký, chưa verify email/chờ Admin duyệt.
+// ACTIVE: Đang hoạt động bình thường.
+// INACTIVE: Người dùng tự tắt tài khoản / chưa kích hoạt xong.
+// SUSPENDED: Bị Admin khóa / vi phạm tiêu chuẩn.
+// ARCHIVED: Đã xóa mềm / Đưa vào lưu trữ.
+        defaultValue: 'pending' 
       },
-      avatar: {
-        type: Sequelize.STRING,
+      avatar_file_id: {
+        type: Sequelize.INTEGER,
         allowNull: true,
-      },
-      created_at: {
-        type: Sequelize.DATE,
-        require: true,
-        allowNull: true,
-        defaultValue: Sequelize.NOW
-      },
-      updated_at: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.NOW
+        defaultValue: 0
       },
       failed_login_attempts: {
         type: Sequelize.INTEGER,
@@ -86,6 +120,7 @@ module.exports = {
         allowNull: true,
         defaultValue: null
       },
+      
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -98,6 +133,11 @@ module.exports = {
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal('NOW()'),
       },
+      deleted_at: {
+        allowNull: true,
+        type: Sequelize.DATE,
+        defaultValue: null,
+      },
       created_by: {
         allowNull: true,
         defaultValue: null,
@@ -107,11 +147,6 @@ module.exports = {
         allowNull: true,
         defaultValue: null,
         type: Sequelize.STRING,
-      },
-      deleted_at: {
-        allowNull: true,
-        type: Sequelize.DATE,
-        defaultValue: null,
       },
       deleted_by: {
         allowNull: true,
@@ -126,12 +161,10 @@ module.exports = {
     await queryInterface.addIndex('users', ['phone'], {
       unique: true,
       name: 'idx_users_phone',
-      include: ['avatar', 'age', 'gender', 'email', 'is_root', 'is_active', 'created_at', 'updated_at', 'created_by', 'created_by']
     });
     await queryInterface.addIndex('users', ['email'], {
       unique: true,
       name: 'idx_users_email',
-      include: ['name', 'avatar', 'age', 'gender', 'phone', 'is_root', 'is_active', 'created_at', 'updated_at', 'created_by', 'created_by']
     });
   },
 

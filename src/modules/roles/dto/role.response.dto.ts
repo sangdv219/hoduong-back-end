@@ -2,29 +2,29 @@ import { Expose } from 'class-transformer';
 
 export class RoleBaseDto {
   @Expose()
-  id: string;
+  id!: string;
 
   @Expose()
-  name: string;
+  name!: string;
 
   @Expose()
-  description: string;
+  description!: string;
 }
 
 export class GetAllRoleResponseDto {
   @Expose()
-  items: RoleBaseDto[];
+  items!: RoleBaseDto[];
 
   @Expose()
-  totalRecord: number;
+  totalRecord!: number;
 }
 
 export class CreatedRoleReponseDto extends RoleBaseDto {
   @Expose()
-  created_at: Date;
+  created_at!: Date;
   
   @Expose()
-  updated_at: Date;
+  updated_at!: Date;
 }
 
 

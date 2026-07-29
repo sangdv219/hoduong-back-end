@@ -50,17 +50,17 @@ export class RolesController {
     }
   }
   
-  @Get(':id')
-  @Version('1')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JWTAuthGuard)
-  async getRoleById(@Param('id') id: string): Promise<GetByIdRoleResponseDto | null> {
-    try {      
-      return await this.roleService.getById(id);
-    } catch (error) {
-      throw error;
-    }
-  }
+  // @Get(':id')
+  // @Version('1')
+  // @HttpCode(HttpStatus.OK)
+  // @UseGuards(JWTAuthGuard)
+  // async getRoleById(@Param('id') id: string): Promise<GetByIdRoleResponseDto | null> {
+  //   try {      
+  //     return await this.roleService.getById(id);
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)

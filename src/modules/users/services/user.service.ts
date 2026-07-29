@@ -1,16 +1,20 @@
-import { UserEntity } from '@/infrastructure/models/user.model';
+import { Status, UserModel } from '@/infrastructure/models/user.model';
+import { RedisContext } from '@/redis/enums/redis-key.enum';
+import { buildRedisKeyQuery } from '@/redis/helpers/redis-key.helper';
+import { sensitiveFields } from '@/shared/config/sensitive-fields.config';
 import { BaseService } from '@core/services/base.service';
 import { PostgresUserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
+import { NodeService } from '@modules/nodes/services/node.service';
 import { PasswordService } from '@modules/password/services/password.service';
 import { PostgresRoleRepository } from '@modules/roles/infrastructure/repository/postgres-role.repository';
-import { USER_ENTITY, USER_ERROR, DEFAULT_MEMBER_ROLE_NAME } from '@modules/users/constants/user.constant';
-import { CreateMemberRequestDto } from '@modules/users/dto/create-member.request.dto';
-import { CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto } from '@modules/users/dto/user.admin.request.dto';
+import { DEFAULT_MEMBER_ROLE_NAME, USER_ENTITY, USER_ERROR } from '@modules/users/constants/user.constant';
+import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, IUserPaginationDTO, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
-import { NodeService } from '@modules/nodes/services/node.service';
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   Logger,
   NotFoundException,
@@ -20,17 +24,21 @@ import { RedisService } from '@redis/redis.service';
 import { toAsciiName } from '@shared/utils/string.util';
 import { Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
+import { UserStatusStrategyFactory } from '../strategies/userStatusStrategy';
+import { RolesModel } from '@/infrastructure/models/roles.model';
 
 @Injectable()
 export class UserService extends BaseService<
-  UserEntity,
+  UserModel,
   CreatedUserAdminRequestDto,
   UpdatedUserAdminRequestDto,
   GetByIdUserAdminResponseDto,
   GetAllUserAdminResponseDto
-> {
+  > {
   protected entityName: string;
   private users: string[] = [];
+  protected readonly getAllDtoClass = GetAllUserAdminResponseDto;
+  protected readonly getByIdDtoClass = GetByIdUserAdminResponseDto;
 
   constructor(
     @InjectConnection()
@@ -42,8 +50,10 @@ export class UserService extends BaseService<
     private readonly passwordService: PasswordService,
     private readonly roleRepository: PostgresRoleRepository,
     private readonly nodeService: NodeService,
+    private readonly statusStrategyFactory: UserStatusStrategyFactory, 
   ) {
     super(repository);
+    this.searchableFields = ['fullname', 'other_name', 'email' ];
     this.entityName = USER_ENTITY.NAME;
   }
 
@@ -71,36 +81,116 @@ export class UserService extends BaseService<
     Logger.log('🗑️onModuleDestroy -> users: ', this.users);
   }
 
-  async delete(id: string): Promise<void> {
-    const user = await this.userRepository.findByPk(id);
-    if (!user) throw new NotFoundException(`User with id ${id} not found!`);
-
-    await this.nodeService.detachMemberByUserId(id);
-    user.is_active = false;
-    user.deleted_at = new Date();
-    await user.save();
-  }
-
   async update(id: string, dto: UpdatedUserAdminRequestDto) {
-    this.getById(id);
     this.cleanCacheRedis();
     const entity = await this.userRepository.findByPk(id);
     if (!entity) throw new NotFoundException(`User with id ${id} not found!`);
-    Object.assign(entity, dto);
-    await entity.save();
-    return entity;
+
+    const { roles, ...res } = dto;
+    if (dto['status']) {
+      delete dto['status']; 
+    }
+
+    // Khởi tạo Transaction
+    const transaction = await this.sequelize.transaction();
+
+    try {
+      // 1. Cập nhật thông tin cơ bản của entity (Bảng users)
+      Object.assign(entity, dto);
+      await entity.update(res, { transaction });
+
+      // 2. Xử lý Logic Cập nhật mảng Roles (Sync Diff)
+      if (roles && Array.isArray(roles)) {
+        // 2.1 Loại bỏ trùng lặp từ Input bằng Set
+        const oldRoleIds = [...new Set(roles)];
+
+        // 2.2 Lấy danh sách Role hiện tại của User trong Database
+        const currentUserRoles = await this.userRolesRepository.model.findAll({
+          where: { user_id: id },
+          attributes: ['role_id'],
+          transaction,
+        });
+        const currentRole = currentUserRoles.map(item => item.get('role_id'));
+
+        // 2.3 Tính Diff (Tìm phần khác biệt)
+        const rolesToInsert = oldRoleIds.filter(roleId => !currentRole.includes(roleId));
+        const rolesToDelete = currentRole.filter(roleId => !oldRoleIds.includes(roleId));
+        // 2.4 Thực thi Xoá các Role không còn được tick
+        if (rolesToDelete.length > 0) {
+          await (this.userRolesRepository as any).model.destroy({
+            where: {
+              user_id: id,
+              role_id: rolesToDelete, // Tự động convert thành mệnh đề IN (...)
+            },
+            transaction,
+          });
+        }
+
+        // 2.5 Thực thi Thêm mới các Role được tick thêm
+        if (rolesToInsert.length > 0) {
+          const insertData = rolesToInsert.map(roleId => ({
+            user_id: id,
+            role_id: roleId,
+          }));
+          // bulkCreate tự động sinh uuid vì bạn đã set defaultValue: DataType.UUIDV4 ở Model
+          await (this.userRolesRepository as any).model.bulkCreate(insertData, { transaction });
+        }
+      }
+
+      // 3. Commit dữ liệu nếu không có lỗi
+      await transaction.commit();
+      return entity;
+
+    } catch (error) {
+      // 4. Rollback nếu có bất kỳ lỗi nào xảy ra (kể cả lỗi lúc insert role)
+      await transaction.rollback();
+      Logger.error(`Update User [${id}] failed: `, error);
+      throw error;
+    }
+  }
+
+  async changeUserStatus(id: string, dto: ChangeStatusUserAdminRequestDto): Promise<UserModel> {
+    const user = await this.userRepository.findByPk(id);
+    if (!user) throw new NotFoundException(`User with id ${id} not found`);
+    const currentStatus = user.get('status') as Status; 
+
+    if (currentStatus === dto.status) {
+      return user; 
+    }
+
+    const strategy = this.statusStrategyFactory.getStrategy(dto.status);
+    strategy.validateTransition(currentStatus);
+    // strategy.handleLogic();
+
+    const transaction = await this.sequelize.transaction();
+    try {
+      // 3.1 Thực thi các logic đi kèm (Gửi mail, huỷ token...)
+      await strategy.handleLogic(user, transaction);
+      // 3.2 Cập nhật trạng thái trong DB
+      user.set('status', dto.status);
+      await user.save({ transaction });
+
+      await transaction.commit();
+      this.cleanCacheRedis(); // Xoá cache
+      console.log("Đã thay đổi status thành công")
+      return user;
+    } catch (error) {
+      console.log("Thay đổi status thất bại", error)
+      await transaction.rollback();
+      throw error;
+    }
   }
 
   async restoreUser(id: string): Promise<any> {
     const user = await this.userRepository.findByOneByRaw({
-      where: { id, is_active: false },
-      paranoid: false,
+      where: { id, status: Status.ARCHIVED },
+      // paranoid: false,
     });
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
     const result = await this.userRepository.update(id, {
-      is_active: true,
+      status: Status.PENDING,
       deleted_at: null,
     });
 
@@ -108,12 +198,12 @@ export class UserService extends BaseService<
       return { success: false, message: 'User not found or restore failed' };
     }
 
-    const restoredUser = result[1][0] as UserEntity;
+    const restoredUser = result[1][0] as UserModel;
     const { password_hash, ...safeData } = restoredUser.get({ plain: true });
 
     return {
       success: true,
-      data: safeData as Partial<UserEntity>,
+      data: safeData as Partial<UserModel>,
     };
   }
 
@@ -170,27 +260,102 @@ export class UserService extends BaseService<
   }
 
   async createMember(
-    dto: CreateMemberRequestDto,
+    dto: CreatedUserAdminRequestDto,
     transaction?: Transaction,
-  ): Promise<Record<string, unknown>> {
-    await this.ensureUniqueContact(dto.email, dto.phone);
+  ): Promise<any> {
+    try {
+      await this.ensureUniqueContact(dto.email, dto.phone);
+      
+      const passwordHash = await this.passwordService.hashPassword(dto.password);
+      console.log('dto', dto)
+      const userEntity = {
+        fullname: dto.fullname,
+        other_name: dto.other_name,
+        ascii_name: toAsciiName(dto.fullname),
+        email: dto.email,
+        phone: dto.phone || null,
+        password_hash: passwordHash,
+        gender: dto.gender,
+        age: dto.age,
+        birth_date: dto.birth_date,
+        year_of_death: dto.year_of_death,
+        burial_place: dto.burial_place,
+        biography: dto.biography,
+        address: dto.address,
+        life_status: dto.life_status,
+        avatar_file_id: dto.avatar_file_id,
+        is_root: false,
+        status: Status.PENDING,
+      };
+  
+      this.cleanCacheRedis();
+      return this.userRepository.create(userEntity, { transaction });
+    } catch (error:any) {
+      throw new HttpException(
+        'Đã có sẵn trong thùng rác, vui lòng khôi phục lại!',
+        HttpStatus.CONFLICT,
+      );
+    }
+  }
 
-    const passwordHash = await this.passwordService.hashPassword(dto.password);
+  async searchUser(params: IUserPaginationDTO):Promise<GetAllUserAdminResponseDto> {
+    const { role_id, ...baseParams } = params;
+    return super.search(baseParams, options => {
 
-    const userEntity = {
-      fullname: dto.fullname,
-      ascii_name: toAsciiName(dto.fullname),
-      email: dto.email,
-      phone: dto.phone,
-      password_hash: passwordHash,
-      gender: dto.gender,
-      age: dto.age,
-      is_root: false,
-      is_active: dto.is_active ?? true,
-      avatar: dto.avatar ?? null,
-    };
+        const include = Array.isArray(options.include)
+            ? options.include
+            : options.include
+                ? [options.include]
+                : [];
 
-    this.cleanCacheRedis();
-    return this.userRepository.create(userEntity, { transaction });
+        const roleInclude:any = {
+            model: RolesModel,
+            attributes: ['name'],
+            through: {
+                attributes: [],
+            },
+        };
+
+        if (role_id) {
+            roleInclude.where = {
+                id: role_id,
+            };
+
+            roleInclude.required = true;
+        }
+
+        options.include = [
+            ...include,
+            roleInclude,
+        ];
+
+        return options;
+    });
+  }
+
+  async getUserById(id: string): Promise<any>{
+    return super.getById(id, options => {
+
+      const include = Array.isArray(options.include)
+      ? options.include
+      : options.include
+          ? [options.include]
+          : [];
+
+      const roleInclude:any = {
+          model: RolesModel,
+          attributes: ['id','name'],
+          through: {
+              attributes: [],
+          },
+      };
+
+      options.include = [
+          ...include,
+          roleInclude,
+      ];
+
+      return options;
+    })
   }
 }

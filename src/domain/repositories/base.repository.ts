@@ -1,24 +1,24 @@
-import { UserEntity } from '@/infrastructure/models/user.model';
+import { UserModel } from '@/infrastructure/models/user.model';
 import { PaginationQueryDto } from '@/shared/dto/common';
+import { IPaginatedResult, IPaginationDTO } from '@/shared/interface/common';
 import { NotFoundException } from '@nestjs/common';
-import { FindOptions, Op, FindAndCountOptions, QueryTypes, Transaction, WhereOptions } from 'sequelize';
+import { FindOptions, Op, FindAndCountOptions, QueryTypes, Transaction, WhereOptions, Includeable } from 'sequelize';
 import { Sequelize } from "sequelize-typescript";
 
-export interface IPaginationDTO {
-  page: number;
-  limit: number;
-  keyword: string;
-  orderBy: string;
-  sortOrder?: 'ASC' | 'DESC'
-}
+
+
+// export interface IUserPaginationDTO extends IPaginationDTO {
+//   status?: boolean;
+//   role?: string;
+// }
 
 export interface IBaseRepository<T> {
-  search(params: IPaginationDTO, options: FindOptions<T>);
+  search(params: IPaginationDTO, options: FindOptions<T>):Promise<{ items: any; total: number }>;
   findWithPagination(param: IPaginationDTO, exclude: string[]): Promise<{ items: any; total: number }>;
   findByFields<K extends keyof T>(field: K, value: T[K], attributes?: string[], exclude?: string[]): Promise<any[]>;
   findAllByRaw(condition: Record<string, any>, exclude?: string[]): Promise<any[] | null>;
   findOneByField<K extends keyof T>(field: K, value: T[K], exclude: string[]): Promise<any>;
-  findByPk(id: string, exclude?: string[], raw?: boolean, options?: { transaction?: Transaction }): Promise<T | null>;
+  findByPk(id: string, exclude?: string[], raw?: boolean, options?: { transaction?: Transaction } | FindOptions<T>): Promise<T | null>;
   findByOneByRaw(condition: Record<string, any>, exclude: string[]): Promise<T | null>;
   create(entity: Partial<T>, options?: { transaction?: Transaction }): Promise<void>;
   update(id: string, entity: Partial<T>): Promise<any>;
@@ -54,11 +54,11 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
     });
 
     return {
-      items: rows,
+      items: rows,  
       total: count,
       page,
       limit,
-      totalPages: Math.ceil(count / limit),
+      totalRecord: Math.ceil(count / limit),
     };
   }
 
@@ -99,7 +99,7 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
         }
       }
     }
-
+    
     return where;
   }
 
@@ -125,8 +125,17 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
     return record as unknown as T[K];
   }
 
-  async findByPk(id: string, exclude = [''], raw = false, options?: { transaction?: Transaction }): Promise<T | null> {
-    return this.model.findByPk(id, { ...exclude, raw, transaction: options?.transaction })
+  async findByPk(id: string, exclude:string[] = [], raw = false, 
+    options?: { 
+      transaction?: Transaction;
+      include?: Includeable | Includeable[]; 
+    }): Promise<T | null> {
+    return this.model.findByPk(id, {
+      attributes: exclude.length > 0 ? { exclude } : undefined,
+      raw,
+      transaction: options?.transaction,
+      include: options?.include
+    })
   }
 
   async findByOneByRaw(condition) {

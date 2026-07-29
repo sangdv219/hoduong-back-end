@@ -66,7 +66,7 @@ export class OTPService {
           email,
           name: '',
           is_root: false,
-          is_active: true,
+          status: true,
         };
 
         const user:any = await this.userService.createUserWithEmailOnly(userAuth);

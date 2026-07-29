@@ -5,12 +5,12 @@ import { PermissionsModel } from '@modules/permissions/domain/models/permissions
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { UserEntity } from '@/infrastructure/models/user.model';
+import { UserModel } from '@/infrastructure/models/user.model';
 import { PostgresPermissionsRepository } from '@modules/permissions/infrastructure/repository/postgres-permissions.repository';
 import { PermissionsService } from '@modules/permissions/services/permissions.service';
 
 @Module({
-  imports: [ SequelizeModule.forFeature([PermissionsModel, UserEntity]), PermissionsModule],
+  imports: [ SequelizeModule.forFeature([PermissionsModel, UserModel]), PermissionsModule],
   controllers: [ PermissionsController ],
   providers: [
     PermissionsService,

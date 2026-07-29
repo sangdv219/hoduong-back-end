@@ -1,5 +1,5 @@
 import { AbstractUserRolesRepository } from '@modules/associations/abstract/abstract-user-roles.repository';
-import { UserRolesModel } from '@modules/associations/models/user-roles.model';
+import { UserRolesModel } from '@infrastructure/models/user_roles.model';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';

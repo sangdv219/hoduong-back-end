@@ -1,18 +1,23 @@
-import { BaseModel } from '@shared/model/base.model';
-import { Column, DataType, Default, HasMany, PrimaryKey, Sequelize, Table } from 'sequelize-typescript';
-import { ROLES_ENTITY } from '@modules/roles/constants/roles.constant';
+import { UserRolesModel } from '@infrastructure/models/user_roles.model';
 import { RolePermissionsModel } from '@modules/associations/models/role-permissions.model';
-import { UserRolesModel } from '@modules/associations/models/user-roles.model';
+import { ROLES_ENTITY } from '@modules/roles/constants/roles.constant';
+import { BaseModel } from '@shared/model/base.model';
+import { BelongsToMany, Column, DataType, HasMany, PrimaryKey, Table } from 'sequelize-typescript';
+import { UserModel } from './user.model';
 
 export interface IRole{
   id: string,
+  name: string,
   description: string,
 }
 @Table({ tableName: ROLES_ENTITY.TABLE_NAME })
 export class RolesModel extends BaseModel<RolesModel> implements IRole{
   @PrimaryKey
-  @Default(Sequelize.literal('gen_random_uuid()'))
-  @Column(DataType.UUID)
+  @Column({
+    type: DataType.UUID,
+    primaryKey: true,
+    defaultValue: DataType.UUIDV4, // 🟢 Dùng DataType.UUIDV4 thay cho Sequelize.literal
+  })
   declare id: string;
 
   @Column({ type: DataType.STRING(100) })
@@ -26,4 +31,11 @@ export class RolesModel extends BaseModel<RolesModel> implements IRole{
 
   @HasMany(() => RolePermissionsModel)
   declare rolePermission: RolePermissionsModel[]
+
+  @BelongsToMany(() => UserModel, {
+    through: () => UserRolesModel,
+    foreignKey: 'role_id',
+    otherKey: 'user_id',
+  })
+  users!: UserModel[];
 }

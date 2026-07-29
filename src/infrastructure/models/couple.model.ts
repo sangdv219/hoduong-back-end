@@ -10,8 +10,19 @@ import {
   Sequelize,
   Table,
 } from 'sequelize-typescript';
-import { UserEntity } from './user.model';
+import { UserModel } from './user.model';
 import { NodeModel } from './node.model';
+
+
+export enum MarriageStatus {
+  MARRIED = 'MARRIED',
+  DIVORCED = 'DIVORCED',
+  WIDOWED = 'WIDOWED',
+}
+export enum MarriageDateStatus {
+  SOLAR = 'SOLAR',
+  LUNAR = 'LUNAR',
+}
 
 @Table({
   tableName: 'couples',
@@ -24,7 +35,7 @@ export class CoupleModel extends BaseModel<CoupleModel> {
   @Column(DataType.UUID)
   declare id: string;
   
-  @ForeignKey(() => UserEntity)
+  @ForeignKey(() => UserModel)
   @AllowNull(false)
   @Column(DataType.UUID)
   declare user_id: string;
@@ -35,15 +46,30 @@ export class CoupleModel extends BaseModel<CoupleModel> {
 
   @AllowNull(false)
   @Column(DataType.INTEGER)
-  declare level: number;
+  declare couple_order: number;
 
-  @AllowNull(false)
-  @Default(true)
-  @Column(DataType.BOOLEAN)
-  declare is_active: boolean;
+  @AllowNull(true)
+  @Column(DataType.DATE)
+  declare marriage_date: Date;
 
-  @BelongsTo(() => UserEntity, 'user_id')
-  declare user: UserEntity;
+  @AllowNull(true)
+  @Column({
+    type: DataType.ENUM(...Object.values(MarriageStatus)),
+  })
+  declare marriage_status: MarriageStatus;
+
+  @AllowNull(true)
+  @Column({
+    type: DataType.ENUM(...Object.values(MarriageDateStatus)),
+  })
+  declare marriage_date_type: MarriageDateStatus;
+
+  @AllowNull(true)
+  @Column(DataType.DATE)
+  declare divorce_date: Date;
+
+  @BelongsTo(() => UserModel, 'user_id')
+  declare user: UserModel;
 
   @BelongsTo(() => NodeModel, 'node_id')
   declare node: NodeModel;

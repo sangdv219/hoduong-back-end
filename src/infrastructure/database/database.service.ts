@@ -12,7 +12,7 @@ export class DatabaseService implements OnModuleInit, OnApplicationShutdown {
   async onModuleInit() {
     try {
       await this.sequelize.authenticate();
-      // console.log('✅ OnModuleInit: Database connected successfully');
+      console.log('✅ OnModuleInit: Database connected successfully');
     } catch (error) {
       console.error('❌ Unable to connect to the database:', error);
     }

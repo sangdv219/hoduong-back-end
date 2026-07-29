@@ -32,7 +32,7 @@ export class MenuModel extends BaseModel<MenuModel> {
 
   @AllowNull(true)
   @Column(DataType.UUID)
-  declare parent_id: string | null;
+  declare father_id: string | null;
 
   @AllowNull(false)
   @Column({ type: DataType.STRING(50) })
@@ -40,7 +40,7 @@ export class MenuModel extends BaseModel<MenuModel> {
 
   @AllowNull(false)
   @Column(DataType.INTEGER)
-  declare level: number;
+  declare couple_order: number;
 
   @AllowNull(false)
   @Column(DataType.INTEGER)
@@ -53,12 +53,12 @@ export class MenuModel extends BaseModel<MenuModel> {
   @AllowNull(false)
   @Default(true)
   @Column(DataType.BOOLEAN)
-  declare is_active: boolean;
+  declare status: boolean;
 
-  @BelongsTo(() => MenuModel, { foreignKey: 'parent_id', as: 'parent' })
+  @BelongsTo(() => MenuModel, { foreignKey: 'father_id', as: 'parent' })
   declare parent?: MenuModel;
 
-  @HasMany(() => MenuModel, { foreignKey: 'parent_id', as: 'children' })
+  @HasMany(() => MenuModel, { foreignKey: 'father_id', as: 'children' })
   declare children?: MenuModel[];
 }
 

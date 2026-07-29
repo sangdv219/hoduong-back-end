@@ -40,52 +40,52 @@ export class McpController {
       };
     });
 
-    this.mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
-      const { name, arguments: args } = request.params;
-      try {
-        // Tác vụ 1: Lấy chi tiết User từ Postgres
-        if (name === 'get_user_db_detail') {
-          const parsedArgs = z.object({ userId: z.string() }).parse(args);
+    // this.mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
+    //   const { name, arguments: args } = request.params;
+    //   try {
+    //     // Tác vụ 1: Lấy chi tiết User từ Postgres
+    //     if (name === 'get_user_db_detail') {
+    //       const parsedArgs = z.object({ userId: z.string() }).parse(args);
           
-          // Gọi Service tương tác Repository/Model truy vấn database thật
-          const user = await this.usersService.getById(parsedArgs.userId);
+    //       // Gọi Service tương tác Repository/Model truy vấn database thật
+    //       const user = await this.usersService.getById(parsedArgs.userId);
           
-          if (!user) {
-            return { content: [{ type: 'text', text: `Không tìm thấy user với ID ${parsedArgs.userId} trong Postgres.` }] };
-          }
+    //       if (!user) {
+    //         return { content: [{ type: 'text', text: `Không tìm thấy user với ID ${parsedArgs.userId} trong Postgres.` }] };
+    //       }
 
-          // Bảo mật đa ngữ cảnh: Loại bỏ password/credential trước khi trả dữ liệu cho AI
-          const { password, salt, ...safeUserData } = user;
+    //       // Bảo mật đa ngữ cảnh: Loại bỏ password/credential trước khi trả dữ liệu cho AI
+    //       const { password, salt, ...safeUserData } = user;
 
-          return {
-            content: [{ type: 'text', text: JSON.stringify(safeUserData) }],
-          };
-        }
+    //       return {
+    //         content: [{ type: 'text', text: JSON.stringify(safeUserData) }],
+    //       };
+    //     }
 
-        // Tác vụ 2: Thống kê số lượng theo vai trò
-        // if (name === 'count_users_by_role') {
-        //   const parsedArgs = z.object({ role: z.string() }).parse(args);
+    //     // Tác vụ 2: Thống kê số lượng theo vai trò
+    //     // if (name === 'count_users_by_role') {
+    //     //   const parsedArgs = z.object({ role: z.string() }).parse(args);
           
-        //   // Giả định hàm thống kê từ Postgres: SELECT COUNT(*) FROM users WHERE role = x
-        //   const count = await this.usersService.countByRole(parsedArgs.role);
+    //     //   // Giả định hàm thống kê từ Postgres: SELECT COUNT(*) FROM users WHERE role = x
+    //     //   const count = await this.usersService.countByRole(parsedArgs.role);
 
-        //   return {
-        //     content: [{ 
-        //       type: 'text', 
-        //       text: JSON.stringify({ role: parsedArgs.role, totalCount: count, timestamp: new Date() }) 
-        //     }],
-        //   };
-        // }
+    //     //   return {
+    //     //     content: [{ 
+    //     //       type: 'text', 
+    //     //       text: JSON.stringify({ role: parsedArgs.role, totalCount: count, timestamp: new Date() }) 
+    //     //     }],
+    //     //   };
+    //     // }
 
-        throw new Error(`Công cụ không tồn tại: ${name}`);
-      } catch (error) {
-        console.error(`[MCP Tool Error - ${name}]:`, error);
-        return {
-          isError: true,
-          content: [{ type: 'text', text: `Lỗi thực thi dữ liệu hệ thống: ${error.message}` }],
-        };
-      }
-    });
+    //     throw new Error(`Công cụ không tồn tại: ${name}`);
+    //   } catch (error) {
+    //     console.error(`[MCP Tool Error - ${name}]:`, error);
+    //     return {
+    //       isError: true,
+    //       content: [{ type: 'text', text: `Lỗi thực thi dữ liệu hệ thống: ${error.message}` }],
+    //     };
+    //   }
+    // });
   }
 
   // Endpoint thiết lập kết nối luồng SSE (GET)

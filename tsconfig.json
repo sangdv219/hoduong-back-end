@@ -28,7 +28,8 @@
       "@bull/*": ["src/bull/*"],
       "@shared/*": ["src/shared/*"],
       "@audit/*": ["src/audit/*"],
-      "@infrastructure/*": ["src/infrastructure/*"]
+      "@infrastructure/*": ["src/infrastructure/*"],
+      "@domain/*": ["src/domain/*"]
     }
   }
 }

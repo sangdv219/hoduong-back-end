@@ -1,24 +1,40 @@
-import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Status } from '@infrastructure/models/user.model';
+import { PaginationQueryDto } from '@shared/dto/common';
+import { ApiProperty, ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
+  IsDate,
   IsEmail,
+  IsEnum,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   MinLength,
 } from 'class-validator';
+import { IPaginationDTO } from '@/shared/interface/common';
 
-interface CreatedUserAdminRequest {
+interface ICreatedUserAdminRequest {
   fullname: string;
+  other_name: string;
   email: string;
-  password: string;
-  gender: string;
+  parentUserId: string;
+  roleId: string;
+  password?: string;
+  gender: number;
   phone: string;
   is_root: boolean;
-  is_active: boolean;
-  avatar: string;
+  avatar_file_id?: number;
+  life_status?: 0 | 1;
+  biography?: string;
+  address?: string;
+  burial_place?: string;
+  year_of_death?: Date;
+  birth_date?: Date;
   created_at?: Date;
   updated_at?: Date;
   deleted_at?: Date;
@@ -27,36 +43,54 @@ interface CreatedUserAdminRequest {
   deleted_by?: string;
 }
 
-export class CreatedUserAdminRequestDto implements CreatedUserAdminRequest {
-  @IsNotEmpty({ message: 'Fullname is required' })
-  @IsString({ message: 'Fullname must be a string' })
-  @ApiProperty({ description: 'Full name', example: 'Nguyen Van A' })
-  fullname: string;
+export interface IUserPaginationDTO extends IPaginationDTO{
+  gender?: 0 | 1;
+  status: 'active | inactive | pending | suspended | archived'
+  life_status: number;
+  role_id?: string;
+}
 
+export class CreatedUserAdminRequestDto implements ICreatedUserAdminRequest {
   @IsNotEmpty()
   @ApiProperty({ description: 'email', example: 'sangdv219@gmail.com' })
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty({ description: 'password', minLength: 6, example: '123456' })
   @IsNotEmpty()
   @MinLength(6)
-  password: string;
+  password!: string;
+
+  @IsNotEmpty({ message: 'Fullname is required' })
+  @IsString({ message: 'Fullname must be a string' })
+  @ApiProperty({ description: 'Full name', example: 'Nguyen Van A' })
+  fullname!: string;
 
   @IsOptional()
-  @ApiProperty({ description: 'gender', example: 'Nam' })
-  @IsString({ message: 'Gender must be a string' })
-  gender: string;
+  @IsString()
+  @ApiProperty({ description: 'Tên gọi khác', example: 'A Bảy', required: false })
+  other_name!: string;
+
+  @IsOptional()
+  @ApiProperty({ description: 'parentUserId', example: null })
+  parentUserId!: string;
+  
+  @IsNotEmpty()
+  @ApiProperty({ description: 'roleId', example: '026e2174-aff3-4461-9f43-0e16c9a88f17' })
+  roleId!: string;
+
+  @IsOptional()
+  @ApiProperty({ description: 'gender', example: 0 })
+  gender!: number;
 
   @IsOptional()
   @ApiProperty({ description: 'age', example: 22 })
   @IsNumber({}, { message: 'Age must be a number' })
-  age: number;
-
+  age!: number;
+  
+  @IsOptional()
   @ApiProperty({ description: 'phone', example: '0919 528 956' })
-  @IsNotEmpty({ message: 'Phone is required' })
-  @IsString({ message: 'Phone must be a string' })
-  phone: string;
+  phone!: string;
 
   @IsOptional()
   @ApiProperty({ description: 'is_root', example: true })
@@ -65,15 +99,95 @@ export class CreatedUserAdminRequestDto implements CreatedUserAdminRequest {
   is_root: boolean = false;
 
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
-  @ApiProperty({ description: 'is_active', example: true })
-  @IsBoolean({ message: 'is_active must be a boolean (true/false)' })
-  is_active: boolean = true;
+  @Type(() => Date)
+  @IsDate()
+  @ApiProperty({ description: 'Năm sinh', example: '2001-07-15T17:00:00.000Z', required: false })
+  birth_date!: Date;
+  
+  @IsOptional()
+  @IsNumber()
+  @ApiProperty({ description: 'Tình trạng sống/chết', example: 1, required: false })
+  life_status!: 0 | 1;
 
   @IsOptional()
-  @ApiProperty({ description: 'avatar', example: 'abc' })
-  @IsString({ message: 'avatar must be a string' })
-  avatar: string;
+  @Type(() => Date)
+  @IsDate()
+  @ApiProperty({ description: 'Năm mất', example: '2100-07-15T17:00:00.000Z', required: false })
+  year_of_death!: Date;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ description: 'Nơi an táng', example: 'Nghĩa trang TP.HCM', required: false })
+  burial_place!: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ description: 'Địa chỉ', example: '123 Đường ABC, Quận 1', required: false })
+  address!: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ description: 'Tiểu sử', example: 'Mô tả tóm tắt về lý lịch...', required: false })
+  biography?: string;
+
+  @IsOptional()
+  @IsInt()
+  @ApiProperty({ description: 'ID file ảnh đại diện', example: 102, required: false })
+  avatar_file_id?: number;
 }
 
-export class UpdatedUserAdminRequestDto extends PartialType(OmitType(CreatedUserAdminRequestDto, ['password'] as const)) { }
+export class UpdatedUserAdminRequestDto extends PartialType(OmitType(CreatedUserAdminRequestDto, ['password', "roleId"] as const)) {
+  @ApiPropertyOptional({
+    description: 'Danh sách Role ID',
+    type: [String],
+    example: [
+      '026e2174-aff3-4461-9f43-0e16c9a88f17',
+      '8bd28c38-678d-4fe8-a8e2-579696599446',
+    ],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true }) // hoặc @IsString({ each: true })
+  roles?: string[];
+}
+export class ChangeStatusUserAdminRequestDto  {
+  @ApiProperty({ description: 'status', example: 'pending' })
+  @IsString({ message: 'active | inactive | pending | suspended | archived' })
+  status!: Status;
+}
+
+
+
+export class UserPaginationDTO extends PaginationQueryDto implements IUserPaginationDTO{
+  @IsOptional()
+  @Type(() => Number)
+  @IsEnum([0, 1], { message: 'Giới tính phải là 0 hoặc 1' })
+  @ApiPropertyOptional({
+    enum: [0, 1],
+    description: '0: Nam, 1: Nữ',
+    example: null,
+  })
+  gender?: 0 | 1;
+
+  @IsOptional()
+  @IsEnum(['active' , 'inactive' , 'pending' , 'suspended' , 'archived'], 
+    { message: 'PENDING, ACTIVE, INACTIVE, SUSPENDED, ARCHIVED'})
+  @ApiPropertyOptional({
+    enum: ['active' , 'inactive' , 'pending' , 'suspended' , 'archived'],
+  })
+  status!: 'active | inactive | pending | suspended | archived';
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsEnum([0, 1], { message: 'Tình trạng phải là 0 hoặc 1' })
+  @ApiPropertyOptional({
+    enum: [0, 1],
+    description: '0: Đã mất 1: Sống',
+    example: null,
+  })
+  life_status!: number;
+
+  @IsOptional()
+  @ApiPropertyOptional({ description: 'Role', example: "026e2174-aff3-4461-9f43-0e16c9a88f17" })
+  role_id?: string;
+}

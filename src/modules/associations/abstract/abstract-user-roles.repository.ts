@@ -1,4 +1,4 @@
 import { BaseRepository } from '@/domain/repositories/base.repository';
-import { UserRolesModel } from '@modules/associations/models/user-roles.model';
+import { UserRolesModel } from '@infrastructure/models/user_roles.model';
 
 export abstract class AbstractUserRolesRepository extends BaseRepository<UserRolesModel> {}

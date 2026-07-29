@@ -1,4 +1,4 @@
-import { BaseResponse } from "@shared/interface/common";
+import { IBaseResponse } from "@shared/interface/common";
 import { CallHandler, ExecutionContext, HttpException, HttpStatus, Injectable, NestInterceptor } from "@nestjs/common";
 import { Observable, throwError } from "rxjs";
 import { catchError, map } from 'rxjs/operators';
@@ -18,12 +18,12 @@ const errorCode = [
 ]
 
 @Injectable()
-export class BaseResponseInterceptor<T> implements NestInterceptor<T, BaseResponse<T>> {
-    intercept(context: ExecutionContext, next: CallHandler): Observable<BaseResponse<T>> | Promise<Observable<BaseResponse<T>>> {
+export class BaseResponseInterceptor<T> implements NestInterceptor<T, IBaseResponse<T>> {
+    intercept(context: ExecutionContext, next: CallHandler): Observable<IBaseResponse<T>> | Promise<Observable<IBaseResponse<T>>> {
         return next
             .handle()
             .pipe(
-                map(value => value && ({ records: value })),
+                map(value => value && ({ ...value })),
                 catchError((err) => {
                     if (err instanceof HttpException) {
                         const status = err.getStatus();

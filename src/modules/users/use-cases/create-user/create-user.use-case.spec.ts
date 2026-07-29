@@ -1,10 +1,10 @@
 import { CreateUserUseCase } from '@modules/users/use-cases/create-user/create-user.use-case';
-import { CreateMemberRequestDto } from '@modules/users/dto/create-member.request.dto';
+import { CreatedUserAdminRequestDto } from '@modules/users/dto/create-member.request.dto';
 import { USER_ERROR } from '@modules/users/constants/user.constant';
 import { ConflictException } from '@nestjs/common';
 
 describe('CreateUserUseCase', () => {
-  const dto: CreateMemberRequestDto = {
+  const dto: CreatedUserAdminRequestDto = {
     fullname: 'Nguyen Van A',
     email: 'member@example.com',
     password: 'secret123',
@@ -19,7 +19,7 @@ describe('CreateUserUseCase', () => {
     phone: dto.phone,
     password_hash: 'hashed-value',
     is_root: false,
-    is_active: true,
+    status: true,
     created_at: new Date('2026-01-01'),
     updated_at: new Date('2026-01-01'),
   };
@@ -27,7 +27,7 @@ describe('CreateUserUseCase', () => {
   const treeAttachment = {
     nodeId: 'node-uuid',
     coupleId: 'couple-uuid',
-    level: 2,
+    couple_order: 2,
     parentNodeId: 'parent-node-uuid',
     parentUserId: 'parent-user-uuid',
   };
@@ -95,7 +95,7 @@ describe('CreateUserUseCase', () => {
     expect(result).toMatchObject({
       nodeId: 'node-uuid',
       coupleId: 'couple-uuid',
-      level: 2,
+      couple_order: 2,
       parentNodeId: 'parent-node-uuid',
       parentUserId: 'parent-user-uuid',
     });

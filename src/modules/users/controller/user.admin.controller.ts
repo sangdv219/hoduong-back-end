@@ -1,12 +1,16 @@
 import { AllExceptionsFilter } from '@core/filters/sequelize-exception.filter';
 import { BaseResponseInterceptor } from '@core/interceptors/base-response.interceptor';
 import { LoggingInterceptor } from '@core/interceptors/logging.interceptor';
-import { PaginationQueryDto } from '@shared/dto/common';
-import { BaseGetResponse } from '@shared/interface/common';
+import { UserModel } from '@infrastructure/models/user.model';
+import { RegisterDto } from '@modules/auth/dto/register.dto';
+import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
+import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
+import { UserService } from '@modules/users/services/user.service';
+import { CreateUserUseCase } from '@modules/users/use-cases/create-user/create-user.use-case';
+import { RegisterUserUseCase } from '@modules/users/use-cases/sign-up/signup.use-case';
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -15,22 +19,11 @@ import {
   Post,
   Query,
   UseFilters,
-  UseGuards,
   UseInterceptors,
   Version
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
-import { UpdatedUserAdminRequestDto } from '@modules/users/dto/user.admin.request.dto';
-import { CreateMemberRequestDto } from '@modules/users/dto/create-member.request.dto';
-import { CreateMemberResponseDto } from '@modules/users/dto/create-member.response.dto';
-import { UserEntity } from '@infrastructure/models/user.model';
-import { UserService } from '@modules/users/services/user.service';
-import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
-import { JWTAuthGuard } from '@core/guards/jwt.guard';
-import { UserContextInterceptor } from '@core/interceptors/user-context.interceptor';
-import { RegisterDto } from '@modules/auth/dto/register.dto';
-import { RegisterUserUseCase } from '@modules/users/use-cases/sign-up/signup.use-case';
-import { CreateUserUseCase } from '@modules/users/use-cases/create-user/create-user.use-case';
+import { BaseGetResponse } from '@shared/interface/common';
 
 @ApiBearerAuth('Authorization')
 @Controller({ path:'user-admin', version: '1' })
@@ -43,13 +36,13 @@ export class UserAdminController {
     private readonly createUserUseCase: CreateUserUseCase,
   ) { }
 
-  @ApiOkResponse({ description: 'Danh sách user phân trang', type: BaseGetResponse<UserEntity> })
+  @ApiOkResponse({ description: 'Danh sách user phân trang', type: BaseGetResponse<UserModel> })
   @Get()
   @HttpCode(HttpStatus.OK)
   // @UseGuards(JWTAuthGuard)
-  async getPagination(@Query() query: PaginationQueryDto): Promise<GetAllUserAdminResponseDto> {
+  async getPagination(@Query() query: UserPaginationDTO): Promise<GetAllUserAdminResponseDto> {
     try {
-      return this.userService.getPagination(query);
+      return this.userService.searchUser(query);
     } catch (error) {
       throw error;
     }
@@ -59,7 +52,7 @@ export class UserAdminController {
   // @UseGuards(JWTAuthGuard)
   async getUserAdminById(@Param('id') id: string): Promise<GetByIdUserAdminResponseDto | null> {
     try {
-      return await this.userService.getById(id);
+      return await this.userService.getUserById(id);
     } catch (error) {
       throw error;
     }
@@ -86,8 +79,8 @@ export class UserAdminController {
   // @UseGuards(JWTAuthGuard)
   // @UseInterceptors(UserContextInterceptor)
   @Post()
-  @ApiOkResponse({ description: 'Create new member', type: CreateMemberResponseDto })
-  async create(@Body() dto: CreateMemberRequestDto): Promise<CreateMemberResponseDto> {
+  @ApiOkResponse({ description: 'Create new member', type: CreatedUserAdminRequestDto })
+  async create(@Body() dto: CreatedUserAdminRequestDto): Promise<any> {
     return await this.createUserUseCase.execute(dto);
   }
   
@@ -96,22 +89,10 @@ export class UserAdminController {
   // @UseGuards(JWTAuthGuard)
   // @UseInterceptors(UserContextInterceptor)
   async updateUserAdmin(@Param('id') id: string, @Body() dto: UpdatedUserAdminRequestDto) {
+
     try {
       return await this.userService.update(id, dto);
     } catch (error) {
-      throw error;
-    }
-  }
-  
-  @Delete(':id')
-  @HttpCode(HttpStatus.CREATED)
-  // @UseGuards(JWTAuthGuard)
-  // @UseInterceptors(UserContextInterceptor)
-  async deleteUserAdmin(@Param('id') id: string): Promise<void> {
-    try {
-      return await this.userService.delete(id);
-    } catch (error) {
-      console.log("error: ", error);
       throw error;
     }
   }
@@ -122,5 +103,14 @@ export class UserAdminController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async restoreUserAdmin(@Param('id') id: string): Promise<any> {
     return await this.userService.restoreUser(id);
+  }
+
+
+  @Patch('changeUserStatus/:id')
+  // @UseGuards(JWTAuthGuard)
+  // @UseInterceptors(UserContextInterceptor)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async changeUserStatus(@Param('id') id: string, @Body() dto: ChangeStatusUserAdminRequestDto): Promise<any> {
+    return await this.userService.changeUserStatus(id, dto);
   }
 }

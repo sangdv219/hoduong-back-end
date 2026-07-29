@@ -2,7 +2,7 @@ import { PasswordModule } from '@modules/password/password.module';
 import { RolesModule } from '@modules/roles/roles.module';
 import { NodeModule } from '@modules/nodes/node.module';
 import { UserAdminController } from '@modules/users/controller/user.admin.controller';
-import { UserEntity } from '@/infrastructure/models/user.model';
+import { UserModel } from '@/infrastructure/models/user.model';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
 import { UserService } from '@modules/users/services/user.service';
 import { Module } from '@nestjs/common';
@@ -12,7 +12,7 @@ import { RedisService } from '@redis/redis.service';
 import { DefaultTokenSecretResolverStrategy } from '@core/strategies/default-token-secret-resolver.strategy';
 import { CoupleModel } from '@/infrastructure/models/couple.model';
 import { NodeModel } from '@/infrastructure/models/node.model';
-import { UserRolesModel } from '@modules/associations/models/user-roles.model';
+import { UserRolesModel } from '@infrastructure/models/user_roles.model';
 import { PostgresUserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
 import { PostgresRolePermissionsRepository } from '@modules/associations/repositories/role-permissions.repository';
 import { AssociationsModule } from '@modules/associations/associations.module';
@@ -20,10 +20,12 @@ import { RolePermissionsModel } from '@modules/associations/models/role-permissi
 import { RegisterUserUseCase } from './use-cases/sign-up/signup.use-case';
 import { CreateUserUseCase } from './use-cases/create-user/create-user.use-case';
 import { OTPService } from '../auth/services/OTP.service';
+import { UserStatusStrategyFactory } from './strategies/userStatusStrategy';
+import { UserQueryBuilder } from './query/user.query.builder';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([UserEntity, UserRolesModel, RolePermissionsModel, NodeModel, CoupleModel]),
+    SequelizeModule.forFeature([UserModel, UserRolesModel, RolePermissionsModel, NodeModel, CoupleModel]),
     AssociationsModule,
     PasswordModule,
     RolesModule,
@@ -40,6 +42,8 @@ import { OTPService } from '../auth/services/OTP.service';
     CreateUserUseCase,
     OTPService,
     JwtModule,
+    UserStatusStrategyFactory,
+    UserQueryBuilder,
     {
       provide: 'TokenSecretResolver',
       useClass: DefaultTokenSecretResolverStrategy,

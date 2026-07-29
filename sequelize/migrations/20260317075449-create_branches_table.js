@@ -1,37 +1,44 @@
 'use strict';
 
+const { AllowNull } = require('sequelize-typescript');
+
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('user_roles', {
+  async up (queryInterface, Sequelize) {
+    await queryInterface.createTable('branches', {
       id: {
         type: Sequelize.UUID,
+        defaultValue: Sequelize.literal('gen_random_UUID()'),
         allowNull: false,
         primaryKey: true,
-        defaultValue: Sequelize.literal('gen_random_uuid()'),
       },
-      user_id: {
-        type: Sequelize.UUID,
+      name: {
+        type: Sequelize.STRING(50),
         allowNull: false,
+      },
+      description: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
+      parent_branch_id: {
+        type: Sequelize.UUID,
+        allowNull: true,
         references: {
-          model: 'users',
+          model: 'branches', // bảng users
           key: 'id',
         },
         onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
+        onDelete: 'SET NULL',
       },
-      role_id: {
-        type: Sequelize.UUID,
-        allowNull: false,
-        references: {
-          model: 'roles',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
+      sort_order: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        defaultValue: 1
       },
+
       created_at: {
-        allowNull: false,
         type: Sequelize.DATE,
+        allowNull: false,
         defaultValue: Sequelize.literal('NOW()'),
       },
       updated_at: {
@@ -50,14 +57,8 @@ module.exports = {
         type: Sequelize.STRING,
       },
     });
-    await queryInterface.addConstraint('user_roles', {
-      fields: ['user_id', 'role_id'],
-      type: 'unique',
-      name: 'uk_user_roles_user_id_role_id',
-    });
-  },
-
-  async down(queryInterface) {
-    await queryInterface.dropTable('user_roles');
-  },
+  }, 
+  async down (queryInterface, Sequelize) {
+    await queryInterface.dropTable('branches');
+  }
 };

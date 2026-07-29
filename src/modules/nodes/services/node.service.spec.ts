@@ -63,9 +63,9 @@ describe('NodeService.attachMemberToTree', () => {
     expect(nodeRepository.create).toHaveBeenCalledWith(
       {
         user_id: 'new-user-id',
-        parent_id: 'parent-node-id',
-        members: 1,
-        is_active: true,
+        father_id: 'parent-node-id',
+        child_order: 1,
+        status: true,
       },
       { transaction },
     );
@@ -74,7 +74,7 @@ describe('NodeService.attachMemberToTree', () => {
         user_id: 'new-user-id',
         node_id: 'child-node-id',
         level: 2,
-        is_active: true,
+        status: true,
       },
       { transaction },
     );

@@ -45,16 +45,16 @@ export class PermissionsController {
     }
   }
 
-  @Version('1')
-  @Get(':id')
-  @UseGuards(JWTAuthGuard)
-  async getPermissionsById(@Param('id') id: string): Promise<GetByIdPermissionsResponseDto | null> {
-    try {
-      return await this.permissionService.getById(id);
-    } catch (error) {
-      throw error;
-    }
-  }
+  // @Version('1')
+  // @Get(':id')
+  // @UseGuards(JWTAuthGuard)
+  // async getPermissionsById(@Param('id') id: string): Promise<GetByIdPermissionsResponseDto | null> {
+  //   try {
+  //     return await this.permissionService.getById(id);
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 
 
   @Patch(':id')

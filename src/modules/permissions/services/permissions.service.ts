@@ -8,6 +8,7 @@ import { InjectConnection } from '@nestjs/sequelize';
 import { RedisService } from '@redis/redis.service';
 import { Sequelize } from 'sequelize';
 import { CreatedPermissionssRequestDto, UpdatedPermissionssRequestDto } from '@modules/permissions/dto/permissions.request.dto';
+import { GetAllUserAdminResponseDto } from '@/modules/users/dto/user.admin.response.dto';
 
 @Injectable()
 export class PermissionsService extends
@@ -18,6 +19,9 @@ export class PermissionsService extends
     GetAllPermissionsResponseDto> {
   protected entityName: string;
   private Permissionss: string[] = [];
+  protected readonly getAllDtoClass = GetAllPermissionsResponseDto;
+  protected readonly getByIdDtoClass = GetByIdPermissionsResponseDto;
+
   constructor(
     @InjectConnection()
     private readonly sequelize: Sequelize,
