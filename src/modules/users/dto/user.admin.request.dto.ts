@@ -3,6 +3,7 @@ import { PaginationQueryDto } from '@shared/dto/common';
 import { ApiProperty, ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsDate,
   IsEmail,
@@ -12,6 +13,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   MinLength,
 } from 'class-validator';
 import { IPaginationDTO } from '@/shared/interface/common';
@@ -134,17 +136,19 @@ export class CreatedUserAdminRequestDto implements ICreatedUserAdminRequest {
   avatar_file_id?: number;
 }
 
-export class UpdatedUserAdminRequestDto extends PartialType(OmitType(CreatedUserAdminRequestDto, ['password'] as const)) {
+export class UpdatedUserAdminRequestDto extends PartialType(OmitType(CreatedUserAdminRequestDto, ['password', "roleId"] as const)) {
+  @ApiPropertyOptional({
+    description: 'Danh sách Role ID',
+    type: [String],
+    example: [
+      '026e2174-aff3-4461-9f43-0e16c9a88f17',
+      '8bd28c38-678d-4fe8-a8e2-579696599446',
+    ],
+  })
   @IsOptional()
-  @ApiProperty({ description: 'deleted_at', example: new Date() })
-  @Type(() => Date)
-  @IsDate({ message: 'deleted_at must be a date' })
-  deleted_at!: Date;
-
-  @IsOptional()
-  @ApiProperty({ description: 'deleted_by', example: 'system' })
-  @IsString({ message: 'deleted_by must be a string' })
-  deleted_by!: string;
+  @IsArray()
+  @IsUUID('4', { each: true }) // hoặc @IsString({ each: true })
+  roles?: string[];
 }
 export class ChangeStatusUserAdminRequestDto  {
   @ApiProperty({ description: 'status', example: 'pending' })
