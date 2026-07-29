@@ -60,7 +60,7 @@ export class PostgresRoleRepository extends AbstractRoleRepository {
       total: count,
       // page,
       // limit,
-      // totalPages: Math.ceil(count / limit),
+      // totalRecord: Math.ceil(count / limit),
     };
   }
 }

@@ -23,5 +23,5 @@ export interface IPaginatedResult<T> {
   total: number;
   // page: number;
   // limit: number;
-  // totalPages: number;
+  // totalRecord: number;
 }

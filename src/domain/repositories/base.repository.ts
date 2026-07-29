@@ -58,7 +58,7 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
       total: count,
       page,
       limit,
-      totalPages: Math.ceil(count / limit),
+      totalRecord: Math.ceil(count / limit),
     };
   }
 

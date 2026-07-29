@@ -19,7 +19,7 @@ interface IPaginatedResult<T> {
   total: number;
   // page: number;
   // limit: number;
-  // totalPages: number;
+  // totalRecord: number;
 }
 
 export class UserAdminBaseDto implements IUserAdmin {
@@ -69,7 +69,7 @@ export class GetAllUserAdminResponseDto implements IPaginatedResult<IUserAdmin> 
   // limit!: number;
   
   @Expose()
-  totalPages!: number;
+  totalRecord!: number;
 }
 
 export class UserAdminDetail extends UserAdminBaseDto {

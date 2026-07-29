@@ -117,7 +117,7 @@ export class PostgresUserRepository extends AbstractUserRepository {
   //        total: count,
   //        page,
   //        limit,
-  //        totalPages: Math.ceil(count / limit),
+  //        totalRecord: Math.ceil(count / limit),
   //      };
   //   // } catch (error) {
   //   //     console.log('error_', error)
@@ -140,7 +140,7 @@ export class PostgresUserRepository extends AbstractUserRepository {
              total: count,
             //  page,
             //  limit,
-            //  totalPages: Math.ceil(count / limit),
+            //  totalRecord: Math.ceil(count / limit),
            } as any
   }
 
