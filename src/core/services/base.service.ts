@@ -86,12 +86,20 @@ export abstract class BaseService<
     return response as GetAllResponseDto;
   }
 
-  async search(params: IUserPaginationDTO, callback){
+  async search(params: IUserPaginationDTO, query, callback){
+    const redisKey = buildRedisKeyQuery(this.entityName.toLocaleLowerCase(), RedisContext.LIST, query as unknown as Record<string, string>);
+
+    const cached = await this.cacheManage.get(redisKey);
+
+    const dataCache = cached && JSON.parse(cached);
+    if (cached) return dataCache;
+
     let options={};
     if(callback){
         options = await callback(options);
     }
     const result = await this.repository.search( params, options );
+    await this.cacheManage.set(redisKey, JSON.stringify(this.transformToDto( result )), 'EX', 30);
 
     return this.transformToDto( result );
   }

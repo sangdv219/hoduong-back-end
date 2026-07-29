@@ -105,7 +105,7 @@ export class UserService extends BaseService<
   
       // Commit Transaction
       await transaction.commit();
-      
+      this.cleanCacheRedis()
       // 5. Xóa Redis Cache sau khi Commit thành công
       // await this.clearUserCache(id);
   
@@ -219,11 +219,7 @@ export class UserService extends BaseService<
     }
   }
 
-  async resolveRoleId(roleId?: string): Promise<string> {
-    if (roleId) {
-      return roleId;
-    }
-
+  async resolveRoleId(): Promise<string> {
     const defaultRole = await this.roleRepository.findOneByField('name', DEFAULT_MEMBER_ROLE_NAME);
     if (!defaultRole?.id) {
       throw new NotFoundException(USER_ERROR.DEFAULT_ROLE_NOT_FOUND);
@@ -272,7 +268,7 @@ export class UserService extends BaseService<
 
   async searchUser(params: IUserPaginationDTO):Promise<GetAllUserAdminResponseDto> {
     const { role_id, ...baseParams } = params;
-    return super.search(baseParams, options => {
+    return super.search(baseParams, params, options => {
 
         const include = Array.isArray(options.include)
             ? options.include

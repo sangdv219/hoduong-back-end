@@ -18,6 +18,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { IPaginationDTO } from '@/shared/interface/common';
+import { Optional } from '@nestjs/common';
 
 interface ICreatedUserAdminRequest {
   fullname: string;
@@ -76,7 +77,7 @@ export class CreatedUserAdminRequestDto implements ICreatedUserAdminRequest {
   @ApiProperty({ description: 'parentUserId', example: null })
   parentUserId!: string;
   
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty({ description: 'roleId', example: '026e2174-aff3-4461-9f43-0e16c9a88f17' })
   roleId!: string;
 

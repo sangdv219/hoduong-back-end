@@ -19,7 +19,7 @@ export class CreateUserUseCase {
   async execute(dto: CreatedUserAdminRequestDto): Promise<any> {
     return this.baseTransactionService.runInTransaction(async (transaction) => {
       const user = await this.userService.createMember(dto, transaction);
-      const roleId = await this.userService.resolveRoleId(dto.roleId);
+      const roleId = await this.userService.resolveRoleId();
       await this.userRolesRepository.assignRole(user.id as string, roleId, transaction);
       const tree = await this.nodeService.attachMemberToTree(
         user.id as string,
