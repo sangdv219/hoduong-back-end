@@ -39,7 +39,6 @@ export class UserService extends BaseService<
   private users: string[] = [];
   protected readonly getAllDtoClass = GetAllUserAdminResponseDto;
   protected readonly getByIdDtoClass = GetByIdUserAdminResponseDto;
-
   constructor(
     @InjectConnection()
     private readonly sequelize: Sequelize,
@@ -81,70 +80,43 @@ export class UserService extends BaseService<
     Logger.log('🗑️onModuleDestroy -> users: ', this.users);
   }
 
-  async update(id: string, dto: UpdatedUserAdminRequestDto) {
-    this.cleanCacheRedis();
-    const entity = await this.userRepository.findByPk(id);
-    if (!entity) throw new NotFoundException(`User with id ${id} not found!`);
-
-    const { roles, ...res } = dto;
-    if (dto['status']) {
-      delete dto['status']; 
+  async update(
+    id: string,
+    dto: UpdatedUserAdminRequestDto,
+  ): Promise<any> {
+    const user = await this.userRepository.findByPk(id);
+    if (!user) {
+      throw new NotFoundException('khoong tim thasy');
     }
-
-    // Khởi tạo Transaction
+  
     const transaction = await this.sequelize.transaction();
-
+  
     try {
-      // 1. Cập nhật thông tin cơ bản của entity (Bảng users)
-      Object.assign(entity, dto);
-      await entity.update(res, { transaction });
-
-      // 2. Xử lý Logic Cập nhật mảng Roles (Sync Diff)
+      const { roles, fullname, other_name, ...res } = dto;
+  
+      Object.assign(user, dto);
+      await user.update(res, { transaction });
+  
+      // 4. Đồng bộ Roles sử dụng Sequelize Association Mixin
       if (roles && Array.isArray(roles)) {
-        // 2.1 Loại bỏ trùng lặp từ Input bằng Set
-        const oldRoleIds = [...new Set(roles)];
-
-        // 2.2 Lấy danh sách Role hiện tại của User trong Database
-        const currentUserRoles = await this.userRolesRepository.model.findAll({
-          where: { user_id: id },
-          attributes: ['role_id'],
-          transaction,
-        });
-        const currentRole = currentUserRoles.map(item => item.get('role_id'));
-
-        // 2.3 Tính Diff (Tìm phần khác biệt)
-        const rolesToInsert = oldRoleIds.filter(roleId => !currentRole.includes(roleId));
-        const rolesToDelete = currentRole.filter(roleId => !oldRoleIds.includes(roleId));
-        // 2.4 Thực thi Xoá các Role không còn được tick
-        if (rolesToDelete.length > 0) {
-          await (this.userRolesRepository as any).model.destroy({
-            where: {
-              user_id: id,
-              role_id: rolesToDelete, // Tự động convert thành mệnh đề IN (...)
-            },
-            transaction,
-          });
-        }
-
-        // 2.5 Thực thi Thêm mới các Role được tick thêm
-        if (rolesToInsert.length > 0) {
-          const insertData = rolesToInsert.map(roleId => ({
-            user_id: id,
-            role_id: roleId,
-          }));
-          // bulkCreate tự động sinh uuid vì bạn đã set defaultValue: DataType.UUIDV4 ở Model
-          await (this.userRolesRepository as any).model.bulkCreate(insertData, { transaction });
-        }
+        await this.validateRoleIds(roles); 
+        await user.$set('roles', roles, { transaction });
       }
-
-      // 3. Commit dữ liệu nếu không có lỗi
+  
+      // Commit Transaction
       await transaction.commit();
-      return entity;
-
+      
+      // 5. Xóa Redis Cache sau khi Commit thành công
+      // await this.clearUserCache(id);
+  
+      // 6. (Nâng cao) Publish Event nếu hệ thống chạy Event-Driven
+      // this.eventEmitter.emit('user.updated', new UserUpdatedEvent(id, dto));
+  
+      // 7. Trả về thông tin User mới nhất
     } catch (error) {
-      // 4. Rollback nếu có bất kỳ lỗi nào xảy ra (kể cả lỗi lúc insert role)
+      // Rollback nếu có bất kỳ lỗi nào xảy ra
       await transaction.rollback();
-      Logger.error(`Update User [${id}] failed: `, error);
+      Logger.error(`[UserService][update] Error updating user ${id}:`, error);
       throw error;
     }
   }
@@ -335,13 +307,7 @@ export class UserService extends BaseService<
 
   async getUserById(id: string): Promise<any>{
     return super.getById(id, options => {
-
-      const include = Array.isArray(options.include)
-      ? options.include
-      : options.include
-          ? [options.include]
-          : [];
-
+      const include = Array.isArray(options.include) ? options.include : options.include  ? [options.include] : [];
       const roleInclude:any = {
           model: RolesModel,
           attributes: ['id','name'],
@@ -349,13 +315,21 @@ export class UserService extends BaseService<
               attributes: [],
           },
       };
-
       options.include = [
           ...include,
           roleInclude,
       ];
-
       return options;
     })
+  }
+
+  private async validateRoleIds(roleIds: string[]): Promise<void> {
+    if (roleIds.length === 0) return;
+    const existingRolesCount = await this.roleRepository.count({
+      where: { id: roleIds },
+    });
+    if (existingRolesCount !== roleIds.length) {
+      throw new HttpException('Một hoặc nhiều Role ID không tồn tại!', HttpStatus.BAD_REQUEST);
+    }
   }
 }

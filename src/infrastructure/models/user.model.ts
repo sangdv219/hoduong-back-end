@@ -17,6 +17,7 @@ import {
   Unique
 } from 'sequelize-typescript';
 import { RolesModel } from './roles.model';
+import { BelongsToManyAddAssociationMixin, BelongsToManyGetAssociationsMixin, BelongsToManySetAssociationsMixin } from 'sequelize';
 
 export enum Status {
   ACTIVE = 'active',
@@ -200,5 +201,8 @@ export class UserModel extends BaseModel<UserModel> implements IUser {
   })
   roles!: RolesModel[];
 
+  declare getRoles: BelongsToManyGetAssociationsMixin<RolesModel>;
+  declare setRoles: BelongsToManySetAssociationsMixin<RolesModel, string>;
+  declare addRole: BelongsToManyAddAssociationMixin<RolesModel, string>;
 
 }

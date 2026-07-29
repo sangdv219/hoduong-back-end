@@ -63,4 +63,12 @@ export class PostgresRoleRepository extends AbstractRoleRepository {
       // totalRecord: Math.ceil(count / limit),
     };
   }
+
+  async count(condition){
+    return await this.model.count(
+      {
+        ...condition,
+      }
+    )
+  }
 }

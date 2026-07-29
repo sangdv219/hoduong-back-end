@@ -163,10 +163,11 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
     return result.get({ plain: true });
   }
 
-  async update(id: string, entity: any) {
+  async update(id: string, entity: any, options?: { transaction?: Transaction }) {
     return await this.model.update(entity, {
       where: { id },
       returning: true,
+      transaction: options?.transaction,
     });
   }
 

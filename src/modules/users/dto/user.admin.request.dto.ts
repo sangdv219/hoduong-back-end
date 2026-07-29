@@ -8,6 +8,7 @@ import {
   IsDate,
   IsEmail,
   IsEnum,
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -45,7 +46,7 @@ interface ICreatedUserAdminRequest {
 
 export interface IUserPaginationDTO extends IPaginationDTO{
   gender?: 0 | 1;
-  status: 'active | inactive | pending | suspended | archived'
+  status: 'active' | 'inactive' | 'pending' | 'suspended' | 'archived';
   life_status: number;
   role_id?: string;
 }
@@ -170,16 +171,16 @@ export class UserPaginationDTO extends PaginationQueryDto implements IUserPagina
   gender?: 0 | 1;
 
   @IsOptional()
-  @IsEnum(['active' , 'inactive' , 'pending' , 'suspended' , 'archived'], 
+  @IsIn(['active' , 'inactive' , 'pending' , 'suspended' , 'archived'], 
     { message: 'PENDING, ACTIVE, INACTIVE, SUSPENDED, ARCHIVED'})
   @ApiPropertyOptional({
     enum: ['active' , 'inactive' , 'pending' , 'suspended' , 'archived'],
   })
-  status!: 'active | inactive | pending | suspended | archived';
+  status!: 'active' | 'inactive' | 'pending' | 'suspended' | 'archived';
 
   @IsOptional()
   @Type(() => Number)
-  @IsEnum([0, 1], { message: 'Tình trạng phải là 0 hoặc 1' })
+  @IsIn([0, 1], { message: 'Tình trạng phải là 0 hoặc 1' })
   @ApiPropertyOptional({
     enum: [0, 1],
     description: '0: Đã mất 1: Sống',

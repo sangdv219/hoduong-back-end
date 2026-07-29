@@ -59,7 +59,6 @@ export class UserAdminController {
   }
 
   @Post('register')
-  @Version('3')
   @HttpCode(HttpStatus.NO_CONTENT)
   async register(@Body() body: RegisterDto): Promise<void> {
     return await this.registerUserUseCase.execute(body);
@@ -89,14 +88,13 @@ export class UserAdminController {
   // @UseGuards(JWTAuthGuard)
   // @UseInterceptors(UserContextInterceptor)
   async updateUserAdmin(@Param('id') id: string, @Body() dto: UpdatedUserAdminRequestDto) {
-
     try {
       return await this.userService.update(id, dto);
     } catch (error) {
       throw error;
     }
   }
-  
+
   @Patch('/restore/:id')
   // @UseGuards(JWTAuthGuard)
   // @UseInterceptors(UserContextInterceptor)
