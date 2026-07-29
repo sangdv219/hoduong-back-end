@@ -86,24 +86,6 @@ export abstract class BaseService<
     return response as GetAllResponseDto;
   }
 
-  // async search(
-  //   params: IPaginationDTO & Record<string, any>, // Chấp nhận các filter động đi kèm
-  //   queryBuilder?: (options: FindOptions<TEntity>) => FindOptions<TEntity> | Promise<FindOptions<TEntity>>
-  // ): Promise<GetAllResponseDto> {
-  //   let options: FindOptions<TEntity> = {};
-   
-  //   if (queryBuilder) {
-  //     options = await queryBuilder(options);
-  //   }
-
-  //   const result = await this.repository.search(
-  //     params,
-  //     options,
-  //   );
-
-  //   return this.transformToDto(result);
-  // }
-
   async search(params: IUserPaginationDTO, callback){
     let options={};
     if(callback){
@@ -196,7 +178,7 @@ export abstract class BaseService<
         const plainList = res[listKey].map(toPlain);
         const formattedResponse = {
           items: plainList,
-          totalPages: res.totalRecord || res.total || 0,
+          totalRecord: res.totalRecord || res.total || 0,
         };
 
         return plainToInstance(this.getAllDtoClass, formattedResponse, {
