@@ -185,8 +185,8 @@ export class UserModel extends BaseModel<UserModel> implements IUser {
   @Column(DataType.DATE)
   locked_until!: Date; // New field to track when the account is locked until
 
-  // @HasMany(() => UserRolesModel)
-  // userRoles!: UserRolesModel[];
+  @HasMany(() => UserRolesModel)
+  userRoles!: UserRolesModel[];
 
   @HasMany(() => NodeModel)
   nodes!: NodeModel[];

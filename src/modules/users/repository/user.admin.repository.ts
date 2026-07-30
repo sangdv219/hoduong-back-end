@@ -46,6 +46,8 @@ export class PostgresUserRepository extends AbstractUserRepository {
       ...options,
       ...customOptions,
       where,
+      distinct: true, 
+      col: 'id',
     };
 
     // const finalOptions = {
