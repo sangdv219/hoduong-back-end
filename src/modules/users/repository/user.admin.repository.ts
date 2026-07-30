@@ -14,11 +14,7 @@ export abstract class AbstractUserRepository extends BaseRepository<UserModel> {
 @Injectable()
 export class PostgresUserRepository extends AbstractUserRepository {
   private static readonly searchableFields = ['phone', 'gender', 'email', 'fullname', 'ascii_name'];
-  private readonly sortableColumns = {
-    age: 'age',
-    created_at: 'created_at',
-    updated_at: 'updated_at',
-  };
+
   constructor(
     private readonly userQueryBuilder: UserQueryBuilder,
   ) {
@@ -37,14 +33,29 @@ export class PostgresUserRepository extends AbstractUserRepository {
 
   async search(params: IUserPaginationDTO, customOptions: FindOptions<UserModel>){
     const options = this.userQueryBuilder.build(params);
+    const where: WhereOptions = {
+      ...options.where,
+      ...customOptions?.where,
+    };
+
+    if (!where['status']) {
+      where['status'] = { [Op.ne]: Status.ARCHIVED };
+    }
+
     const finalOptions = {
       ...options,
       ...customOptions,
-      where:{
-        ...options.where,
-        ...customOptions?.where,
-      }
+      where,
     };
+
+    // const finalOptions = {
+    //   ...options,
+    //   ...customOptions,
+    //   where:{
+    //     ...options.where,
+    //     ...customOptions?.where,
+    //   }
+    // };
     const { rows, count } :{rows:any[], count: number}= await this.model.findAndCountAll(finalOptions);
     return {
              items: rows,  

@@ -92,7 +92,7 @@ export class UserService extends BaseService<
     const transaction = await this.sequelize.transaction();
   
     try {
-      const { roles, fullname, other_name, ...res } = dto;
+      const { roles, ...res } = dto;
   
       Object.assign(user, dto);
       await user.update(res, { transaction });
