@@ -11,6 +11,13 @@ import {
   Min,
 } from 'class-validator';
 
+export interface ICreatedFamilyMembersRequest {
+  user_id: string;
+  father_id?: string | null;
+  mother_id?: string | null;
+  child_order?: number | undefined;
+}
+
 export class NodeUserVModel {
   id?: string;
   fullname?: string;
@@ -39,10 +46,10 @@ export class CoupleGetVModel {
   user?: NodeUserVModel | null;
 }
 
-export class NodeGetVModel {
+export class FamilyMembersGetVModel {
   nodeId?: string;
   userId?: string | null;
-  fatherId?: string;
+  father_id?: string;
   createdAt?: Date;
   createdBy?: string;
   updatedAt?: Date;
@@ -57,7 +64,7 @@ export class NodeGetVModel {
 export class NodeTreeVModel {
   id?: string;
   userId?: string | null;
-  fatherId?: string;
+  father_id?: string;
   createdAt?: Date;
   createdBy?: string;
   updatedAt?: Date;
@@ -69,7 +76,7 @@ export class NodeTreeVModel {
 }
 
 export class NodePaginationModel {
-  records?: NodeGetVModel[] | null;
+  records?: FamilyMembersGetVModel[] | null;
   totalRecords?: number | null;
 }
 
@@ -92,7 +99,7 @@ export class NodeFilterQueryDto {
 
   @IsOptional()
   @IsUUID()
-  fatherId?: string | null;
+  father_id?: string | null;
 
   @IsOptional()
   @Type(() => Boolean)
@@ -116,34 +123,28 @@ export class NodeFilterQueryDto {
   updatedDate?: Date | null = null;
 }
 
-export class CreateNodeRequestDto {
+export class CreatedFamilyMembersRequestDto implements ICreatedFamilyMembersRequest{
   @IsUUID()
   @IsNotEmpty()
-  @ApiProperty({ description: 'User ID linked to this node' })
-  userId?: string | null = null;
+  @ApiProperty({ description: 'User ID linked to this node', example: "584a57c8-beb9-489d-b690-6b1d0eb6cc95" })
+  user_id!: string;
 
-  @IsOptional()
   @IsUUID()
-  @ApiPropertyOptional({ description: 'Parent node ID' })
-  fatherId?: string | null = null;
-
   @IsOptional()
-  @IsUUID()
-  @ApiPropertyOptional({ description: 'Spouse user ID to create couple relation' })
-  coupleUserId?: string | null = null;
+  @ApiPropertyOptional({ description: 'father_id', example: null })
+  father_id?: string;
 
+  @IsUUID()
+  @IsOptional()
+  @ApiPropertyOptional({ description: 'mother_id', example: null })
+  mother_id?: string;
+  
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @ApiPropertyOptional({ description: 'Member order among siblings', default: 1 })
-  child_order?: number | null = 1;
-
-  @IsOptional()
-  @Type(() => Boolean)
-  @IsBoolean()
-  @ApiPropertyOptional({ default: true })
-  status?: boolean | null = true;
+  @ApiPropertyOptional({ description: 'Member order among siblings', default: null })
+  child_order?: number | undefined;
 }
 
 export class UpdateNodeRequestDto {
@@ -155,7 +156,7 @@ export class UpdateNodeRequestDto {
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional({ description: 'Parent node ID' })
-  fatherId?: string | null = null;
+  father_id?: string | null = null;
 
   @IsOptional()
   @Type(() => Number)

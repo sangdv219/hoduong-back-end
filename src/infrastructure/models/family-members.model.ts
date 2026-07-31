@@ -14,12 +14,23 @@ import {
 import { CoupleModel } from '@infrastructure/models/couple.model';
 import { UserModel } from '@infrastructure/models/user.model';
 
+export interface IFamilyMembers {
+  id: string;
+  user_id: string;
+  parent_branch_id: string | null;
+  father_id: string | null;
+  mother_id: string | null;
+  child_order: number;
+  generation_order: number;
+}
+
 @Table({
   tableName: 'family_members',
   timestamps: true,
   underscored: true,
 })
-export class FamilyMembersModel extends BaseModel<FamilyMembersModel> {
+
+export class FamilyMembersModel extends BaseModel<FamilyMembersModel> implements IFamilyMembers {
   @PrimaryKey
   @Default(Sequelize.literal('gen_random_uuid()'))
   @Column(DataType.UUID)

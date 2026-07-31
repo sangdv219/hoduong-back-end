@@ -1,14 +1,12 @@
-import { Status, UserModel } from '@infrastructure/models/user.model';
-import { RedisContext } from '@/redis/enums/redis-key.enum';
-import { buildRedisKeyQuery } from '@/redis/helpers/redis-key.helper';
-import { sensitiveFields } from '@shared/config/sensitive-fields.config';
 import { BaseService } from '@core/services/base.service';
+import { RolesModel } from '@infrastructure/models/roles.model';
+import { Status, UserModel } from '@infrastructure/models/user.model';
 import { PostgresUserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
-import { family_memberservice } from '@modules/family-members/services/family-members.service';
+import { FamilyMemberService } from '@modules/family-members/services/family-members.service';
 import { PasswordService } from '@modules/password/services/password.service';
 import { PostgresRoleRepository } from '@modules/roles/infrastructure/repository/postgres-role.repository';
 import { DEFAULT_MEMBER_ROLE_NAME, USER_ENTITY, USER_ERROR } from '@modules/users/constants/user.constant';
-import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, IUserPaginationDTO, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
+import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, IUserPaginationDTO, UpdatedUserAdminRequestDto } from '@modules/users/dto/user.admin.request.dto';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
 import {
@@ -25,7 +23,6 @@ import { toAsciiName } from '@shared/utils/string.util';
 import { Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { UserStatusStrategyFactory } from '../strategies/userStatusStrategy';
-import { RolesModel } from '@infrastructure/models/roles.model';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -48,7 +45,7 @@ export class UserService extends BaseService<
     public cacheManage: RedisService,
     private readonly passwordService: PasswordService,
     private readonly roleRepository: PostgresRoleRepository,
-    private readonly family_memberservice: family_memberservice,
+    private readonly FamilyMemberService: FamilyMemberService,
     private readonly statusStrategyFactory: UserStatusStrategyFactory, 
   ) {
     super(repository);

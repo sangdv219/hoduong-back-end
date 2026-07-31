@@ -3,13 +3,14 @@ import { FamilyMembersModel } from '@infrastructure/models/family-members.model'
 import { UserModel } from '@infrastructure/models/user.model';
 import {
   CoupleGetVModel,
-  NodeGetVModel,
+  FamilyMembersGetVModel,
   NodeTreeVModel,
   NodeUserVModel,
-} from '@modules/family-members/dto/family-members.dto';
+} from '@/modules/family-members/dto/family-members.request.dto';
 
 export function mapUserToVModel(user: UserModel | Record<string, unknown>): NodeUserVModel {
   const u = user as UserModel;
+  console.log('u',u)
   return {
     id: u.id,
     fullname: u.fullname,
@@ -40,12 +41,12 @@ export function mapCoupleToVModel(couple: CoupleModel, user?: UserModel): Couple
   };
 }
 
-export function mapEntityToVModel(entity: FamilyMembersModel | Record<string, unknown>): NodeGetVModel {
+export function mapEntityToVModel(entity: FamilyMembersModel | Record<string, unknown>): FamilyMembersGetVModel {
   const node = entity as FamilyMembersModel;
   return {
     nodeId: node.id,
     userId: node.user_id,
-    fatherId: node.father_id ?? undefined,
+    father_id: node.father_id ?? undefined,
     createdAt: node.created_at,
     createdBy: node.created_by ?? undefined,
     updatedAt: node.updated_at,
@@ -72,7 +73,7 @@ export function mapEntityToTree(
   return {
     id: entity.id,
     userId: entity.user_id,
-    fatherId: entity.father_id ?? undefined,
+    father_id: entity.father_id ?? undefined,
     createdAt: entity.created_at,
     createdBy: entity.created_by ?? undefined,
     updatedAt: entity.updated_at,

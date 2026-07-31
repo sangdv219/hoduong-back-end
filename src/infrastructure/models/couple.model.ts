@@ -23,13 +23,22 @@ export enum MarriageDateStatus {
   SOLAR = 'SOLAR',
   LUNAR = 'LUNAR',
 }
-
+export interface ICouple{
+  id: string;
+  user_id: string;
+  node_id: string;
+  couple_order: number;
+  marriage_date: Date;
+  marriage_status: MarriageStatus;
+  marriage_date_type: MarriageDateStatus;
+  divorce_date: Date
+}
 @Table({
   tableName: 'couples',
   timestamps: true,
   underscored: true,
 })
-export class CoupleModel extends BaseModel<CoupleModel> {
+export class CoupleModel extends BaseModel<CoupleModel> implements ICouple{
   @PrimaryKey
   @Default(Sequelize.literal('gen_random_uuid()'))
   @Column(DataType.UUID)

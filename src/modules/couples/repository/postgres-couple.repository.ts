@@ -19,14 +19,14 @@ export class PostgresCoupleRepository extends AbstractCoupleRepository {
 
   async findByUserId(userId: string, transaction?: Transaction): Promise<CoupleModel | null> {
     return this.model.findOne({
-      where: { user_id: userId, status: true },
+      where: { user_id: userId },
       transaction,
     });
   }
 
   async findByNodeId(nodeId: string, transaction?: Transaction): Promise<CoupleModel | null> {
     return this.model.findOne({
-      where: { node_id: nodeId, status: true },
+      where: { node_id: nodeId },
       transaction,
     });
   }

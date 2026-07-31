@@ -81,11 +81,9 @@ module.exports = {
     });
 
     await queryInterface.addIndex('family_members', ['father_id'], {
-      unique: true,
       name: 'idx_family_members_father_id',
     });
     await queryInterface.addIndex('family_members', ['user_id'], {
-      unique: true,
       name: 'idx_family_members_user_id',
     });
   },

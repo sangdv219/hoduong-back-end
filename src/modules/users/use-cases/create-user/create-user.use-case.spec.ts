@@ -41,7 +41,7 @@ describe('CreateUserUseCase', () => {
     assignRole: jest.fn(),
   };
 
-  const family_memberservice = {
+  const FamilyMemberService = {
     attachMemberToTree: jest.fn(),
   };
 
@@ -56,13 +56,13 @@ describe('CreateUserUseCase', () => {
     useCase = new CreateUserUseCase(
       userService as any,
       userRolesRepository as any,
-      family_memberservice as any,
+      FamilyMemberService as any,
       baseTransactionService as any,
     );
     userService.createMember.mockResolvedValue(createdUser);
     userService.resolveRoleId.mockResolvedValue('role-uuid');
     userRolesRepository.assignRole.mockResolvedValue(undefined);
-    family_memberservice.attachMemberToTree.mockResolvedValue(null);
+    FamilyMemberService.attachMemberToTree.mockResolvedValue(null);
   });
 
   it('creates member, assigns role, and returns safe response without password fields', async () => {
@@ -71,7 +71,7 @@ describe('CreateUserUseCase', () => {
     expect(userService.createMember).toHaveBeenCalledWith(dto, expect.any(Object));
     expect(userService.resolveRoleId).toHaveBeenCalledWith(undefined);
     expect(userRolesRepository.assignRole).toHaveBeenCalledWith('user-uuid', 'role-uuid', expect.any(Object));
-    expect(family_memberservice.attachMemberToTree).toHaveBeenCalledWith('user-uuid', undefined, expect.any(Object));
+    expect(FamilyMemberService.attachMemberToTree).toHaveBeenCalledWith('user-uuid', undefined, expect.any(Object));
     expect(result).toMatchObject({
       id: 'user-uuid',
       fullname: dto.fullname,
@@ -83,11 +83,11 @@ describe('CreateUserUseCase', () => {
   });
 
   it('attaches member to family tree when parentUserId is provided', async () => {
-    family_memberservice.attachMemberToTree.mockResolvedValue(treeAttachment);
+    FamilyMemberService.attachMemberToTree.mockResolvedValue(treeAttachment);
 
     const result = await useCase.execute({ ...dto, parentUserId: 'parent-user-uuid' });
 
-    expect(family_memberservice.attachMemberToTree).toHaveBeenCalledWith(
+    expect(FamilyMemberService.attachMemberToTree).toHaveBeenCalledWith(
       'user-uuid',
       'parent-user-uuid',
       expect.any(Object),
@@ -113,6 +113,6 @@ describe('CreateUserUseCase', () => {
 
     await expect(useCase.execute(dto)).rejects.toBeInstanceOf(ConflictException);
     expect(userRolesRepository.assignRole).not.toHaveBeenCalled();
-    expect(family_memberservice.attachMemberToTree).not.toHaveBeenCalled();
+    expect(FamilyMemberService.attachMemberToTree).not.toHaveBeenCalled();
   });
 });
