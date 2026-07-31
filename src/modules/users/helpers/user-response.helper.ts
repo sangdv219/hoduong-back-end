@@ -1,8 +1,8 @@
-// import { TreeAttachmentResult } from '@modules/nodes/services/node.service';
+// import { TreeAttachmentResult } from '@modules/family_members/services/node.service';
 // import { CreatedUserAdminRequestDto } from '../dto/user.admin.request.dto';
 
-import { Status } from "@/infrastructure/models/user.model";
-import { TreeAttachmentResult } from "@modules/nodes/services/node.service";
+import { Status } from "@infrastructure/models/user.model";
+import { TreeAttachmentResult } from "@modules/family-members/services/family-members.service";
 import { CreatedUserAdminRequestDto } from "@modules/users/dto/user.admin.request.dto";
 
 const SENSITIVE_USER_FIELDS = [

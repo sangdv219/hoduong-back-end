@@ -2,9 +2,9 @@ import { DefaultTokenSecretResolverStrategy } from '@core/strategies/default-tok
 import { RolePermissionsModel } from '@modules/associations/models/role-permissions.model';
 import { UserRolesModel } from '@infrastructure/models/user_roles.model';
 import { RolesController } from '@modules/roles/controller/roles.controller';
-import { RolesModel } from '@/infrastructure/models/roles.model';
+import { RolesModel } from '@infrastructure/models/roles.model';
 import { RolesService } from '@modules/roles/services/roles.service';
-import { UserModel } from '@/infrastructure/models/user.model';
+import { UserModel } from '@infrastructure/models/user.model';
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { RedisService } from '@redis/redis.service';

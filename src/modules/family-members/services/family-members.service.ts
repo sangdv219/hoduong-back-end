@@ -1,8 +1,8 @@
-import { BaseTransactionService } from '@/infrastructure/database/transaction.service';
+import { BaseTransactionService } from '@infrastructure/database/transaction.service';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
 import { ROOT_TREE_LEVEL } from '@modules/couples/constants/couple.constant';
 import { PostgresCoupleRepository } from '@modules/couples/repository/postgres-couple.repository';
-import { NODE_ERROR } from '@modules/nodes/constants/node.constant';
+import { NODE_ERROR } from '@modules/family-members/constants/node.constant';
 import {
   CreateNodeRequestDto,
   NodeFilterQueryDto,
@@ -10,12 +10,12 @@ import {
   NodePaginationModel,
   NodeTreeVModel,
   UpdateNodeRequestDto,
-} from '@modules/nodes/dto/node.dto';
+} from '@modules/family-members/dto/family-members.dto';
 import {
   mapEntityToTree,
   mapEntityToVModel,
-} from '@modules/nodes/helpers/node.mapper';
-import { PostgresNodeRepository } from '@modules/nodes/repository/postgres-node.repository';
+} from '@modules/family-members/helpers/node.mapper';
+import { PostgresFamilyMembersRepository } from '@modules/family-members/repository/postgres-family-members.repository';
 import {
   BadRequestException,
   ConflictException,
@@ -23,8 +23,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Transaction } from 'sequelize';
-import { NodeModel } from '@/infrastructure/models/node.model';
-import { UserModel } from '@/infrastructure/models/user.model';
+import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
+import { UserModel } from '@infrastructure/models/user.model';
 
 export interface TreeAttachmentResult {
   nodeId: string;
@@ -35,9 +35,9 @@ export interface TreeAttachmentResult {
 }
 
 @Injectable()
-export class NodeService {
+export class family_memberservice {
   constructor(
-    private readonly nodeRepository: PostgresNodeRepository,
+    private readonly nodeRepository: PostgresFamilyMembersRepository,
     private readonly coupleRepository: PostgresCoupleRepository,
     private readonly userRepository: PostgresUserRepository,
     private readonly baseTransactionService: BaseTransactionService,
@@ -81,7 +81,7 @@ export class NodeService {
         throw new ConflictException(NODE_ERROR.USER_ALREADY_HAS_NODE);
       }
 
-      let node: NodeModel;
+      let node: FamilyMembersModel;
 
       if (!dto.fatherId) {
         node = await this.createRootNode(dto, actor, transaction);
@@ -232,17 +232,17 @@ export class NodeService {
   }
 
   async getAllAsTree(): Promise<NodeTreeVModel> {
-    const allNodes = await this.nodeRepository.findAll({ status: true });
-    const userIds = allNodes?.map((n) => n.user_id) ?? [];
+    const allfamily_members = await this.nodeRepository.findAll({ status: true });
+    const userIds = allfamily_members?.map((n) => n.user_id) ?? [];
     const users = await this.userRepository.findAll(userIds);
     const userMap = new Map(users?.map((u) => [u.id, u]) ?? []);
 
-    const rootNodeEntity = allNodes?.find((x) => x.father_id === null || x.father_id === undefined);
+    const rootNodeEntity = allfamily_members?.find((x) => x.father_id === null || x.father_id === undefined);
     if (!rootNodeEntity) {
       throw new NotFoundException('Family tree root not found');
     }
 
-    return mapEntityToTree(rootNodeEntity, allNodes ?? [], userMap as Map<string, UserModel>);
+    return mapEntityToTree(rootNodeEntity, allfamily_members ?? [], userMap as Map<string, UserModel>);
   }
 
   async getById(id: string): Promise<NodeGetVModel | null> {
@@ -338,7 +338,7 @@ export class NodeService {
     dto: CreateNodeRequestDto,
     actor: string,
     transaction: Transaction,
-  ): Promise<NodeModel> {
+  ): Promise<FamilyMembersModel> {
     const existingRoot = await this.nodeRepository.findRootNode(transaction);
     if (existingRoot) {
       throw new ConflictException(NODE_ERROR.ROOT_NODE_ALREADY_EXISTS);
@@ -369,14 +369,14 @@ export class NodeService {
       { transaction },
     );
 
-    return node as NodeModel;
+    return node as FamilyMembersModel;
   }
 
   private async createChildNode(
     dto: CreateNodeRequestDto,
     actor: string,
     transaction: Transaction,
-  ): Promise<NodeModel> {
+  ): Promise<FamilyMembersModel> {
     const parentNode = await this.nodeRepository.findByPk(dto.fatherId!, [], false, { transaction }); // TODO: Fix this
     if (!parentNode) {
       throw new NotFoundException(NODE_ERROR.PARENT_NODE_NOT_FOUND);
@@ -398,13 +398,13 @@ export class NodeService {
       transaction,
     );
 
-    return (await this.nodeRepository.findByPk(attachment.nodeId, [], false, { transaction })) as NodeModel;
+    return (await this.nodeRepository.findByPk(attachment.nodeId, [], false, { transaction })) as FamilyMembersModel;
   }
 
   private async createSpouseCouple(
     coupleUserId: string,
     nodeId: string,
-    node: NodeModel,
+    node: FamilyMembersModel,
     transaction: Transaction,
   ): Promise<void> {
     if (coupleUserId === node.user_id) {

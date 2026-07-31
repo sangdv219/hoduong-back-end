@@ -24,7 +24,7 @@ import { PaginationQueryDto } from '@shared/dto/common';
 import { CreatedRolesRequestDto, UpdatedRolesRequestDto } from '@modules/roles/dto/role.request.dto';
 import { GetAllRoleResponseDto, GetByIdRoleResponseDto } from '@modules/roles/dto/role.response.dto';
 import { BaseGetResponse } from '@shared/interface/common';
-import { RolesModel } from '@/infrastructure/models/roles.model';
+import { RolesModel } from '@infrastructure/models/roles.model';
 import { JWTAuthGuard } from '@core/guards/jwt.guard';
 import { UserContextInterceptor } from '@core/interceptors/user-context.interceptor';
 

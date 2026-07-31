@@ -1,64 +1,63 @@
-import { BaseRepository } from '@/domain/repositories/base.repository';
-import { NodeModel } from '@/infrastructure/models/node.model';
-import { UserModel } from '@/infrastructure/models/user.model';
+import { BaseRepository } from '@domain/repositories/base.repository';
+import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
+import { UserModel } from '@infrastructure/models/user.model';
+import { UserQueryBuilder } from '@modules/users/query/user.query.builder';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';
 
-export abstract class AbstractNodeRepository extends BaseRepository<NodeModel> {}
+export abstract class AbstractFamilyMembersRepository extends BaseRepository<FamilyMembersModel> {}
 
 @Injectable()
-export class PostgresNodeRepository extends AbstractNodeRepository {
+export class PostgresFamilyMembersRepository extends AbstractFamilyMembersRepository {
   private static readonly searchableFields: string[] = [];
 
   constructor(
-    @InjectModel(NodeModel)
-    protected readonly nodeModel: typeof NodeModel,
+    private readonly userQueryBuilder: UserQueryBuilder,
   ) {
-    super(nodeModel, PostgresNodeRepository.searchableFields);
+    super(FamilyMembersModel, PostgresFamilyMembersRepository.searchableFields);
   }
 
-  async findByUserId(userId: string, transaction?: Transaction): Promise<NodeModel | null> {
+  async findByUserId(userId: string, transaction?: Transaction): Promise<FamilyMembersModel | null> {
     return this.model.findOne({
       where: { user_id: userId },
       transaction,
     });
   }
 
-  async findAllAsTree(transaction?: Transaction): Promise<NodeModel[] | null> {
+  async findAllAsTree(transaction?: Transaction): Promise<FamilyMembersModel[] | null> {
     return this.model.findAll({
       where: { status: true },
       transaction,
     });
   }
 
-  async findAll(condition: Record<string, unknown>, transaction?: Transaction): Promise<NodeModel[] | null> {
+  async findAll(condition: Record<string, unknown>, transaction?: Transaction): Promise<FamilyMembersModel[] | null> {
     return this.model.findAll({
       where: condition,
       transaction,
     });
   }
 
-  async findByParentId(fatherId: string, transaction?: Transaction): Promise<NodeModel | null> {
+  async findByParentId(fatherId: string, transaction?: Transaction): Promise<FamilyMembersModel | null> {
     return this.model.findOne({
       where: { father_id: fatherId, status: true },
       transaction,
     });
   }
 
-  async findRootNode(transaction?: Transaction): Promise<NodeModel | null> {
+  async findRootNode(transaction?: Transaction): Promise<FamilyMembersModel | null> {
     return this.model.findOne({
       where: { father_id: null, status: true },
       transaction,
     });
   }
 
-  async findByPkWithRelations(id: string, transaction?: Transaction): Promise<NodeModel | null> {
+  async findByPkWithRelations(id: string, transaction?: Transaction): Promise<FamilyMembersModel | null> {
     return this.model.findByPk(id, {
       include: [
         { model: UserModel, as: 'user' },
         {
-          model: NodeModel,
+          model: FamilyMembersModel,
           as: 'parent',
           include: [{ model: UserModel, as: 'user' }],
         },
@@ -85,9 +84,9 @@ export class PostgresNodeRepository extends AbstractNodeRepository {
 
   async updateNode(
     id: string,
-    data: Partial<NodeModel>,
+    data: Partial<FamilyMembersModel>,
     transaction?: Transaction,
-  ): Promise<NodeModel | null> {
+  ): Promise<FamilyMembersModel | null> {
     const node = await this.model.findByPk(id, { transaction });
     if (!node) {
       return null;

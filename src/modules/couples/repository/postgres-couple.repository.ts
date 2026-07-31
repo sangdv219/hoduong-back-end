@@ -1,5 +1,5 @@
 import { BaseRepository } from '@/domain/repositories/base.repository';
-import { CoupleModel } from '@/infrastructure/models/couple.model';
+import { CoupleModel } from '@infrastructure/models/couple.model';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';

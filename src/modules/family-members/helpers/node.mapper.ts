@@ -1,12 +1,12 @@
-import { CoupleModel } from '@/infrastructure/models/couple.model';
-import { NodeModel } from '@/infrastructure/models/node.model';
-import { UserModel } from '@/infrastructure/models/user.model';
+import { CoupleModel } from '@infrastructure/models/couple.model';
+import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
+import { UserModel } from '@infrastructure/models/user.model';
 import {
   CoupleGetVModel,
   NodeGetVModel,
   NodeTreeVModel,
   NodeUserVModel,
-} from '@modules/nodes/dto/node.dto';
+} from '@modules/family-members/dto/family-members.dto';
 
 export function mapUserToVModel(user: UserModel | Record<string, unknown>): NodeUserVModel {
   const u = user as UserModel;
@@ -40,8 +40,8 @@ export function mapCoupleToVModel(couple: CoupleModel, user?: UserModel): Couple
   };
 }
 
-export function mapEntityToVModel(entity: NodeModel | Record<string, unknown>): NodeGetVModel {
-  const node = entity as NodeModel;
+export function mapEntityToVModel(entity: FamilyMembersModel | Record<string, unknown>): NodeGetVModel {
+  const node = entity as FamilyMembersModel;
   return {
     nodeId: node.id,
     userId: node.user_id,
@@ -57,16 +57,16 @@ export function mapEntityToVModel(entity: NodeModel | Record<string, unknown>): 
 }
 
 export function mapEntityToTree(
-  entity: NodeModel,
-  allNodes: NodeModel[],
+  entity: FamilyMembersModel,
+  allfamily_members: FamilyMembersModel[],
   userMap: Map<string, UserModel>,
 ): NodeTreeVModel {
   const userEntity = userMap.get(entity.user_id);
   const userModel = userEntity ? mapUserToVModel(userEntity) : undefined;
 
-  const children = allNodes
+  const children = allfamily_members
     .filter((node) => node.father_id === entity.id)
-    .map((child) => mapEntityToTree(child, allNodes, userMap))
+    .map((child) => mapEntityToTree(child, allfamily_members, userMap))
     .filter((childTree) => childTree.user?.status !== 'active');
 
   return {

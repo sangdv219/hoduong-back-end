@@ -1,4 +1,4 @@
-import { Status } from '@/infrastructure/models/user.model';
+import { Status } from '@infrastructure/models/user.model';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {

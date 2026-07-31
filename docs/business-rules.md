@@ -242,7 +242,7 @@ Every non-root person must be connected to the family tree.
 Family trees must not contain cycles.
 
 ## PR-074
-Orphan nodes are not allowed.
+Orphan family_members are not allowed.
 
 ## PR-075
 Generation levels must be derived consistently.

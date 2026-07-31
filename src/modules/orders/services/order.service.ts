@@ -1,4 +1,4 @@
-// import { PricingStrategyFactory } from '@/shared/utils/factory'
+// import { PricingStrategyFactory } from '@shared/utils/factory'
 // import { BullService } from '@bull/bull.service'
 // import { DoublyLinkedList } from '@core/data-structures/doubly-linked-list'
 // import { SinglyLinkedList } from '@core/data-structures/singly-linked-list'

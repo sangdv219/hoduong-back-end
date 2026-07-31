@@ -1,5 +1,5 @@
 import { PricingType } from '@/core/enum/pg-error-codes.enum'
-import { PricingStrategyFactory } from '@/shared/utils/factory'
+import { PricingStrategyFactory } from '@shared/utils/factory'
 import { HttpException, HttpStatus } from '@nestjs/common'
 import * as crypto from 'crypto'
 import { ICreatedOrderRequest, IOrderItems } from '../interface/order.interface'

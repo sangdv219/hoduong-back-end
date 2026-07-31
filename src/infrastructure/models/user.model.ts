@@ -1,5 +1,5 @@
-import { NodeModel } from '@/infrastructure/models/node.model';
-import { CoupleModel } from '@/infrastructure/models/couple.model';
+import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
+import { CoupleModel } from '@infrastructure/models/couple.model';
 import { UserRolesModel } from '@infrastructure/models/user_roles.model';
 import { BaseModel } from '@shared/model/base.model';
 import { ClsServiceManager } from 'nestjs-cls';
@@ -16,7 +16,7 @@ import {
   Table,
   Unique
 } from 'sequelize-typescript';
-import { RolesModel } from './roles.model';
+import { RolesModel } from '@infrastructure/models/roles.model';
 import { BelongsToManyAddAssociationMixin, BelongsToManyGetAssociationsMixin, BelongsToManySetAssociationsMixin } from 'sequelize';
 
 export enum Status {
@@ -58,7 +58,7 @@ export interface IUser{
   failed_login_attempts?: number;
   last_failed_login_at: Date;
   locked_until: Date;
-  nodes: NodeModel[];
+  family_members: FamilyMembersModel[];
   couples: CoupleModel[];
   roles: RolesModel[];
 }
@@ -188,8 +188,8 @@ export class UserModel extends BaseModel<UserModel> implements IUser {
   @HasMany(() => UserRolesModel)
   userRoles!: UserRolesModel[];
 
-  @HasMany(() => NodeModel)
-  nodes!: NodeModel[];
+  @HasMany(() => FamilyMembersModel)
+  family_members!: FamilyMembersModel[];
 
   @HasMany(() => CoupleModel)
   couples!: CoupleModel[];

@@ -1,13 +1,13 @@
 import { GetAllRoleResponseDto, GetByIdRoleResponseDto } from '@modules/roles/dto/role.response.dto';
 import { BaseService } from '@core/services/base.service';
 import { ROLES_ENTITY } from '@modules/roles/constants/roles.constant';
-import { RolesModel } from '@/infrastructure/models/roles.model';
+import { RolesModel } from '@infrastructure/models/roles.model';
 import { PostgresRoleRepository } from '@modules/roles/infrastructure/repository/postgres-role.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '@redis/redis.service';
 import { CreatedRolesRequestDto, UpdatedRolesRequestDto } from '@modules/roles/dto/role.request.dto';
 import { Sequelize } from 'sequelize-typescript';
-import { BaseTransactionService } from '@/infrastructure/database/transaction.service';
+import { BaseTransactionService } from '@infrastructure/database/transaction.service';
 
 @Injectable()
 export class RolesService extends

@@ -11,15 +11,15 @@ import {
   Sequelize,
   Table,
 } from 'sequelize-typescript';
-import { CoupleModel } from '@/infrastructure/models/couple.model';
-import { UserModel } from './user.model';
+import { CoupleModel } from '@infrastructure/models/couple.model';
+import { UserModel } from '@infrastructure/models/user.model';
 
 @Table({
-  tableName: 'nodes',
+  tableName: 'family_members',
   timestamps: true,
   underscored: true,
 })
-export class NodeModel extends BaseModel<NodeModel> {
+export class FamilyMembersModel extends BaseModel<FamilyMembersModel> {
   @PrimaryKey
   @Default(Sequelize.literal('gen_random_uuid()'))
   @Column(DataType.UUID)
@@ -54,11 +54,11 @@ export class NodeModel extends BaseModel<NodeModel> {
   @BelongsTo(() => UserModel, 'user_id')
   declare user: UserModel;
 
-  @BelongsTo(() => NodeModel, { foreignKey: 'father_id', as: 'parent' })
-  declare parent?: NodeModel;
+  @BelongsTo(() => FamilyMembersModel, { foreignKey: 'father_id', as: 'parent' })
+  declare parent?: FamilyMembersModel;
 
-  @HasMany(() => NodeModel, { foreignKey: 'father_id', as: 'children' })
-  declare children?: NodeModel[];
+  @HasMany(() => FamilyMembersModel, { foreignKey: 'father_id', as: 'children' })
+  declare children?: FamilyMembersModel[];
 
   @HasMany(() => CoupleModel, 'node_id')
   declare couples?: CoupleModel[];

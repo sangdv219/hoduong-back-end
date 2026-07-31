@@ -17,7 +17,7 @@ import {
   IsUUID,
   MinLength,
 } from 'class-validator';
-import { IPaginationDTO } from '@/shared/interface/common';
+import { IPaginationDTO } from '@shared/interface/common';
 import { Optional } from '@nestjs/common';
 
 interface ICreatedUserAdminRequest {

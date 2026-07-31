@@ -1,8 +1,8 @@
-import { USER_ROLES_ENTITY } from '@/modules/associations/constants/user-roles.constant';
+import { USER_ROLES_ENTITY } from '@modules/associations/constants/user-roles.constant';
 import { BaseModel } from '@shared/model/base.model';
 import { AllowNull, BelongsTo, Column, DataType, ForeignKey, PrimaryKey, Table } from 'sequelize-typescript';
-import { RolesModel } from './roles.model';
-import { UserModel } from './user.model';
+import { RolesModel } from '@infrastructure/models/roles.model';
+import { UserModel } from '@infrastructure/models/user.model';
 
 export interface IUserRoles{
   id: string,

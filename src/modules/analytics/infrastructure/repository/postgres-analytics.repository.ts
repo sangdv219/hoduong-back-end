@@ -1,4 +1,4 @@
-import { UserModel } from '@/infrastructure/models/user.model';
+import { UserModel } from '@infrastructure/models/user.model';
 import { AbstractAnalyticsRepository } from '@modules/analytics/domain/abstract/abstract-analytics.repository';
 import { Injectable } from '@nestjs/common';
 

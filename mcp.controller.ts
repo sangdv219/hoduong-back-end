@@ -4,7 +4,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
-import { UserService } from '@/modules/users/services/user.service';
+import { UserService } from '@modules/users/services/user.service';
 
 @Controller('mcp') // Đồng bộ prefix route để tránh lỗi lệch cấu hình
 export class McpController {

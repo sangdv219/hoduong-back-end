@@ -1,7 +1,7 @@
 // src/modules/rbac/rbac.service.ts
 import { PostgresRolePermissionsRepository } from '@modules/associations/repositories/role-permissions.repository';
 import { PermissionsModel } from '@modules/permissions/domain/models/permissions.model';
-import { RolesModel } from '@/infrastructure/models/roles.model';
+import { RolesModel } from '@infrastructure/models/roles.model';
 import { Injectable } from '@nestjs/common';
 import { RedisService } from '@redis/redis.service';
 

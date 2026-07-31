@@ -1,4 +1,4 @@
-import { UserModel } from '@/infrastructure/models/user.model';
+import { UserModel } from '@infrastructure/models/user.model';
 import { RedisService } from '@redis/redis.service';
 import { BaseService } from '@core/services/base.service';
 import { CreatedAnalyticsRequestDto, UpdatedAnalyticsRequestDto } from '@modules/analytics/dto/analytics.request.dto';

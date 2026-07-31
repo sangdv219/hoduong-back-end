@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotImplementedException } from '@nestjs/common';
-import { Status, UserModel } from '@/infrastructure/models/user.model';
+import { Status, UserModel } from '@infrastructure/models/user.model';
 import { Transaction } from 'sequelize';
 
 // 1. Định nghĩa Interface chung cho tất cả các Strategy

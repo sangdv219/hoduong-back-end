@@ -1,4 +1,4 @@
-import { GenderEnum, Status } from '@/infrastructure/models/user.model';
+import { GenderEnum, Status } from '@infrastructure/models/user.model';
 import { Expose, Type } from 'class-transformer';
 
 export interface IUserAdmin{
@@ -52,6 +52,9 @@ export class UserAdminBaseDto implements IUserAdmin {
 
   @Expose()
   roles!: [];
+
+  @Expose()
+  created_at!: Date;   
 }
 
 export class GetAllUserAdminResponseDto implements IPaginatedResult<IUserAdmin> {
@@ -93,9 +96,6 @@ export class UserAdminDetail extends UserAdminBaseDto {
   
   @Expose()
   is_root!: boolean;
-
-  @Expose()
-  created_at!: Date;
 
   @Expose()
   updated_by!: string;

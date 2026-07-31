@@ -3,7 +3,7 @@ import { RolePermissionsModel } from '@modules/associations/models/role-permissi
 import { ROLES_ENTITY } from '@modules/roles/constants/roles.constant';
 import { BaseModel } from '@shared/model/base.model';
 import { BelongsToMany, Column, DataType, HasMany, PrimaryKey, Table } from 'sequelize-typescript';
-import { UserModel } from './user.model';
+import { UserModel } from '@infrastructure/models/user.model';
 
 export interface IRole{
   id: string,

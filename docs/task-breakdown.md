@@ -136,7 +136,7 @@ Title: Relationship Validation Engine
 
 Checks:
 - Circular tree
-- Orphan nodes
+- Orphan family_members
 - Invalid relationships
 
 ---

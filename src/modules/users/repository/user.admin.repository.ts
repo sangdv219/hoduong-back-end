@@ -1,13 +1,9 @@
-import { RolesModel } from '@/infrastructure/models/roles.model';
 import { BaseRepository } from '@domain/repositories/base.repository';
 import { Status, UserModel } from '@infrastructure/models/user.model';
-import { IUserPaginationDTO, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
-import { prepareSearchParams } from '@modules/users/helpers/user-response.helper';
+import { IUserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
+import { UserQueryBuilder } from '@modules/users/query/user.query.builder';
 import { Injectable } from '@nestjs/common';
 import { FindOptions, Op, Transaction, WhereOptions } from 'sequelize';
-import { GetAllUserAdminResponseDto, IUserAdmin } from '@modules/users/dto/user.admin.response.dto';
-import { UserQueryBuilder } from '@modules/users/query/user.query.builder';
-import { IPaginatedResult, IPaginationDTO } from '@/shared/interface/common';
 
 export abstract class AbstractUserRepository extends BaseRepository<UserModel> {}
 
@@ -50,14 +46,6 @@ export class PostgresUserRepository extends AbstractUserRepository {
       col: 'id',
     };
 
-    // const finalOptions = {
-    //   ...options,
-    //   ...customOptions,
-    //   where:{
-    //     ...options.where,
-    //     ...customOptions?.where,
-    //   }
-    // };
     const { rows, count } :{rows:any[], count: number}= await this.model.findAndCountAll(finalOptions);
     return {
              items: rows,  

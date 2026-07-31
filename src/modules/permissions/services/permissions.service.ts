@@ -8,7 +8,7 @@ import { InjectConnection } from '@nestjs/sequelize';
 import { RedisService } from '@redis/redis.service';
 import { Sequelize } from 'sequelize';
 import { CreatedPermissionssRequestDto, UpdatedPermissionssRequestDto } from '@modules/permissions/dto/permissions.request.dto';
-import { GetAllUserAdminResponseDto } from '@/modules/users/dto/user.admin.response.dto';
+import { GetAllUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
 
 @Injectable()
 export class PermissionsService extends

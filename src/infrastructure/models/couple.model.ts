@@ -10,8 +10,8 @@ import {
   Sequelize,
   Table,
 } from 'sequelize-typescript';
-import { UserModel } from './user.model';
-import { NodeModel } from './node.model';
+import { UserModel } from '@infrastructure/models/user.model';
+import { FamilyMembersModel } from './family-members.model';
 
 
 export enum MarriageStatus {
@@ -71,7 +71,7 @@ export class CoupleModel extends BaseModel<CoupleModel> {
   @BelongsTo(() => UserModel, 'user_id')
   declare user: UserModel;
 
-  @BelongsTo(() => NodeModel, 'node_id')
-  declare node: NodeModel;
+  @BelongsTo(() => FamilyMembersModel, 'node_id')
+  declare node: FamilyMembersModel;
 }
 

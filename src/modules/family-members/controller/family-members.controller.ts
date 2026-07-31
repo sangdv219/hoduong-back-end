@@ -29,47 +29,47 @@ import {
   NodePaginationModel,
   NodeTreeVModel,
   UpdateNodeRequestDto,
-} from '@modules/nodes/dto/node.dto';
-import { NodeService } from '../services/node.service';
+} from '@modules/family-members/dto/family-members.dto';
+import { family_memberservice } from '@modules/family-members/services/family-members.service';
 
 @ApiBearerAuth('Authorization')
-@Controller({ path: 'dmn-nodes', version: '1' })
+@Controller({ path: 'family_members', version: '1' })
 @UseInterceptors(new BaseResponseInterceptor(), new LoggingInterceptor())
 @UseFilters(new AllExceptionsFilter())
-export class NodeController {
-  constructor(private readonly nodeService: NodeService) {}
+export class FamilyMembersController {
+  constructor(private readonly family_memberservice: family_memberservice) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: NodePaginationModel })
   async getAll(@Query() query: NodeFilterQueryDto): Promise<NodePaginationModel> {
-    return this.nodeService.getAll(query);
+    return this.family_memberservice.getAll(query);
   }
 
   @Get('tree')
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: NodeTreeVModel })
   async getAllAsTree(): Promise<NodeTreeVModel> {
-    return this.nodeService.getAllAsTree();
+    return this.family_memberservice.getAllAsTree();
   }
 
   @Get('parents/:userId')
   @HttpCode(HttpStatus.OK)
   async getParents(@Param('userId') userId: string): Promise<NodeGetVModel[]> {
-    return this.nodeService.getParents(userId);
+    return this.family_memberservice.getParents(userId);
   }
 
   @Get('children/:userId')
   @HttpCode(HttpStatus.OK)
   async getChildren(@Param('userId') userId: string): Promise<NodeGetVModel[]> {
-    return this.nodeService.getChilds(userId);
+    return this.family_memberservice.getChilds(userId);
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: NodeGetVModel })
   async getById(@Param('id') id: string): Promise<NodeGetVModel> {
-    const node = await this.nodeService.getById(id);
+    const node = await this.family_memberservice.getById(id);
     if (!node) {
       throw new NotFoundException(`Node with id ${id} not found`);
     }
@@ -85,7 +85,7 @@ export class NodeController {
     @Req() req: Request,
   ): Promise<NodeGetVModel> {
     const actor = (req as any).user?.username ?? 'System';
-    return this.nodeService.create(dto, actor);
+    return this.family_memberservice.create(dto, actor);
   }
 
   @Patch(':id')
@@ -98,14 +98,14 @@ export class NodeController {
     @Req() req: Request,
   ): Promise<NodeGetVModel> {
     const actor = (req as any).user?.username ?? 'System';
-    return this.nodeService.update(id, dto, actor);
+    return this.family_memberservice.update(id, dto, actor);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string, @Req() req: Request): Promise<void> {
     const actor = (req as any).user?.username ?? 'System';
-    await this.nodeService.remove(id, actor);
+    await this.family_memberservice.remove(id, actor);
   }
 
   @Put(':id/change-status')
@@ -116,6 +116,6 @@ export class NodeController {
     @Req() req: Request,
   ): Promise<NodeGetVModel> {
     const actor = (req as any).user?.username ?? 'System';
-    return this.nodeService.changeStatus(id, actor);
+    return this.family_memberservice.changeStatus(id, actor);
   }
 }

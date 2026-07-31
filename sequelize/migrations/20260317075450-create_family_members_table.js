@@ -2,7 +2,7 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('nodes', {
+    await queryInterface.createTable('family_members', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.literal('gen_random_UUID()'),
@@ -27,7 +27,7 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull:true,
         references: {
-          model: 'nodes', 
+          model: 'family_members', 
           key: 'id',
         },
         onUpdate: 'CASCADE',
@@ -37,7 +37,7 @@ module.exports = {
         type: Sequelize.UUID, 
         allowNull: true, 
         references: {
-          model: 'nodes',
+          model: 'family_members',
           key: 'id',
         },
         onUpdate: 'CASCADE',
@@ -80,17 +80,17 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex('nodes', ['father_id'], {
+    await queryInterface.addIndex('family_members', ['father_id'], {
       unique: true,
-      name: 'idx_nodes_father_id',
+      name: 'idx_family_members_father_id',
     });
-    await queryInterface.addIndex('nodes', ['user_id'], {
+    await queryInterface.addIndex('family_members', ['user_id'], {
       unique: true,
-      name: 'idx_nodes_user_id',
+      name: 'idx_family_members_user_id',
     });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('nodes');
+    await queryInterface.dropTable('family_members');
   },
 };

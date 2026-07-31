@@ -1,10 +1,10 @@
-import { Status, UserModel } from '@/infrastructure/models/user.model';
+import { Status, UserModel } from '@infrastructure/models/user.model';
 import { RedisContext } from '@/redis/enums/redis-key.enum';
 import { buildRedisKeyQuery } from '@/redis/helpers/redis-key.helper';
-import { sensitiveFields } from '@/shared/config/sensitive-fields.config';
+import { sensitiveFields } from '@shared/config/sensitive-fields.config';
 import { BaseService } from '@core/services/base.service';
 import { PostgresUserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
-import { NodeService } from '@modules/nodes/services/node.service';
+import { family_memberservice } from '@modules/family-members/services/family-members.service';
 import { PasswordService } from '@modules/password/services/password.service';
 import { PostgresRoleRepository } from '@modules/roles/infrastructure/repository/postgres-role.repository';
 import { DEFAULT_MEMBER_ROLE_NAME, USER_ENTITY, USER_ERROR } from '@modules/users/constants/user.constant';
@@ -25,7 +25,7 @@ import { toAsciiName } from '@shared/utils/string.util';
 import { Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { UserStatusStrategyFactory } from '../strategies/userStatusStrategy';
-import { RolesModel } from '@/infrastructure/models/roles.model';
+import { RolesModel } from '@infrastructure/models/roles.model';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -48,7 +48,7 @@ export class UserService extends BaseService<
     public cacheManage: RedisService,
     private readonly passwordService: PasswordService,
     private readonly roleRepository: PostgresRoleRepository,
-    private readonly nodeService: NodeService,
+    private readonly family_memberservice: family_memberservice,
     private readonly statusStrategyFactory: UserStatusStrategyFactory, 
   ) {
     super(repository);

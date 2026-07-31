@@ -1,9 +1,9 @@
-import { RolesModel } from '@/infrastructure/models/roles.model';
+import { RolesModel } from '@infrastructure/models/roles.model';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { FindOptions, Op, WhereOptions } from 'sequelize';
 import { BaseRepository } from '@/domain/repositories/base.repository';
-import { IPaginatedResult, IPaginationDTO } from '@/shared/interface/common';
+import { IPaginatedResult, IPaginationDTO } from '@shared/interface/common';
 
 class AbstractRoleRepository extends BaseRepository<RolesModel> {}
 @Injectable()

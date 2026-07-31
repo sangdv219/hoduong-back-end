@@ -9,7 +9,7 @@ import {
   Sequelize,
   Table,
 } from 'sequelize-typescript';
-import { UserModel } from './user.model';
+import { UserModel } from '@infrastructure/models/user.model';
 
 @Table({
   tableName: 'articles',

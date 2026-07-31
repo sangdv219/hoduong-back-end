@@ -1,8 +1,6 @@
-import { UserModel } from '@/infrastructure/models/user.model';
-import { PaginationQueryDto } from '@/shared/dto/common';
-import { IPaginatedResult, IPaginationDTO } from '@/shared/interface/common';
+import { IPaginationDTO } from '@shared/interface/common';
 import { NotFoundException } from '@nestjs/common';
-import { FindOptions, Op, FindAndCountOptions, QueryTypes, Transaction, WhereOptions, Includeable } from 'sequelize';
+import { FindAndCountOptions, FindOptions, Includeable, Op, QueryTypes, Transaction, WhereOptions } from 'sequelize';
 import { Sequelize } from "sequelize-typescript";
 
 

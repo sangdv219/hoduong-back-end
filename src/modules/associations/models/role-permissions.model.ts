@@ -1,5 +1,5 @@
 import { PermissionsModel } from '@modules/permissions/domain/models/permissions.model';
-import { RolesModel } from '@/infrastructure/models/roles.model';
+import { RolesModel } from '@infrastructure/models/roles.model';
 import { BaseModel } from '@shared/model/base.model';
 import { AllowNull, BelongsTo, Column, DataType, ForeignKey, PrimaryKey, Table } from 'sequelize-typescript';
 import { ROLE_PERMISSIONS_ENTITY } from '@modules/associations/constants/role-permissions.constant';
