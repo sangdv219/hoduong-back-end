@@ -13,9 +13,9 @@ import {
 
 export interface ICreatedFamilyMembersRequest {
   user_id: string;
-  father_id?: string | null;
-  mother_id?: string | null;
-  child_order?: number | undefined;
+  father_id: string | null;
+  mother_id: string | null;
+  // child_order?: number | undefined;
 }
 
 export class NodeUserVModel {
@@ -132,19 +132,19 @@ export class CreatedFamilyMembersRequestDto implements ICreatedFamilyMembersRequ
   @IsUUID()
   @IsOptional()
   @ApiPropertyOptional({ description: 'father_id', example: null })
-  father_id?: string;
+  father_id: string | null = null;
 
   @IsUUID()
   @IsOptional()
   @ApiPropertyOptional({ description: 'mother_id', example: null })
-  mother_id?: string;
+  mother_id: string | null = null;
   
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  @ApiPropertyOptional({ description: 'Member order among siblings', default: null })
-  child_order?: number | undefined;
+  // @IsOptional()
+  // @Type(() => Number)
+  // @IsInt()
+  // @Min(1)
+  // @ApiPropertyOptional({ description: 'Member order among siblings', default: null })
+  // child_order?: number | undefined;
 }
 
 export class UpdateNodeRequestDto {

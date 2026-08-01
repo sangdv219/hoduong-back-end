@@ -69,55 +69,36 @@ export class PostgresFamilyMembersRepository extends AbstractFamilyMembersReposi
       transaction,
     });
   }
-  async max(
-    field: keyof FamilyMembersModel,
-    options?: {
-      where?: WhereOptions<FamilyMembersModel>;
-      transaction?: Transaction;
-    },
-  ): Promise<number> {
-    const result = await FamilyMembersModel.max<number, FamilyMembersModel>(
-      field as any,
-      {
-        where: options?.where,
-        transaction: options?.transaction,
-      },
-    );
 
-    // Khi không tìm thấy dữ liệu (ví dụ ông cha chưa có đứa con nào),
-    // Sequelize sẽ trả về null. Ta fallback về 0.
-    if (result === null || result === undefined || Number.isNaN(Number(result))) {
-      return 0;
-    }
-
-    return Number(result);
-  } 
-  async validateMemberOrder(
-    father_id: string,
-    mother_id: string,
-    child_order?: number,
-    transaction?: Transaction,
-  ): Promise<void> {
-    const existingSibling = await this.model.findOne({
+  async getMaxChildOrder(parentId: string, transaction?: Transaction): Promise<number> {
+    const maxOrder = await this.model.max('child_order', {
       where: {
-        // Hỗ trợ cả hai trường hợp: parent là cha hoặc parent là mẹ
         [Op.or]: [
-          { father_id: father_id },
-          { mother_id: mother_id }
+          { father_id: parentId },
+          { mother_id: parentId },
         ],
-        child_order: child_order,
       },
-      transaction, // Khóa đọc/ghi an toàn trong transaction
+      transaction,
     });
-  
-    // 2. Chặn việc tạo trùng lặp
-    if (existingSibling) {
-      throw new ConflictException(
-        `Vị trí con thứ ${child_order} đã tồn tại trong nhánh gia đình này. Vui lòng chọn thứ tự khác.`
-      );
-    }
+    
+    return (maxOrder as number) || 0;
   }
 
+  async existsChildOrder(parentId: string, childOrder: number, transaction?: Transaction): Promise<boolean> {
+    const count = await this.model.count({
+      where: {
+        [Op.or]: [
+          { father_id: parentId },
+          { mother_id: parentId },
+        ],
+        child_order: childOrder,
+      },
+      transaction,
+    });
+    
+    return count > 0;
+  }
+  
   async findByPkWithRelations(id: string, transaction?: Transaction): Promise<FamilyMembersModel | null> {
     return this.model.findByPk(id, {
       include: [
@@ -147,8 +128,6 @@ export class PostgresFamilyMembersRepository extends AbstractFamilyMembersReposi
       transaction,
     });
   }
-
- 
 
   async softDeactivate(id: string, updatedBy: string, transaction?: Transaction): Promise<void> {
     await this.model.update(
