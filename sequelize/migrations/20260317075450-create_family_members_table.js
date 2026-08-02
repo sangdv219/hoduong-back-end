@@ -33,26 +33,6 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       },
-      mother_id: {
-        type: Sequelize.UUID, 
-        allowNull: true, 
-        references: {
-          model: 'family_members',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
-      },
-      parent_branch_id:{
-        type: Sequelize.UUID, 
-        allowNull: true, 
-        references: {
-          model: 'branches',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
-      },
       child_order: {
         type: Sequelize.INTEGER,
         allowNull:false,
