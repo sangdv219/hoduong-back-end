@@ -1,17 +1,12 @@
-import { IPaginationDTO } from '@shared/interface/common';
+import { IBaseSearchParams, IPaginatedResult, IPaginationDTO } from '@shared/interface/common';
 import { NotFoundException } from '@nestjs/common';
 import { FindAndCountOptions, FindOptions, Includeable, Op, QueryTypes, Transaction, WhereOptions } from 'sequelize';
 import { Sequelize } from "sequelize-typescript";
 
 
 
-// export interface IUserPaginationDTO extends IPaginationDTO {
-//   status?: boolean;
-//   role?: string;
-// }
-
 export interface IBaseRepository<T> {
-  search(params: IPaginationDTO, options: FindOptions<T>):Promise<{ items: any; total: number }>;
+  search(params: IBaseSearchParams, options: FindOptions<T>):Promise<IPaginatedResult<T>>;
   findWithPagination(param: IPaginationDTO, exclude: string[]): Promise<{ items: any; total: number }>;
   findByFields<K extends keyof T>(field: K, value: T[K], attributes?: string[], exclude?: string[]): Promise<any[]>;
   findAllByRaw(condition: Record<string, any>, exclude?: string[]): Promise<any[] | null>;
@@ -31,11 +26,11 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
     protected searchableFields: string[] = []
   ) {}
   
-  async search(params: IPaginationDTO, options: FindOptions<T> = {}){
+  async search(params: IBaseSearchParams, options: FindOptions<T> = {}){
     const page = Number(params.page) || 1;
     const limit = Number(params.limit) || 10;
     const offset = (page - 1) * limit;
-
+    console.log('params', params);
     // 1. Xử lý Sort
     let order: any = [['created_at', 'DESC']];
     if (params.sortOrder) {
@@ -51,6 +46,7 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
       order: options.order || order,
     });
 
+ 
     return {
       items: rows,  
       total: count,

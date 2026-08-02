@@ -6,7 +6,7 @@ import { FamilyMemberService } from '@modules/family-members/services/family-mem
 import { PasswordService } from '@modules/password/services/password.service';
 import { PostgresRoleRepository } from '@modules/roles/infrastructure/repository/postgres-role.repository';
 import { DEFAULT_MEMBER_ROLE_NAME, USER_ENTITY, USER_ERROR } from '@modules/users/constants/user.constant';
-import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, IUserPaginationDTO, UpdatedUserAdminRequestDto } from '@modules/users/dto/user.admin.request.dto';
+import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, IUserPaginationDTO, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
 import {
@@ -232,7 +232,6 @@ export class UserService extends BaseService<
       await this.ensureUniqueContact(dto.email, dto.phone);
       
       const passwordHash = await this.passwordService.hashPassword(dto.password);
-      console.log('dto', dto)
       const userEntity = {
         fullname: dto.fullname,
         other_name: dto.other_name,
@@ -263,7 +262,7 @@ export class UserService extends BaseService<
     }
   }
 
-  async searchUser(params: IUserPaginationDTO):Promise<GetAllUserAdminResponseDto> {
+  async searchUser(params: IUserPaginationDTO):Promise<GetAllUserAdminResponseDto |any> {
     const { role_id, ...baseParams } = params;
     return super.search(baseParams, params, options => {
 

@@ -19,8 +19,7 @@ import {
   Post,
   Query,
   UseFilters,
-  UseInterceptors,
-  Version
+  UseInterceptors
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { BaseGetResponse } from '@shared/interface/common';

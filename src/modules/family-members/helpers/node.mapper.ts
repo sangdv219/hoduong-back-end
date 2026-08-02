@@ -36,7 +36,7 @@ export function mapCoupleToVModel(couple: CoupleModel, user?: UserModel): Couple
     userId: couple.user_id,
     createdAt: couple.created_at,
     createdBy: couple.created_by,
-    nodeId: couple.node_id,
+    nodeId: couple.family_member_id,
     user: user ? mapUserToVModel(user) : undefined,
   };
 }
@@ -53,7 +53,7 @@ export function mapEntityToVModel(entity: FamilyMembersModel | Record<string, un
     updatedBy: node.updated_by ?? undefined,
     child_order: node.child_order,
     user: node.user ? mapUserToVModel(node.user) : undefined,
-    parent: node.parent?.user ? mapUserToVModel(node.parent.user) : undefined,
+    // father: node.father_id?.user ? mapUserToVModel(node.father.user) : undefined,
   };
 }
 

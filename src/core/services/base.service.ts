@@ -1,5 +1,4 @@
 import { IBaseRepository } from '@domain/repositories/base.repository';
-import { IUserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
 import {
   BeforeApplicationShutdown,
   Logger,
@@ -17,9 +16,9 @@ import { plainToInstance } from 'class-transformer';
 import { Model } from 'sequelize';
  // BaseService không cần biết Thực thế có field gì.
 export abstract class BaseService<
-  TEntity,
-  TCreateDto,
-  TUpdateDto,
+  TModel,
+  TCreateRequestDto,
+  TUpdateRequestDto,
   GetByIdResponseDto,
   GetAllResponseDto
 >
@@ -42,8 +41,8 @@ export abstract class BaseService<
   protected abstract readonly getByIdDtoClass: new () => GetByIdResponseDto;
 
   constructor(
-    protected readonly repository: IBaseRepository<TEntity>,
-    protected readonly mapper?: (dto: TCreateDto) => Partial<TEntity>,
+    protected readonly repository: IBaseRepository<TModel>,
+    protected readonly mapper?: (dto: TCreateRequestDto) => Partial<TModel>,
   ) { 
     
   }
@@ -86,32 +85,33 @@ export abstract class BaseService<
     return response as GetAllResponseDto;
   }
 
-  async search(params: IUserPaginationDTO, query, callback){
-    const redisKey = buildRedisKeyQuery(this.entityName.toLocaleLowerCase(), RedisContext.LIST, query as unknown as Record<string, string>);
+  async search(params, query, callback){
+    // const redisKey = buildRedisKeyQuery(this.entityName.toLocaleLowerCase(), RedisContext.LIST, query as unknown as Record<string, string>);
 
-    const cached = await this.cacheManage.get(redisKey);
+    // const cached = await this.cacheManage.get(redisKey);
 
-    const dataCache = cached && JSON.parse(cached);
-    if (cached) return dataCache;
+    // const dataCache = cached && JSON.parse(cached);
+    // if (cached) return dataCache;
 
+    
     let options={};
     if(callback){
         options = await callback(options);
     }
     const result = await this.repository.search( params, options );
-    await this.cacheManage.set(redisKey, JSON.stringify(this.transformToDto( result )), 'EX', 30);
+    // await this.cacheManage.set(redisKey, JSON.stringify(this.transformToDto( result )), 'EX', 30);
 
     return this.transformToDto( result );
   }
 
-  async create(dto: TCreateDto) {
+  async create(dto: TCreateRequestDto) {
     this.cleanCacheRedis()
-    const entity = this.mapper ? this.mapper(dto) : (dto as Partial<TEntity>)
+    const entity = this.mapper ? this.mapper(dto) : (dto as Partial<TModel>)
     
     return await this.repository.create(entity);
   }
   
-  async update(id: string, dto: TUpdateDto): Promise<any> {
+  async update(id: string, dto: TUpdateRequestDto): Promise<any> {
     this.cleanCacheRedis()
     const entity = await this.repository.findByPk(id, [], false) as Model<any, any>
     if (!entity) return null;

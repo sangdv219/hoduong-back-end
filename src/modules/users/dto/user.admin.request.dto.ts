@@ -18,7 +18,6 @@ import {
   MinLength,
 } from 'class-validator';
 import { IPaginationDTO } from '@shared/interface/common';
-import { Optional } from '@nestjs/common';
 
 interface ICreatedUserAdminRequest {
   fullname: string;

@@ -65,12 +65,6 @@ export class GetAllUserAdminResponseDto implements IPaginatedResult<IUserAdmin> 
   @Expose()
   total!: number;
   
-  // @Expose()
-  // page!: number;
-  
-  // @Expose()
-  // limit!: number;
-  
   @Expose()
   totalRecord!: number;
 }

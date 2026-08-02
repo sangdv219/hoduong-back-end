@@ -9,7 +9,12 @@ export interface IBaseResponse<T> {
     message: string;
     records: T;
 }
-
+export interface IBaseSearchParams {
+  page?: number | string;
+  limit?: number | string;
+  sortOrder?: string;
+  [key: string]: any;
+}
 export interface IPaginationDTO {
   page: number;
   limit: number;
@@ -21,7 +26,4 @@ export interface IPaginationDTO {
 export interface IPaginatedResult<T> {
   items: T[];
   total: number;
-  // page: number;
-  // limit: number;
-  // totalRecord: number;
 }

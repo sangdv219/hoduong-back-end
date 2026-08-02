@@ -1,9 +1,11 @@
 import { BaseRepository } from '@domain/repositories/base.repository';
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
-import { UserModel } from '@infrastructure/models/user.model';
-import { UserQueryBuilder } from '@modules/users/query/user.query.builder';
+import { FamilyMembersQueryBuilder } from '@modules/family-members/query/family-members.query.builder';
 import { ConflictException, Injectable } from '@nestjs/common';
-import { Op, Transaction, WhereOptions } from 'sequelize';
+import { FindOptions, Op, Transaction, WhereOptions } from 'sequelize';
+import { IFamilyMembersPaginationDTO } from '../dto/family-members.request.dto';
+import { includes } from 'zod';
+import { UserModel } from '@/infrastructure/models/user.model';
 
 export abstract class AbstractFamilyMembersRepository extends BaseRepository<FamilyMembersModel> {}
 
@@ -12,14 +14,14 @@ export class PostgresFamilyMembersRepository extends AbstractFamilyMembersReposi
   private static readonly searchableFields: string[] = [];
 
   constructor(
-    private readonly userQueryBuilder: UserQueryBuilder,
+    private readonly familyMembersQueryBuilder: FamilyMembersQueryBuilder,
   ) {
     super(FamilyMembersModel, PostgresFamilyMembersRepository.searchableFields);
   }
 
-  async findByUserId(userId: string, transaction?: Transaction): Promise<FamilyMembersModel | null> {
+  async findByFamilyMembersId(FamilyMembersId: string, transaction?: Transaction): Promise<FamilyMembersModel | null> {
     return this.model.findOne({
-      where: { user_id: userId },
+      where: { FamilyMembers_id: FamilyMembersId },
       transaction,
     });
   }
@@ -45,13 +47,12 @@ export class PostgresFamilyMembersRepository extends AbstractFamilyMembersReposi
     });
   }
 
-  async findRootNode(father_id, mother_id, transaction?: Transaction): Promise<FamilyMembersModel | null> {
+  async findRootNode(father_id, transaction?: Transaction): Promise<FamilyMembersModel | null> {
     return this.model.findOne({
       where: {
         // Hỗ trợ cả hai trường hợp: parent là cha hoặc parent là mẹ
         [Op.or]: [
           { father_id: father_id },
-          { mother_id: mother_id }
         ],
       },
       transaction,
@@ -62,7 +63,6 @@ export class PostgresFamilyMembersRepository extends AbstractFamilyMembersReposi
       where: {
         [Op.or]: [
           { father_id: parentId },
-          { mother_id: parentId },
         ],
       },
       order: [['child_order', 'ASC']], // Sắp xếp theo thứ tự anh/chị/em
@@ -75,7 +75,6 @@ export class PostgresFamilyMembersRepository extends AbstractFamilyMembersReposi
       where: {
         [Op.or]: [
           { father_id: parentId },
-          { mother_id: parentId },
         ],
       },
       transaction,
@@ -89,7 +88,6 @@ export class PostgresFamilyMembersRepository extends AbstractFamilyMembersReposi
       where: {
         [Op.or]: [
           { father_id: parentId },
-          { mother_id: parentId },
         ],
         child_order: childOrder,
       },
@@ -105,7 +103,7 @@ export class PostgresFamilyMembersRepository extends AbstractFamilyMembersReposi
         { model: UserModel, as: 'user' },
         {
           model: FamilyMembersModel,
-          as: 'parent',
+          as: 'father',
           include: [{ model: UserModel, as: 'user' }],
         },
       ],
@@ -134,5 +132,47 @@ export class PostgresFamilyMembersRepository extends AbstractFamilyMembersReposi
       { status: false, updated_by: updatedBy },
       { where: { id }, transaction },
     );
+  }
+
+  async search(params: IFamilyMembersPaginationDTO, customOptions: FindOptions<FamilyMembersModel>){
+    const options = this.familyMembersQueryBuilder.build(params);
+    const where: WhereOptions = {
+      ...options.where,
+      ...customOptions?.where,
+    };
+
+    // if (!where['status']) {
+    //   where['status'] = { [Op.ne]: Status.ARCHIVED };
+    // }
+
+    const finalOptions = {
+      ...options,
+      ...customOptions,
+      where,
+      // distinct: true, 
+      // col: 'id',
+    };
+
+    try {
+      const { rows, count } :{rows:any[], count: number}= await this.model.findAndCountAll(finalOptions);
+      console.log('rows', rows)
+      
+    } catch (error) {
+      console.log('error', error)
+      
+    }
+    const { rows, count } :{rows:any[], count: number}= await this.model.findAndCountAll(finalOptions);
+    
+    return {
+             items: rows,  
+             total: count,
+           } as any
+  }
+
+  async findByUserId(userId: string, transaction?: Transaction){
+    return this.model.findOne({
+      where: { user_id: userId },
+      transaction,
+    });
   }
 }

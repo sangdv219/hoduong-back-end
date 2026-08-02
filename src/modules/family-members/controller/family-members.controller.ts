@@ -4,6 +4,7 @@ import { LoggingInterceptor } from '@core/interceptors/logging.interceptor';
 import {
   CreatedFamilyMembersRequestDto,
   FamilyMembersGetVModel,
+  FamilyMembersPaginationDTO,
   NodeFilterQueryDto,
   NodePaginationModel,
   NodeTreeVModel,
@@ -31,9 +32,10 @@ import {
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { Request } from 'express';
 import { FamilyMemberService } from '../services/family-members.service';
+import { GetAllFamilyMembersResponseDto } from '../dto/family-members.response.dto';
 
 @ApiBearerAuth('Authorization')
-@Controller({ path: 'family_members', version: '1' })
+@Controller({ path: 'family-members', version: '1' })
 @UseInterceptors(new BaseResponseInterceptor(), new LoggingInterceptor())
 @UseFilters(new AllExceptionsFilter())
 export class FamilyMembersController {
@@ -42,8 +44,8 @@ export class FamilyMembersController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: NodePaginationModel })
-  async getAll(@Query() query: NodeFilterQueryDto): Promise<NodePaginationModel> {
-    return this.familyMemberService.getAll(query);
+  async getPagination(@Query() query: FamilyMembersPaginationDTO): Promise<GetAllFamilyMembersResponseDto> {
+    return this.familyMemberService.searchFamilyMembers(query);
   }
 
   @Get('tree')
@@ -86,18 +88,18 @@ export class FamilyMembersController {
     return this.familyMemberService.create(dto);
   }
 
-  @Patch(':id')
-  @HttpCode(HttpStatus.OK)
-  @UsePipes(new ValidationPipe({ transform: true }))
-  @ApiOkResponse({ type: FamilyMembersGetVModel })
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateNodeRequestDto,
-    @Req() req: Request,
-  ): Promise<FamilyMembersGetVModel> {
-    const actor = (req as any).user?.username ?? 'System';
-    return this.familyMemberService.update(id, dto, actor);
-  }
+  // @Patch(':id')
+  // @HttpCode(HttpStatus.OK)
+  // @UsePipes(new ValidationPipe({ transform: true }))
+  // @ApiOkResponse({ type: FamilyMembersGetVModel })
+  // async update(
+  //   @Param('id') id: string,
+  //   @Body() dto: UpdateNodeRequestDto,
+  //   @Req() req: Request,
+  // ): Promise<FamilyMembersGetVModel> {
+  //   const actor = (req as any).user?.username ?? 'System';
+  //   return this.familyMemberService.update(id, dto);
+  // }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)

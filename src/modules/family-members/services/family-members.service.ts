@@ -11,7 +11,7 @@ import { BaseTransactionService } from '@infrastructure/database/transaction.ser
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
 import { ROOT_TREE_LEVEL } from '@modules/couples/constants/couple.constant';
 import { PostgresCoupleRepository } from '@modules/couples/repository/postgres-couple.repository';
-import { FAMILY_MEMBERS_ERROR } from '@/modules/family-members/constants/family_members.constant';
+import { FAMILY_MEMBERS_ERROR } from '@/modules/family-members/constants/family-members.constant';
 import {
   NodeFilterQueryDto,
   FamilyMembersGetVModel,
@@ -19,6 +19,10 @@ import {
   NodeTreeVModel,
   UpdateNodeRequestDto,
   ICreatedFamilyMembersRequest,
+  IFamilyMembersPaginationDTO,
+  CreatedFamilyMembersRequestDto,
+  UpdatedFamilyMembersRequestDto,
+  FamilyMembersPaginationDTO,
 } from '@modules/family-members/dto/family-members.request.dto';
 import {
   mapEntityToTree,
@@ -29,11 +33,16 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Op, Transaction } from 'sequelize';
+import { Op, Sequelize, Transaction } from 'sequelize';
 import { FamilyMembersModel, IFamilyMembers } from '@infrastructure/models/family-members.model';
 import { UserModel } from '@infrastructure/models/user.model';
+import { BaseService } from '@/core/services/base.service';
+import { GetAllFamilyMembersResponseDto, GetByIdFamilyMembersResponseDto } from '../dto/family-members.response.dto';
+import { InjectConnection } from '@nestjs/sequelize';
+import { RedisService } from '@/redis/redis.service';
 
 export interface TreeAttachmentResult {
   nodeId: string;
@@ -44,20 +53,58 @@ export interface TreeAttachmentResult {
 }
 
 @Injectable()
-export class FamilyMemberService {
+export class FamilyMemberService extends BaseService<
+FamilyMembersModel,
+CreatedFamilyMembersRequestDto,
+UpdatedFamilyMembersRequestDto,
+GetByIdFamilyMembersResponseDto,
+GetAllFamilyMembersResponseDto
+>{
+  protected entityName: string;
+  private familyMembers: string[] = [];
+  protected readonly getAllDtoClass = GetAllFamilyMembersResponseDto;
+  protected readonly getByIdDtoClass = GetByIdFamilyMembersResponseDto;
   constructor(
-    private readonly familyMemberRepository: PostgresFamilyMembersRepository,
+    @InjectConnection()
+    private readonly sequelize: Sequelize,
+    protected repository: PostgresFamilyMembersRepository,
     private readonly coupleRepository: PostgresCoupleRepository,
     private readonly userRepository: PostgresUserRepository,
     private readonly baseTransactionService: BaseTransactionService,
-  ) {}
+    public cacheManage: RedisService,
+  ) {
+    super(repository);
+    this.entityName = 'family_members';
+  }
+  protected async moduleInit() {
+    this.familyMembers = ['Iphone', 'Galaxy'];
+  }
 
+  protected async bootstrapLogic(): Promise<void> {
+    Logger.log(`🛑 repository--------->`, this.repository);
+    Logger.log(this.repository);
+  }
+
+  protected async beforeAppShutDown(signal): Promise<void> {
+    this.stopJob();
+    Logger.log(`🛑 beforeApplicationShutdown: UserService cleanup before shutdown.`);
+  }
+
+  private async stopJob() {
+    Logger.log('logic dừng cron job: ');
+    Logger.log('* Ngắt kết nối queue worker: ');
+  }
+
+  protected async moduleDestroy() {
+    this.familyMembers = [];
+    Logger.log('🗑️onModuleDestroy -> familymembers: ', this.familyMembers);
+  }
   private async generateNextChildOrder(
     parentId: string,
     transaction?: Transaction,
   ): Promise<number> {
     // 1. Lấy số thứ tự lớn nhất hiện tại
-    const currentMaxOrder = await this.familyMemberRepository.getMaxChildOrder(
+    const currentMaxOrder = await this.repository.getMaxChildOrder(
       parentId,
       transaction,
     );
@@ -66,7 +113,7 @@ export class FamilyMemberService {
     const nextOrder = currentMaxOrder + 1;
   
     // 3. Khóa an toàn (Chống Concurrency)
-    const isConflict = await this.familyMemberRepository.existsChildOrder(
+    const isConflict = await this.repository.existsChildOrder(
       parentId,
       nextOrder,
       transaction,
@@ -99,7 +146,7 @@ export class FamilyMemberService {
       throw new NotFoundException(FAMILY_MEMBERS_ERROR.PARENT_USER_NOT_FOUND);
     }
 
-    const parentNode = await this.familyMemberRepository.findByUserId(parentUserId, transaction);
+    const parentNode = await this.repository.findByUserId(parentUserId, transaction);
     if (!parentNode) {
       throw new NotFoundException(FAMILY_MEMBERS_ERROR.PARENT_NODE_NOT_FOUND);
     }
@@ -109,10 +156,10 @@ export class FamilyMemberService {
 
   async create(dto: ICreatedFamilyMembersRequest): Promise<FamilyMembersGetVModel | any> {
     return this.baseTransactionService.runInTransaction(async (transaction) => {
-      const user = await this.userRepository.findByPk(dto.user_id!, [], false, { transaction }); // TODO: Fix this
+      const user = await this.userRepository.findByPk(dto.user_id, [], false, { transaction }); 
       if (!user) throw new NotFoundException(FAMILY_MEMBERS_ERROR.USER_NOT_FOUND);
 
-      const existingNode = await this.familyMemberRepository.findByUserId(dto.user_id!, transaction); // TODO: Fix this
+      const existingNode = await this.repository.findByUserId(dto.user_id, transaction); 
       if (existingNode) {
         throw new ConflictException(FAMILY_MEMBERS_ERROR.USER_ALREADY_HAS_NODE);
       }
@@ -125,58 +172,58 @@ export class FamilyMemberService {
         node = await this.createChildNode(dto, transaction);
       }
 
-      const created = await this.familyMemberRepository.findByPkWithRelations(node.id, transaction);
+      const created = await this.repository.findByPkWithRelations(node.id, transaction);
       return mapEntityToVModel(created!);
     });
   }
 
-  async update(nodeId: string, dto: UpdateNodeRequestDto, actor: string): Promise<FamilyMembersGetVModel> {
-    return this.baseTransactionService.runInTransaction(async (transaction) => {
-      const entity = await this.familyMemberRepository.findByPk(nodeId, [], false, { transaction });
-      if (!entity) {
-        throw new NotFoundException(FAMILY_MEMBERS_ERROR.NODE_NOT_FOUND);
-      }
+  // async update(nodeId: string, dto: UpdateNodeRequestDto, actor: string): Promise<FamilyMembersGetVModel> {
+  //   return this.baseTransactionService.runInTransaction(async (transaction) => {
+  //     const entity = await this.repository.findByPk(nodeId, [], false, { transaction });
+  //     if (!entity) {
+  //       throw new NotFoundException(FAMILY_MEMBERS_ERROR.NODE_NOT_FOUND);
+  //     }
 
-      if (dto.userId && dto.userId !== entity.user_id) {
-        const user = await this.userRepository.findByPk(dto.userId, [], false, { transaction });
-        if (!user) {
-          throw new NotFoundException(FAMILY_MEMBERS_ERROR.USER_NOT_FOUND);
-        }
-        const existingNode = await this.familyMemberRepository.findByUserId(dto.userId, transaction);
-        if (existingNode && existingNode.id !== nodeId) {
-          throw new ConflictException(FAMILY_MEMBERS_ERROR.USER_ALREADY_HAS_NODE);
-        }
-      }
+  //     if (dto.userId && dto.userId !== entity.user_id) {
+  //       const user = await this.userRepository.findByPk(dto.userId, [], false, { transaction });
+  //       if (!user) {
+  //         throw new NotFoundException(FAMILY_MEMBERS_ERROR.USER_NOT_FOUND);
+  //       }
+  //       const existingNode = await this.repository.findByUserId(dto.userId, transaction);
+  //       if (existingNode && existingNode.id !== nodeId) {
+  //         throw new ConflictException(FAMILY_MEMBERS_ERROR.USER_ALREADY_HAS_NODE);
+  //       }
+  //     }
 
-      if (dto.child_order !== undefined && dto.child_order !== entity.child_order) {
-        if (!entity.father_id && !dto.father_id) {
-          throw new BadRequestException(FAMILY_MEMBERS_ERROR.CANNOT_PROVIDE_MEMBERS_WITHOUT_PARENT);
-        }
-        const father_id = dto.father_id ?? entity.father_id;
-        if (father_id) {
-          // await this.validateMemberOrder(father_id, dto.child_order!, nodeId, transaction);
-        }
-      }
+  //     if (dto.child_order !== undefined && dto.child_order !== entity.child_order) {
+  //       if (!entity.father_id && !dto.father_id) {
+  //         throw new BadRequestException(FAMILY_MEMBERS_ERROR.CANNOT_PROVIDE_MEMBERS_WITHOUT_PARENT);
+  //       }
+  //       const father_id = dto.father_id ?? entity.father_id;
+  //       if (father_id) {
+  //         // await this.validateMemberOrder(father_id, dto.child_order!, nodeId, transaction);
+  //       }
+  //     }
 
-      // await this.familyMemberRepository.updateNode(
-      //   nodeId,
-      //   {
-      //     user_id: dto.userId ?? entity.user_id,
-      //     father_id: dto.father_id ?? entity.father_id,
-      //     child_order: dto.child_order ?? entity.child_order,
-      //     updated_by: actor,
-      //   },
-      //   transaction,
-      // );
+  //     // await this.repository.updateNode(
+  //     //   nodeId,
+  //     //   {
+  //     //     user_id: dto.userId ?? entity.user_id,
+  //     //     father_id: dto.father_id ?? entity.father_id,
+  //     //     child_order: dto.child_order ?? entity.child_order,
+  //     //     updated_by: actor,
+  //     //   },
+  //     //   transaction,
+  //     // );
 
-      const updated = await this.familyMemberRepository.findByPkWithRelations(nodeId, transaction);
-      return mapEntityToVModel(updated!);
-    });
-  }
+  //     const updated = await this.repository.findByPkWithRelations(nodeId, transaction);
+  //     return mapEntityToVModel(updated!);
+  //   });
+  // }
 
   async remove(nodeId: string, actor: string): Promise<void> {
     await this.baseTransactionService.runInTransaction(async (transaction) => {
-      const entity = await this.familyMemberRepository.findByPk(nodeId, [], false, { transaction });
+      const entity = await this.repository.findByPk(nodeId, [], false, { transaction });
       if (!entity) {
         throw new NotFoundException(FAMILY_MEMBERS_ERROR.NODE_NOT_FOUND);
       }
@@ -185,52 +232,52 @@ export class FamilyMemberService {
         throw new BadRequestException(FAMILY_MEMBERS_ERROR.CANNOT_DELETE_ROOT_NODE);
       }
 
-      const child = await this.familyMemberRepository.findByParentId(nodeId, transaction);
+      const child = await this.repository.findByParentId(nodeId, transaction);
       if (child) {
         throw new BadRequestException(FAMILY_MEMBERS_ERROR.CANNOT_DELETE_NODE_WITH_CHILDREN);
       }
 
-      await this.familyMemberRepository.softDeactivate(nodeId, actor, transaction);
+      await this.repository.softDeactivate(nodeId, actor, transaction);
       await this.coupleRepository.deactivateByNodeId(nodeId, transaction);
-      await this.familyMemberRepository.decrementMembers(entity.father_id!, transaction);
+      await this.repository.decrementMembers(entity.father_id!, transaction);
     });
   }
 
   async changeStatus(nodeId: string, actor: string): Promise<FamilyMembersGetVModel> {
-    const entity = await this.familyMemberRepository.findByPk(nodeId);
+    const entity = await this.repository.findByPk(nodeId);
     if (!entity) {
       throw new NotFoundException(FAMILY_MEMBERS_ERROR.NODE_NOT_FOUND);
     }
 
-    // await this.familyMemberRepository.updateNode(nodeId, {
+    // await this.repository.updateNode(nodeId, {
     //   updated_by: actor,
     // });
 
-    const updated = await this.familyMemberRepository.findByPkWithRelations(nodeId);
+    const updated = await this.repository.findByPkWithRelations(nodeId);
     return mapEntityToVModel(updated!);
   }
 
   async detachMemberByUserId(userId: string, transaction?: Transaction): Promise<void> {
     const run = async (tx: Transaction) => {
-      const node = await this.familyMemberRepository.findByUserId(userId, tx);
+      const node = await this.repository.findByUserId(userId, tx);
       if (!node) {
         return;
       }
 
       if (!node.father_id) {
-        await this.familyMemberRepository.softDeactivate(node.id, 'system', tx);
+        await this.repository.softDeactivate(node.id, 'system', tx);
         await this.coupleRepository.deactivateByNodeId(node.id, tx);
         return;
       }
 
-      const child = await this.familyMemberRepository.findByParentId(node.id, tx);
+      const child = await this.repository.findByParentId(node.id, tx);
       if (child) {
         throw new BadRequestException(FAMILY_MEMBERS_ERROR.CANNOT_DELETE_NODE_WITH_CHILDREN);
       }
 
-      await this.familyMemberRepository.softDeactivate(node.id, 'system', tx);
+      await this.repository.softDeactivate(node.id, 'system', tx);
       await this.coupleRepository.deactivateByUserId(userId, tx);
-      await this.familyMemberRepository.decrementMembers(node.father_id, tx);
+      await this.repository.decrementMembers(node.father_id, tx);
     };
 
     if (transaction) {
@@ -241,30 +288,63 @@ export class FamilyMemberService {
     await this.baseTransactionService.runInTransaction(run);
   }
 
-  async getAll(query: NodeFilterQueryDto): Promise<NodePaginationModel> {
-    const page = query.pageNumber ?? 1;
-    const limit = query.pageSize ?? 10;
+  async searchFamilyMembers(query: IFamilyMembersPaginationDTO): Promise<GetAllFamilyMembersResponseDto | any> {
+    const { user_id, ...baseParams } = query;
+    return super.search(baseParams, query, options => {
+        const include = Array.isArray(options.include)
+            ? options.include
+            : options.include
+                ? [options.include]
+                : [];
 
-    const { items, total } = await this.familyMemberRepository.search({
-      page,
-      limit,
-      keyword: query.keyword ?? '',
-      sortBy: 'created_at',
+        const userInclude:any = {
+            model: UserModel,
+            as: 'user',
+            attributes: ['fullname', 'age'],
+        };
+        const coupleInclude:any = {
+            model: UserModel,
+            as: 'wife',
+            attributes: ['id', 'fullname'],
+            through: {
+              attributes: ['marriage_status', 'marriage_date'],
+            },
+        };
+
+        if (user_id) {
+            userInclude.where = {
+                id: user_id,
+            };
+
+            userInclude.required = true;
+        }
+        //  Bổ sung Nested Join để lấy fullname thông qua father_id
+        const fatherInclude = {
+          model: FamilyMembersModel,
+          as: 'father',
+          attributes: ['id', 'user_id',  'father_id'],
+          include: [
+            {
+              model: UserModel,
+              as:'user',
+              attributes: ['fullname'],
+            }
+          ]
+        }
+
+        options.include = [
+            ...include,
+            userInclude,
+            fatherInclude,
+            coupleInclude
+        ];
+
+        return options;
     });
-
-    const records: FamilyMembersGetVModel[] = [];
-    for (const node of items) {
-      const detail = await this.getById(node.id);
-      if (detail) {
-        records.push(detail);
-      }
-    }
-
-    return { records, totalRecords: total };
   }
 
   async getAllAsTree(): Promise<NodeTreeVModel> {
-    const allfamily_members = await this.familyMemberRepository.findAll({ status: true });
+    const allfamily_members = await this.repository.findAll({ status: true });
     const userIds = allfamily_members?.map((n) => n.user_id) ?? [];
     const users = await this.userRepository.findAll(userIds);
     const userMap = new Map(users?.map((u) => [u.id, u]) ?? []);
@@ -278,7 +358,7 @@ export class FamilyMemberService {
   }
 
   async getById(id: string): Promise<FamilyMembersGetVModel | null> {
-    const entity = await this.familyMemberRepository.findByPkWithRelations(id);
+    const entity = await this.repository.findByPkWithRelations(id);
     if (!entity) {
       return null;
     }
@@ -286,19 +366,19 @@ export class FamilyMemberService {
   }
 
   async getChilds(userId: string): Promise<FamilyMembersGetVModel[]> {
-    const parentNode = await this.familyMemberRepository.findByUserId(userId);
+    const parentNode = await this.repository.findByUserId(userId);
     if (!parentNode) {
       return [];
     }
 
-    const childNode = await this.familyMemberRepository.findChildrenByParentId(parentNode.id);
+    const childNode = await this.repository.findChildrenByParentId(parentNode.id);
     if (!childNode || childNode.length === 0) {
       return [];
     }
 
     const childrenDetails = await Promise.all(
       childNode.map((child) =>
-        this.familyMemberRepository.findByPkWithRelations(child.id)
+        this.repository.findByPkWithRelations(child.id)
       )
     );
     return childrenDetails
@@ -307,12 +387,12 @@ export class FamilyMemberService {
   }
 
   async hasChildren(nodeId: string, transaction?: Transaction): Promise<boolean> {
-    const child = await this.familyMemberRepository.findByParentId(nodeId, transaction);
+    const child = await this.repository.findByParentId(nodeId, transaction);
     return !!child;
   }
 
   async getParents(userId: string): Promise<FamilyMembersGetVModel[]> {
-    const currentNode = await this.familyMemberRepository.findByUserId(userId);
+    const currentNode = await this.repository.findByUserId(userId);
     if (!currentNode?.father_id) {
       return [];
     }
@@ -327,40 +407,29 @@ export class FamilyMemberService {
     transaction: Transaction
   ): Promise<FamilyMembersModel> {
     let fatherNodeId: string | undefined = undefined;
-    let motherNodeId: string | undefined = undefined;
     // [ĐÃ XÓA] - Bỏ hoàn toàn đoạn code kiểm tra existingChild gây lỗi "PARENT_ALREADY_HAS_CHILD"
     if (dto.father_id) {
       // Tìm Node gia phả của cha bằng ID
-      const fatherNode = await this.familyMemberRepository.findByPk(dto.father_id, [], false, { transaction });
+      const fatherNode = await this.repository.findByPk(dto.father_id, [], false, { transaction });
       if (!fatherNode) {
         throw new NotFoundException('Không tìm thấy node của người cha trên gia phả.');
       }
       fatherNodeId = fatherNode.id;
     }
-    
-    if (dto.mother_id) {
-      const motherNode = await this.familyMemberRepository.findByPk(dto.mother_id, [], false, { transaction });
-      if (motherNode) {
-        motherNodeId = motherNode.id;
-      }
-    }
-    
     // 2. Tính toán thế hệ (Generation Order) - Lõi nghiệp vụ
     // Thế hệ của con LUÔN LUÔN bằng thế hệ của cha/mẹ cộng thêm 1
     const childGenerationOrder = parent.generation_order + 1;
-    const currentMaxOrder = await this.familyMemberRepository.getMaxChildOrder(parent.id, transaction);
+    const currentMaxOrder = await this.repository.getMaxChildOrder(parent.id, transaction);
     // Step 3: [Service Business Logic] Tính toán thứ tự con tiếp theo và kiểm tra xem có trùng thứ tự hay không
     const nextChildOrder = currentMaxOrder + 1;
 
     // 3. Khởi tạo Node con mới
-    const newChildNode = await this.familyMemberRepository.create(
+    const newChildNode = await this.repository.create(
       {
         user_id: dto.user_id,
         father_id: dto.father_id || null, 
-        mother_id: dto.mother_id || null, // Bổ sung để hỗ trợ cả nhánh của mẹ đơn thân
         child_order: nextChildOrder,
         generation_order: childGenerationOrder, 
-        parent_branch_id: parent.parent_branch_id, 
       },
       { transaction }
     );
@@ -376,12 +445,12 @@ export class FamilyMemberService {
     transaction: Transaction,
   ): Promise<FamilyMembersModel | any>{
     console.log('==================đang tạo cụ tổ==================')
-    const existingRoot = await this.familyMemberRepository.findRootNode(dto.father_id, dto.mother_id, transaction);
+    const existingRoot = await this.repository.findRootNode(dto.father_id, transaction);
     if (existingRoot) {
       throw new ConflictException(FAMILY_MEMBERS_ERROR.ROOT_NODE_ALREADY_EXISTS);
     }
 
-    const node = await this.familyMemberRepository.create(
+    const node = await this.repository.create(
       {
         user_id: dto.user_id,
         father_id: null,
@@ -392,22 +461,20 @@ export class FamilyMemberService {
 
     return node as FamilyMembersModel;
   }
-
   
   private async createChildNode(
     dto: ICreatedFamilyMembersRequest,
     transaction: Transaction,
   ): Promise<FamilyMembersModel | any> {
     console.log('---đang tạo đứa con---')
-
+    const { father_id } = dto;
     // Step 1: Kiểm tra Node Cha/Mẹ có tồn tại hay không
-    const parentId = dto.father_id || dto.mother_id;
-    if(!parentId) throw new BadRequestException(FAMILY_MEMBERS_ERROR.CANNOT_PROVIDE_MEMBERS_WITHOUT_PARENT);
-    const parentNode = await this.familyMemberRepository.findByPk( parentId, [], false, { transaction });
+    if(!father_id) throw new BadRequestException(FAMILY_MEMBERS_ERROR.CANNOT_PROVIDE_MEMBERS_WITHOUT_PARENT);
+    const parentNode = await this.repository.findByPk( father_id, [], false, { transaction });
     if (!parentNode)  throw new NotFoundException(FAMILY_MEMBERS_ERROR.PARENT_NODE_NOT_FOUND);
 
     // 2. Tự động sinh ra số thứ tự con tiếp theo bằng Method đã đóng gói
-    const nextChildOrder = await this.generateNextChildOrder(parentId, transaction);
+    const nextChildOrder = await this.generateNextChildOrder(father_id, transaction);
 
     // 3. Đóng gói Payload và gắn số thứ tự vừa sinh ra
     const childPayload = {
@@ -422,7 +489,7 @@ export class FamilyMemberService {
     transaction,
   );
 
-  return (await this.familyMemberRepository.findByPk(
+  return (await this.repository.findByPk(
     attachment.id,
     [],
     false,
@@ -431,7 +498,7 @@ export class FamilyMemberService {
   }
 
   async updateNode( id: string, data: Partial<FamilyMembersModel>, transaction?: Transaction ): Promise<FamilyMembersModel | null> {
-    const node = await this.familyMemberRepository.findByPk(id, [], false);
+    const node = await this.repository.findByPk(id, [], false);
     if (!node) {
       return null;
     }
@@ -454,7 +521,7 @@ export class FamilyMemberService {
       throw new NotFoundException(FAMILY_MEMBERS_ERROR.USER_NOT_FOUND);
     }
     
-    const existingSpouseNode = await this.familyMemberRepository.findByUserId(couple_id, transaction);
+    const existingSpouseNode = await this.repository.findByUserId(couple_id, transaction);
     if (existingSpouseNode) {
       throw new ConflictException(FAMILY_MEMBERS_ERROR.COUPLE_USER_ALREADY_HAS_NODE);
     }

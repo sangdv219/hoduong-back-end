@@ -188,8 +188,8 @@ export class UserModel extends BaseModel<UserModel> implements IUser {
   @HasMany(() => UserRolesModel)
   userRoles!: UserRolesModel[];
 
-  @HasMany(() => FamilyMembersModel)
-  family_members!: FamilyMembersModel[];
+  // @HasMany(() => FamilyMembersModel)
+  // family_members!: FamilyMembersModel[];
 
   @HasMany(() => CoupleModel)
   couples!: CoupleModel[];
@@ -200,6 +200,14 @@ export class UserModel extends BaseModel<UserModel> implements IUser {
     otherKey: 'role_id',
   })
   roles!: RolesModel[];
+
+  @BelongsToMany(() => FamilyMembersModel, {
+    through: () => CoupleModel,
+    foreignKey: 'user_id',
+    otherKey: 'family_member_id',
+    as: 'family_members',
+  })
+  family_members!: FamilyMembersModel[];
 
   declare getRoles: BelongsToManyGetAssociationsMixin<RolesModel>;
   declare setRoles: BelongsToManySetAssociationsMixin<RolesModel, string>;

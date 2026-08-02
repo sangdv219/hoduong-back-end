@@ -1,5 +1,7 @@
+import { PaginationQueryDto } from '@/shared/dto/common';
+import { IPaginationDTO } from '@/shared/interface/common';
 import { Status } from '@infrastructure/models/user.model';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -14,8 +16,10 @@ import {
 export interface ICreatedFamilyMembersRequest {
   user_id: string;
   father_id: string | null;
-  mother_id: string | null;
-  // child_order?: number | undefined;
+}
+
+export interface IFamilyMembersPaginationDTO extends IPaginationDTO{
+  user_id?: string;
 }
 
 export class NodeUserVModel {
@@ -56,7 +60,8 @@ export class FamilyMembersGetVModel {
   updatedBy?: string;
   status?: boolean;
   child_order?: number;
-  parent?: NodeUserVModel;
+  father?: NodeUserVModel;
+  mother?: NodeUserVModel;
   user?: NodeUserVModel;
   couples?: CoupleGetVModel[];
 }
@@ -134,17 +139,31 @@ export class CreatedFamilyMembersRequestDto implements ICreatedFamilyMembersRequ
   @ApiPropertyOptional({ description: 'father_id', example: null })
   father_id: string | null = null;
 
-  @IsUUID()
-  @IsOptional()
-  @ApiPropertyOptional({ description: 'mother_id', example: null })
-  mother_id: string | null = null;
-  
   // @IsOptional()
   // @Type(() => Number)
   // @IsInt()
   // @Min(1)
   // @ApiPropertyOptional({ description: 'Member order among siblings', default: null })
   // child_order?: number | undefined;
+}
+export class UpdatedFamilyMembersRequestDto extends CreatedFamilyMembersRequestDto{
+  // @ApiPropertyOptional({
+  //   description: 'Danh sách Role ID',
+  //   type: [String],
+  //   example: [
+  //     '026e2174-aff3-4461-9f43-0e16c9a88f17',
+  //     '8bd28c38-678d-4fe8-a8e2-579696599446',
+  //   ],
+  // })
+  // @IsOptional()
+  // @IsArray()
+  // @IsUUID('4', { each: true }) // hoặc @IsString({ each: true })
+  // roles?: string[];
+}
+export class ChangeStatusUserAdminRequestDto  {
+  @ApiProperty({ description: 'status', example: 'pending' })
+  @IsString({ message: 'active | inactive | pending | suspended | archived' })
+  status!: Status;
 }
 
 export class UpdateNodeRequestDto {
@@ -170,4 +189,38 @@ export class UpdateNodeRequestDto {
   @IsBoolean()
   @ApiPropertyOptional()
   status?: boolean | null = true ;
+}
+
+export class FamilyMembersPaginationDTO extends PaginationQueryDto implements IFamilyMembersPaginationDTO {
+  // @IsOptional()
+  // @Type(() => Number)
+  // @IsEnum([0, 1], { message: 'Giới tính phải là 0 hoặc 1' })
+  // @ApiPropertyOptional({
+  //   enum: [0, 1],
+  //   description: '0: Nam, 1: Nữ',
+  //   example: null,
+  // })
+  // gender?: 0 | 1;
+
+  // @IsOptional()
+  // @IsIn(['active' , 'inactive' , 'pending' , 'suspended' , 'archived'], 
+  //   { message: 'PENDING, ACTIVE, INACTIVE, SUSPENDED, ARCHIVED'})
+  // @ApiPropertyOptional({
+  //   enum: ['active' , 'inactive' , 'pending' , 'suspended' , 'archived'],
+  // })
+  // status!: 'active' | 'inactive' | 'pending' | 'suspended' | 'archived';
+
+  // @IsOptional()
+  // @Type(() => Number)
+  // @IsIn([0, 1], { message: 'Tình trạng phải là 0 hoặc 1' })
+  // @ApiPropertyOptional({
+  //   enum: [0, 1],
+  //   description: '0: Đã mất 1: Sống',
+  //   example: null,
+  // })
+  // life_status!: number;
+
+  @IsOptional()
+  @ApiPropertyOptional({ description: 'User', example: "f41cd31b-aa71-4ef6-b863-1fafa5475439" })
+  user_id?: string;
 }

@@ -21,16 +21,16 @@ export class RolesModel extends BaseModel<RolesModel> implements IRole{
   declare id: string;
 
   @Column({ type: DataType.STRING(100) })
-  declare name: string;
+  name!: string;
 
   @Column({ type: DataType.STRING(100) })
-  declare description: string;
+  description!: string;
 
   @HasMany(() => UserRolesModel)
-  declare userRoles: UserRolesModel[]
+  userRoles!: UserRolesModel[]
 
   @HasMany(() => RolePermissionsModel)
-  declare rolePermission: RolePermissionsModel[]
+  rolePermission!: RolePermissionsModel[]
 
   @BelongsToMany(() => UserModel, {
     through: () => UserRolesModel,

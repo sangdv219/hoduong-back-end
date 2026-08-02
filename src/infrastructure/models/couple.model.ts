@@ -26,7 +26,7 @@ export enum MarriageDateStatus {
 export interface ICouple{
   id: string;
   user_id: string;
-  node_id: string;
+  family_member_id: string;
   couple_order: number;
   marriage_date: Date;
   marriage_status: MarriageStatus;
@@ -47,40 +47,41 @@ export class CoupleModel extends BaseModel<CoupleModel> implements ICouple{
   @ForeignKey(() => UserModel)
   @AllowNull(false)
   @Column(DataType.UUID)
-  declare user_id: string;
-
+  user_id!: string;
+  
+  @ForeignKey(() => FamilyMembersModel)
   @AllowNull(false)
   @Column(DataType.UUID)
-  declare node_id: string;
+  family_member_id!: string;
 
   @AllowNull(false)
   @Column(DataType.INTEGER)
-  declare couple_order: number;
+  couple_order!: number;
 
   @AllowNull(true)
   @Column(DataType.DATE)
-  declare marriage_date: Date;
+  marriage_date!: Date;
 
   @AllowNull(true)
   @Column({
     type: DataType.ENUM(...Object.values(MarriageStatus)),
   })
-  declare marriage_status: MarriageStatus;
+  marriage_status!: MarriageStatus;
 
   @AllowNull(true)
   @Column({
     type: DataType.ENUM(...Object.values(MarriageDateStatus)),
   })
-  declare marriage_date_type: MarriageDateStatus;
+  marriage_date_type!: MarriageDateStatus;
 
   @AllowNull(true)
   @Column(DataType.DATE)
-  declare divorce_date: Date;
+  divorce_date!: Date;
 
-  @BelongsTo(() => UserModel, 'user_id')
-  declare user: UserModel;
+  @BelongsTo(() => UserModel, { foreignKey: 'user_id' })
+  user!: UserModel;
 
-  @BelongsTo(() => FamilyMembersModel, 'node_id')
-  declare node: FamilyMembersModel;
+  @BelongsTo(() => FamilyMembersModel, { foreignKey: 'family_member_id' })
+  family_members!: FamilyMembersModel;
 }
 

@@ -2,7 +2,7 @@ import { BaseRepository } from '@domain/repositories/base.repository';
 import { Status, UserModel } from '@infrastructure/models/user.model';
 import { IUserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
 import { UserQueryBuilder } from '@modules/users/query/user.query.builder';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { FindOptions, Op, Transaction, WhereOptions } from 'sequelize';
 
 export abstract class AbstractUserRepository extends BaseRepository<UserModel> {}
@@ -37,7 +37,7 @@ export class PostgresUserRepository extends AbstractUserRepository {
     if (!where['status']) {
       where['status'] = { [Op.ne]: Status.ARCHIVED };
     }
-
+    
     const finalOptions = {
       ...options,
       ...customOptions,
@@ -45,14 +45,12 @@ export class PostgresUserRepository extends AbstractUserRepository {
       distinct: true, 
       col: 'id',
     };
+    Logger.log('finalOptions', finalOptions)
 
     const { rows, count } :{rows:any[], count: number}= await this.model.findAndCountAll(finalOptions);
     return {
              items: rows,  
              total: count,
-            //  page,
-            //  limit,
-            //  totalRecord: Math.ceil(count / limit),
            } as any
   }
 
