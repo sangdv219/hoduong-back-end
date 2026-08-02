@@ -21,7 +21,7 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      node_id: {
+      family_member_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -74,9 +74,9 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex('couples', ['node_id'], {
+    await queryInterface.addIndex('couples', ['family_member_id'], {
       unique: true,
-      name: 'idx_couples_node_id',
+      name: 'idx_couples_family_member_id',
     });
   },
 
