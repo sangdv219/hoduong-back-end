@@ -1,4 +1,4 @@
-import { CoupleModel } from '@infrastructure/models/couple.model';
+import { CouplesModel } from '@/infrastructure/models/couples.model';
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
 import { UserModel } from '@infrastructure/models/user.model';
 import {
@@ -29,7 +29,7 @@ export function mapUserToVModel(user: UserModel | Record<string, unknown>): Node
   };
 }
 
-export function mapCoupleToVModel(couple: CoupleModel, user?: UserModel): CoupleGetVModel {
+export function mapCoupleToVModel(couple: CouplesModel, user?: UserModel): CoupleGetVModel {
   return {
     id: couple.id,
     couple_order: couple.couple_order,

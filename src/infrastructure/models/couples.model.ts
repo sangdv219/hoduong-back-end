@@ -39,7 +39,7 @@ export interface ICouple{
   timestamps: true,
   underscored: true,
 })
-export class CoupleModel extends BaseModel<CoupleModel> implements ICouple{
+export class CouplesModel extends BaseModel<CouplesModel> implements ICouple{
   @PrimaryKey
   @Default(Sequelize.literal('gen_random_uuid()'))
   @Column(DataType.UUID)

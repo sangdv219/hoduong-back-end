@@ -10,13 +10,13 @@ import { UserModel } from '@/infrastructure/models/user.model';
 export abstract class AbstractFamilyMembersRepository extends BaseRepository<FamilyMembersModel> {}
 
 @Injectable()
-export class PostgresFamilyMembersRepository extends AbstractFamilyMembersRepository {
+export class FamilyMembersRepository extends AbstractFamilyMembersRepository {
   private static readonly searchableFields: string[] = [];
 
   constructor(
     private readonly familyMembersQueryBuilder: FamilyMembersQueryBuilder,
   ) {
-    super(FamilyMembersModel, PostgresFamilyMembersRepository.searchableFields);
+    super(FamilyMembersModel, FamilyMembersRepository.searchableFields);
   }
 
   async findByFamilyMembersId(FamilyMembersId: string, transaction?: Transaction): Promise<FamilyMembersModel | null> {

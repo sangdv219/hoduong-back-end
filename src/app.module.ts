@@ -15,6 +15,7 @@ import { AssociationsModule } from '@modules/associations/associations.module'
 import { PermissionsModule } from '@modules/permissions/permissions.module'
 import { McpController } from 'mcp.controller'
 import { FamilyMembersModule } from '@modules/family-members/family-members.module'
+import { CouplesModule } from './modules/couples/couples.module'
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { FamilyMembersModule } from '@modules/family-members/family-members.modu
     DatabaseModule,
     FamilyMembersModule,
     UserModule,
+    CouplesModule,
     AuthModule,
     RolesModule,
     PermissionsModule,

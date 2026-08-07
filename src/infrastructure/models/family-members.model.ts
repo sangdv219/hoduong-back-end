@@ -12,7 +12,7 @@ import {
   Sequelize,
   Table,
 } from 'sequelize-typescript';
-import { CoupleModel } from '@infrastructure/models/couple.model';
+import { CouplesModel } from '@/infrastructure/models/couples.model';
 import { UserModel } from '@infrastructure/models/user.model';
 
 export interface IFamilyMembers {
@@ -40,7 +40,7 @@ export class FamilyMembersModel extends BaseModel<FamilyMembersModel> implements
   @Column(DataType.UUID)
   user_id!: string;
 
-  @ForeignKey(() => CoupleModel)
+  @ForeignKey(() => CouplesModel)
   @AllowNull(true)
   @Column(DataType.UUID)
   parent_couple_id!: string | null;
@@ -57,11 +57,11 @@ export class FamilyMembersModel extends BaseModel<FamilyMembersModel> implements
   @BelongsTo(() => UserModel, { foreignKey: 'user_id', as: 'user' })
   user!: UserModel; //relation N-1 with user
 
-  @BelongsTo(() => CoupleModel, { foreignKey: 'parent_couple_id', as: 'parent_couple' })
-  parent_couple!: CoupleModel;
+  @BelongsTo(() => CouplesModel, { foreignKey: 'parent_couple_id', as: 'parent_couple' })
+  parent_couple!: CouplesModel;
 
   @BelongsToMany(() => UserModel, {
-    through: () => CoupleModel,
+    through: () => CouplesModel,
     foreignKey: 'family_member_id',
     otherKey: 'user_id',
     as: 'wife'

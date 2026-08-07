@@ -10,7 +10,7 @@
 import { BaseTransactionService } from '@infrastructure/database/transaction.service';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
 import { ROOT_TREE_LEVEL } from '@modules/couples/constants/couple.constant';
-import { PostgresCoupleRepository } from '@modules/couples/repository/postgres-couple.repository';
+import { CouplesRepository } from '@/modules/couples/repository/couples.repository';
 import { FAMILY_MEMBERS_ERROR } from '@/modules/family-members/constants/family-members.constant';
 import {
   NodeFilterQueryDto,
@@ -28,7 +28,7 @@ import {
   mapEntityToTree,
   mapEntityToVModel,
 } from '@modules/family-members/helpers/node.mapper';
-import { PostgresFamilyMembersRepository } from '@modules/family-members/repository/postgres-family-members.repository';
+import { FamilyMembersRepository } from '@modules/family-members/repository/postgres-family-members.repository';
 import {
   BadRequestException,
   ConflictException,
@@ -67,8 +67,8 @@ GetAllFamilyMembersResponseDto
   constructor(
     @InjectConnection()
     private readonly sequelize: Sequelize,
-    protected repository: PostgresFamilyMembersRepository,
-    private readonly coupleRepository: PostgresCoupleRepository,
+    protected repository: FamilyMembersRepository,
+    private readonly coupleRepository: CouplesRepository,
     private readonly userRepository: PostgresUserRepository,
     private readonly baseTransactionService: BaseTransactionService,
     public cacheManage: RedisService,

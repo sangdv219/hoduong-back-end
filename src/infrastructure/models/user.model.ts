@@ -1,5 +1,5 @@
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
-import { CoupleModel } from '@infrastructure/models/couple.model';
+import { CouplesModel } from '@/infrastructure/models/couples.model';
 import { UserRolesModel } from '@infrastructure/models/user_roles.model';
 import { BaseModel } from '@shared/model/base.model';
 import { ClsServiceManager } from 'nestjs-cls';
@@ -59,7 +59,7 @@ export interface IUser{
   last_failed_login_at: Date;
   locked_until: Date;
   family_members: FamilyMembersModel[];
-  couples: CoupleModel[];
+  couples: CouplesModel[];
   roles: RolesModel[];
 }
 
@@ -191,8 +191,8 @@ export class UserModel extends BaseModel<UserModel> implements IUser {
   // @HasMany(() => FamilyMembersModel)
   // family_members!: FamilyMembersModel[];
 
-  @HasMany(() => CoupleModel)
-  couples!: CoupleModel[];
+  @HasMany(() => CouplesModel)
+  couples!: CouplesModel[];
 
   @BelongsToMany(() => RolesModel, {
     through: () => UserRolesModel,
@@ -202,7 +202,7 @@ export class UserModel extends BaseModel<UserModel> implements IUser {
   roles!: RolesModel[];
 
   @BelongsToMany(() => FamilyMembersModel, {
-    through: () => CoupleModel,
+    through: () => CouplesModel,
     foreignKey: 'user_id',
     otherKey: 'family_member_id',
     as: 'family_members',
