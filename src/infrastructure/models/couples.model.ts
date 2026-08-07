@@ -5,14 +5,12 @@ import {
   Column,
   DataType,
   Default,
-  PrimaryKey,
   ForeignKey,
+  PrimaryKey,
   Sequelize,
   Table,
 } from 'sequelize-typescript';
-import { UserModel } from '@infrastructure/models/user.model';
-import { FamilyMembersModel } from './family-members.model';
-
+import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
 
 export enum MarriageStatus {
   SINGLE = 'SINGLE',
@@ -26,7 +24,8 @@ export enum MarriageDateStatus {
 }
 export interface ICouple{
   id: string;
-  user_id: string;
+  partner_1_id: string;
+  partner_2_id: string;
   family_member_id: string;
   couple_order: number;
   marriage_date: Date;
@@ -38,6 +37,13 @@ export interface ICouple{
   tableName: 'couples',
   timestamps: true,
   underscored: true,
+  // Tối ưu Database: Thêm unique constraint để tránh 2 người tạo trùng nhiều cặp đôi
+  indexes: [
+    {
+      unique: true,
+      fields: ['partner_1_id', 'partner_2_id'],
+    }
+  ]
 })
 export class CouplesModel extends BaseModel<CouplesModel> implements ICouple{
   @PrimaryKey
@@ -45,17 +51,23 @@ export class CouplesModel extends BaseModel<CouplesModel> implements ICouple{
   @Column(DataType.UUID)
   declare id: string;
   
-  @ForeignKey(() => UserModel)
+  @ForeignKey(() => FamilyMembersModel)
   @AllowNull(false)
   @Column(DataType.UUID)
-  user_id!: string;
+  partner_1_id!: string;
+
+  @ForeignKey(() => FamilyMembersModel)
+  @AllowNull(false)
+  @Column(DataType.UUID)
+  partner_2_id!: string;
   
   @ForeignKey(() => FamilyMembersModel)
   @AllowNull(false)
   @Column(DataType.UUID)
   family_member_id!: string;
 
-  @AllowNull(false)
+  @AllowNull(true)
+  @Default(1)
   @Column(DataType.INTEGER)
   couple_order!: number;
 
@@ -63,13 +75,14 @@ export class CouplesModel extends BaseModel<CouplesModel> implements ICouple{
   @Column(DataType.DATE)
   marriage_date!: Date;
 
-  @AllowNull(true)
+  @AllowNull(false)
   @Column({
     type: DataType.ENUM(...Object.values(MarriageStatus)),
   })
   marriage_status!: MarriageStatus;
 
   @AllowNull(true)
+  @Default('SOLAR')
   @Column({
     type: DataType.ENUM(...Object.values(MarriageDateStatus)),
   })
@@ -79,10 +92,10 @@ export class CouplesModel extends BaseModel<CouplesModel> implements ICouple{
   @Column(DataType.DATE)
   divorce_date!: Date;
 
-  @BelongsTo(() => UserModel, { foreignKey: 'user_id' })
-  user!: UserModel;
+  @BelongsTo(() => FamilyMembersModel, { foreignKey: 'partner_1_id', as: 'partner_1' })
+  partner_1!: FamilyMembersModel;
 
-  @BelongsTo(() => FamilyMembersModel, { foreignKey: 'family_member_id' })
-  family_members!: FamilyMembersModel;
+  @BelongsTo(() => FamilyMembersModel, { foreignKey: 'partner_2_id', as: 'partner_2' })
+  partner_2!: FamilyMembersModel;
 }
 

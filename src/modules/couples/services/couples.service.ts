@@ -69,18 +69,18 @@ export class CoupleService extends BaseService<
 
         const userInclude:any = {
             model: UserModel,
-            attributes: ['name'],
-            through: {
-                attributes: [],
-            },
+            attributes: ['fullname'],
+            // through: {
+            //     attributes: [],
+            // },
         };
 
         const familyMembersInclude:any = {
             model: FamilyMembersModel,
-            attributes: ['name'],
-            through: {
-                attributes: [],
-            },
+            attributes: [],
+            // through: {
+            //     attributes: [],
+            // },
         };
 
         if (user_id) {

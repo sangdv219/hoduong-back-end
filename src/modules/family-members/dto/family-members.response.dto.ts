@@ -35,7 +35,7 @@ export class FamilyMembersBaseDto implements IFamilyMembers {
   father!: IUser;
 
   @Expose()
-  wife!: IUser;
+  partners!: IUser;
 
   @Expose()
   created_at!: Date;

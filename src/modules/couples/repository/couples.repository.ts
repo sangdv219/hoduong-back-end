@@ -23,7 +23,7 @@ export class CouplesRepository extends AbstractCouplesRepository {
       ...options.where,
       ...customOptions?.where,
     };
-
+    console.log('couple search')
     // if (!where['status']) {
     //   where['status'] = { [Op.ne]: Status.ARCHIVED };
     // }
@@ -32,11 +32,14 @@ export class CouplesRepository extends AbstractCouplesRepository {
       ...options,
       ...customOptions,
       where,
-      distinct: true, 
-      col: 'id',
+      // distinct: true, 
+      // col: 'id',
     };
+    console.log('finalOptions', finalOptions);
 
     const { rows, count } :{rows:any[], count: number}= await this.model.findAndCountAll(finalOptions);
+    console.log('rows', rows);
+    
     return { items: rows, total: count } as any
   }
 

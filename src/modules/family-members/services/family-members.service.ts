@@ -304,7 +304,7 @@ GetAllFamilyMembersResponseDto
         };
         const coupleInclude:any = {
             model: UserModel,
-            as: 'wife',
+            as: 'partners',
             attributes: ['id', 'fullname'],
             through: {
               as: 'info',
@@ -345,19 +345,19 @@ GetAllFamilyMembersResponseDto
     });
   }
 
-  async getAllAsTree(): Promise<NodeTreeVModel> {
-    const allfamily_members = await this.repository.findAll({ status: true });
-    const userIds = allfamily_members?.map((n) => n.user_id) ?? [];
-    const users = await this.userRepository.findAll(userIds);
-    const userMap = new Map(users?.map((u) => [u.id, u]) ?? []);
+  // async getAllAsTree(): Promise<NodeTreeVModel> {
+  //   const allfamily_members = await this.repository.findAll({ status: true });
+  //   const userIds = allfamily_members?.map((n) => n.user_id) ?? [];
+  //   const users = await this.userRepository.findAll(userIds);
+  //   const userMap = new Map(users?.map((u) => [u.id, u]) ?? []);
 
-    const rootNodeEntity = allfamily_members?.find((x) => x.parent_couple_id === null || x.parent_couple_id === undefined);
-    if (!rootNodeEntity) {
-      throw new NotFoundException('Family tree root not found');
-    }
+  //   const rootNodeEntity = allfamily_members?.find((x) => x.parent_couple_id === null || x.parent_couple_id === undefined);
+  //   if (!rootNodeEntity) {
+  //     throw new NotFoundException('Family tree root not found');
+  //   }
 
-    return mapEntityToTree(rootNodeEntity, allfamily_members ?? [], userMap as Map<string, UserModel>);
-  }
+  //   return mapEntityToTree(rootNodeEntity, allfamily_members ?? [], userMap as Map<string, UserModel>);
+  // }
 
   async getById(id: string): Promise<FamilyMembersGetVModel | null> {
     const entity = await this.repository.findByPkWithRelations(id);
@@ -495,37 +495,37 @@ GetAllFamilyMembersResponseDto
     return node;
   }
 
-  private async createSpouseCouple(
-    couple_id: string,
-    nodeId: string,
-    node: FamilyMembersModel,
-    transaction: Transaction,
-  ): Promise<void> {
-    if (couple_id === node.user_id) {
-      throw new BadRequestException(FAMILY_MEMBERS_ERROR.CANNOT_ATTACH_TO_SELF);
-    }
+  // private async createSpouseCouple(
+  //   couple_id: string,
+  //   nodeId: string,
+  //   node: FamilyMembersModel,
+  //   transaction: Transaction,
+  // ): Promise<void> {
+  //   if (couple_id === node.user_id) {
+  //     throw new BadRequestException(FAMILY_MEMBERS_ERROR.CANNOT_ATTACH_TO_SELF);
+  //   }
 
-    const spouse = await this.userRepository.findByPk(couple_id, [], false, { transaction });
-    if (!spouse) {
-      throw new NotFoundException(FAMILY_MEMBERS_ERROR.USER_NOT_FOUND);
-    }
+  //   const spouse = await this.userRepository.findByPk(couple_id, [], false, { transaction });
+  //   if (!spouse) {
+  //     throw new NotFoundException(FAMILY_MEMBERS_ERROR.USER_NOT_FOUND);
+  //   }
     
-    const existingSpouseNode = await this.repository.findByUserId(couple_id, transaction);
-    if (existingSpouseNode) {
-      throw new ConflictException(FAMILY_MEMBERS_ERROR.COUPLE_USER_ALREADY_HAS_NODE);
-    }
+  //   const existingSpouseNode = await this.repository.findByUserId(couple_id, transaction);
+  //   if (existingSpouseNode) {
+  //     throw new ConflictException(FAMILY_MEMBERS_ERROR.COUPLE_USER_ALREADY_HAS_NODE);
+  //   }
     
-    const ownerCouple = await this.coupleRepository.findByUserId(node.user_id, transaction);
-    const couple_order = ownerCouple?.couple_order ?? ROOT_TREE_LEVEL;
-    // await this.coupleRepository.create(
-    //   {
-    //     user_id: couple_id,
-    //     node_id: nodeId,
-    //     couple_order,
-    //   },
-    //   { transaction },
-    // );
-  }
+  //   const ownerCouple = await this.coupleRepository.findByUserId(node.user_id, transaction);
+  //   const couple_order = ownerCouple?.couple_order ?? ROOT_TREE_LEVEL;
+  //   // await this.coupleRepository.create(
+  //   //   {
+  //   //     user_id: couple_id,
+  //   //     node_id: nodeId,
+  //   //     couple_order,
+  //   //   },
+  //   //   { transaction },
+  //   // );
+  // }
 
   
 }

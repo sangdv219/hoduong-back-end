@@ -33,7 +33,7 @@ export function mapCoupleToVModel(couple: CouplesModel, user?: UserModel): Coupl
   return {
     id: couple.id,
     couple_order: couple.couple_order,
-    userId: couple.user_id,
+    // userId: couple.user_id,
     createdAt: couple.created_at,
     createdBy: couple.created_by,
     nodeId: couple.family_member_id,
@@ -62,8 +62,8 @@ export function mapEntityToTree(
   allfamily_members: FamilyMembersModel[],
   userMap: Map<string, UserModel>,
 ): NodeTreeVModel {
-  const userEntity = userMap.get(entity.user_id);
-  const userModel = userEntity ? mapUserToVModel(userEntity) : undefined;
+  // const userEntity = userMap.get(entity.user_id);
+  // const userModel = userEntity ? mapUserToVModel(userEntity) : undefined;
 
   const children = allfamily_members
     .filter((node) => node.parent_couple_id === entity.id)
@@ -80,6 +80,6 @@ export function mapEntityToTree(
     updatedBy: entity.updated_by ?? undefined,
     child_order: entity.child_order,
     children,
-    user: userModel,
+    // user: userModel,
   };
 }

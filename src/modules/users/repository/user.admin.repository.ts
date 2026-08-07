@@ -53,9 +53,9 @@ export class PostgresUserRepository extends AbstractUserRepository {
            } as any
   }
 
-  async findAll(userIds: string[], transaction?: Transaction): Promise<UserModel[] | null> {
+  async findAll(userId: string[], transaction?: Transaction): Promise<UserModel[] | null> {
     return this.model.findAll({
-      where: { id: { [Op.in]: userIds } },
+      where: { id: { [Op.in]: userId } },
       transaction,
     });
   }

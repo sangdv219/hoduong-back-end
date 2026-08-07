@@ -59,7 +59,6 @@ export interface IUser{
   last_failed_login_at: Date;
   locked_until: Date;
   family_members: FamilyMembersModel[];
-  couples: CouplesModel[];
   roles: RolesModel[];
 }
 
@@ -191,8 +190,8 @@ export class UserModel extends BaseModel<UserModel> implements IUser {
   // @HasMany(() => FamilyMembersModel)
   // family_members!: FamilyMembersModel[];
 
-  @HasMany(() => CouplesModel)
-  couples!: CouplesModel[];
+  @HasMany(() => FamilyMembersModel)
+  family_members!: FamilyMembersModel[];
 
   @BelongsToMany(() => RolesModel, {
     through: () => UserRolesModel,
@@ -200,14 +199,6 @@ export class UserModel extends BaseModel<UserModel> implements IUser {
     otherKey: 'role_id',
   })
   roles!: RolesModel[];
-
-  @BelongsToMany(() => FamilyMembersModel, {
-    through: () => CouplesModel,
-    foreignKey: 'user_id',
-    otherKey: 'family_member_id',
-    as: 'family_members',
-  })
-  family_members!: FamilyMembersModel[];
 
   declare getRoles: BelongsToManyGetAssociationsMixin<RolesModel>;
   declare setRoles: BelongsToManySetAssociationsMixin<RolesModel, string>;

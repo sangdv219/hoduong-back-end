@@ -48,12 +48,12 @@ export class FamilyMembersController {
     return this.familyMemberService.searchFamilyMembers(query);
   }
 
-  @Get('tree')
-  @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: NodeTreeVModel })
-  async getAllAsTree(): Promise<NodeTreeVModel> {
-    return this.familyMemberService.getAllAsTree();
-  }
+  // @Get('tree')
+  // @HttpCode(HttpStatus.OK)
+  // @ApiOkResponse({ type: NodeTreeVModel })
+  // async getAllAsTree(): Promise<NodeTreeVModel> {
+  //   return this.familyMemberService.getAllAsTree();
+  // }
 
   @Get('parents/:userId')
   @HttpCode(HttpStatus.OK)

@@ -1,24 +1,15 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationQueryDto } from '@shared/dto/common';
-import { ApiProperty, ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { IPaginationDTO } from '@shared/interface/common';
+import { Type } from 'class-transformer';
 import {
-  IsArray,
-  IsBoolean,
-  IsDate,
-  IsEmail,
-  IsEnum,
   IsIn,
   IsInt,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
-  IsString,
   IsUUID,
-  Min,
-  MinLength,
+  Min
 } from 'class-validator';
-import { IPaginationDTO } from '@shared/interface/common';
-import { MarriageDateStatus, MarriageStatus } from '@infrastructure/models/couples.model';
 
 interface ICreatedCouplesRequest {
   user_id: string;
