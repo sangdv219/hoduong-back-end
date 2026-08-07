@@ -11,11 +11,22 @@ module.exports = {
         allowNull: false,
         primaryKey: true,
       },
-      user_id: {
+      partner_1_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'users', // bảng users
+          model: 'family_members', 
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+      },
+      // CẬP NHẬT: Thay family_member_id thành đối tác 2 trỏ về family_members
+      partner_2_id: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: 'family_members', 
           key: 'id',
         },
         onUpdate: 'CASCADE',
@@ -33,11 +44,12 @@ module.exports = {
       },
       couple_order: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
+        defaultValue: 1 
       },
       marriage_date: {
         type: Sequelize.DATE,
-        allowNull: false,
+        allowNull: true,
       },
       marriage_status: {
         type: Sequelize.ENUM('SINGLE','MARRIED', 'DIVORCED', 'WIDOWED'),
@@ -45,7 +57,8 @@ module.exports = {
       },
       marriage_date_type: {
         type: Sequelize.ENUM('SOLAR', 'LUNAR'),
-        allowNull: false
+        allowNull: true,
+        defaultValue: 'SOLAR'
       },
       divorce_date: {
         type: Sequelize.DATE,
@@ -74,13 +87,18 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex('couples', ['family_member_id'], {
+    await queryInterface.addIndex('couples', ['partner_1_id', 'partner_2_id'], {
       unique: true,
-      name: 'idx_couples_family_member_id',
+      name: 'idx_couples_partners',
     });
   },
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('couples');
+    
+    // Lưu ý: Tùy thuộc vào version Sequelize, đôi khi cần drop ENUM types thủ công trong hàm down
+    // ở PostgreSQL để tránh lỗi "type already exists" nếu chạy lại migration.
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_couples_marriage_status";');
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_couples_marriage_date_type";');
   },
 };
