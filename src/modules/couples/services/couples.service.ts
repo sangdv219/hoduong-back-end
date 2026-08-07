@@ -83,7 +83,7 @@ export class CoupleService extends BaseService<
         const partner2Include:any = {
             model: FamilyMembersModel,
             as: 'partner_2',
-            attributes: ['id', 'user_id'],
+            attributes: ['user_id'],
             include: [
                 {
                     model: UserModel,

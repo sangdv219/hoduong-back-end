@@ -1,10 +1,10 @@
+import { CouplesModel } from '@/infrastructure/models/couples.model';
 import { BaseRepository } from '@domain/repositories/base.repository';
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
-import { FamilyMembersQueryBuilder } from '@modules/family-members/query/family-members.query.builder';
-import { ConflictException, Injectable } from '@nestjs/common';
-import { FindOptions, Op, Transaction, WhereOptions } from 'sequelize';
 import { IFamilyMembersPaginationDTO } from '@modules/family-members/dto/family-members.request.dto';
-import { UserModel } from '@infrastructure/models/user.model';
+import { FamilyMembersQueryBuilder } from '@modules/family-members/query/family-members.query.builder';
+import { Injectable } from '@nestjs/common';
+import { FindOptions, Op, Transaction, WhereOptions } from 'sequelize';
 
 export abstract class AbstractFamilyMembersRepository extends BaseRepository<FamilyMembersModel> {}
 
@@ -100,11 +100,11 @@ export class FamilyMembersRepository extends AbstractFamilyMembersRepository {
   async findByPkWithRelations(id: string, transaction?: Transaction): Promise<FamilyMembersModel | null> {
     return this.model.findByPk(id, {
       include: [
-        { model: UserModel, as: 'user' },
+        // { model: UserModel, as: 'user' },
         {
           model: FamilyMembersModel,
-          as: 'father',
-          include: [{ model: UserModel, as: 'user' }],
+          as: 'partners',
+          include: [{ model: CouplesModel, as: 'parent_couple' }],
         },
       ],
       transaction,
