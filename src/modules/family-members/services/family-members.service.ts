@@ -290,6 +290,7 @@ GetAllFamilyMembersResponseDto
 
   async searchFamilyMembers(query: IFamilyMembersPaginationDTO): Promise<GetAllFamilyMembersResponseDto | any> {
     const { user_id, ...baseParams } = query;
+    Logger.log('search user')
     return super.search(baseParams, query, options => {
         const include = Array.isArray(options.include)
             ? options.include
@@ -302,16 +303,16 @@ GetAllFamilyMembersResponseDto
             as: 'user',
             attributes: ['fullname', 'age'],
         };
-        const coupleInclude:any = {
-            model: UserModel,
-            as: 'partners',
-            attributes: ['id', 'fullname'],
-            through: {
-              as: 'info',
-              attributes: ['marriage_status', 'marriage_date'],
-              // attributes: [],
-            },
-        };
+        // const coupleInclude:any = {
+        //     model: UserModel,
+        //     as: 'partners',
+        //     attributes: ['id', 'fullname'],
+        //     through: {
+        //       as: 'info',
+        //       attributes: ['marriage_status', 'marriage_date'],
+        //       // attributes: [],
+        //     },
+        // };
 
         if (user_id) {
             userInclude.where = {
@@ -321,24 +322,24 @@ GetAllFamilyMembersResponseDto
             userInclude.required = true;
         }
         //  Bổ sung Nested Join để lấy fullname thông qua parent_couple_id
-        const fatherInclude = {
-          model: FamilyMembersModel,
-          as: 'father',
-          attributes: ['id', 'user_id',  'parent_couple_id'],
-          include: [
-            {
-              model: UserModel,
-              as:'user',
-              attributes: ['fullname'],
-            }
-          ]
-        }
+        // const fatherInclude = {
+        //   model: FamilyMembersModel,
+        //   as: 'father',
+        //   attributes: ['id', 'user_id',  'parent_couple_id'],
+        //   include: [
+        //     {
+        //       model: UserModel,
+        //       as:'user',
+        //       attributes: ['fullname'],
+        //     }
+        //   ]
+        // }
 
         options.include = [
             ...include,
             userInclude,
-            fatherInclude,
-            coupleInclude
+            // fatherInclude,
+            // coupleInclude
         ];
 
         return options;

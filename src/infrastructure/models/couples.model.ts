@@ -26,11 +26,9 @@ export interface ICouple{
   id: string;
   partner_1_id: string;
   partner_2_id: string;
-  family_member_id: string;
   couple_order: number;
   marriage_date: Date;
   marriage_status: MarriageStatus;
-  marriage_date_type: MarriageDateStatus;
   divorce_date: Date
 }
 @Table({
@@ -61,11 +59,6 @@ export class CouplesModel extends BaseModel<CouplesModel> implements ICouple{
   @Column(DataType.UUID)
   partner_2_id!: string;
   
-  @ForeignKey(() => FamilyMembersModel)
-  @AllowNull(false)
-  @Column(DataType.UUID)
-  family_member_id!: string;
-
   @AllowNull(true)
   @Default(1)
   @Column(DataType.INTEGER)
@@ -80,13 +73,6 @@ export class CouplesModel extends BaseModel<CouplesModel> implements ICouple{
     type: DataType.ENUM(...Object.values(MarriageStatus)),
   })
   marriage_status!: MarriageStatus;
-
-  @AllowNull(true)
-  @Default('SOLAR')
-  @Column({
-    type: DataType.ENUM(...Object.values(MarriageDateStatus)),
-  })
-  marriage_date_type!: MarriageDateStatus;
 
   @AllowNull(true)
   @Column(DataType.DATE)

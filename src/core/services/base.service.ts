@@ -98,6 +98,15 @@ export abstract class BaseService<
     if(callback){
         options = await callback(options);
     }
+    
+    try {
+      const result = await this.repository.search( params, options );
+      Logger.log('result', result);
+      
+    } catch (error) {
+      Logger.log('error', error);
+      
+    }
     const result = await this.repository.search( params, options );
     
     await this.cacheManage.set(redisKey, JSON.stringify(this.transformToDto( result )), 'EX', 30);

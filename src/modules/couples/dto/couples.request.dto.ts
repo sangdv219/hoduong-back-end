@@ -12,12 +12,11 @@ import {
 } from 'class-validator';
 
 interface ICreatedCouplesRequest {
-  user_id: string;
-  family_member_id: string;
+  partner_1_id: string;
+  partner_2_id: string;
   couple_order: number;
   marriage_date: Date;
   marriage_status: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED';
-  marriage_date_type: 'SOLAR' | 'LUNAR';
   divorce_date: Date
   created_at?: Date;
   updated_at?: Date;
@@ -26,25 +25,24 @@ interface ICreatedCouplesRequest {
 }
 
 export interface ICouplesPaginationDTO extends IPaginationDTO{
-  user_id?: string;
-  family_member_id?: string;
+  partner_1_id: string;
+  partner_2_id: string;
   couple_order?: number;
   marriage_date?: Date;
   marriage_status?: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED';
-  marriage_date_type?: 'SOLAR' | 'LUNAR';
   divorce_date?: Date
 }
 
 export class CreatedCouplesRequestDto implements ICreatedCouplesRequest {
   @IsUUID()
   @IsNotEmpty()
-  @ApiProperty({ description: 'user_id', example: '026e2174-aff3-4461-9f43-0e16c9a88f17' })
-  user_id!: string;
+  @ApiProperty({ description: 'partner_1_id', example: '026e2174-aff3-4461-9f43-0e16c9a88f17' })
+  partner_1_id!: string;
 
   @IsUUID()
   @IsNotEmpty()
-  @ApiProperty({ description: 'family_member_id', example: '026e2174-aff3-4461-9f43-0e16c9a88f17' })
-  family_member_id!: string;
+  @ApiProperty({ description: 'partner_2_id', example: '026e2174-aff3-4461-9f43-0e16c9a88f17' })
+  partner_2_id!: string;
   
   
   @Type(() => Number)
@@ -65,13 +63,6 @@ export class CreatedCouplesRequestDto implements ICreatedCouplesRequest {
   })
   marriage_status!: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED';
 
-  @IsIn(['SOLAR','LUNAR'], 
-    { message: 'SOLAR, LUNAR'})
-  @ApiPropertyOptional({
-    enum: ['SOLAR','LUNAR'],
-  })
-  marriage_date_type!: 'SOLAR' | 'LUNAR';
-
   @IsOptional()
   @Type(() => Date)
   divorce_date!: Date;
@@ -84,13 +75,13 @@ export class CouplesPaginationDTO extends PaginationQueryDto implements ICouples
   @ApiPropertyOptional({
     example: '',
   })
-  user_id?: string;
+  partner_1_id!: string;
 
   @IsOptional()
   @ApiPropertyOptional({
     example: '',
   })
-  family_member_id?: string;
+  partner_2_id!: string;
 
   @IsOptional()
   @Type(() => Number)
@@ -109,14 +100,6 @@ export class CouplesPaginationDTO extends PaginationQueryDto implements ICouples
     enum: ['SINGLE','MARRIED', 'DIVORCED', 'WIDOWED'],
   })
   marriage_status!: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED';
-
-  @IsOptional()
-  @IsIn(['SOLAR','LUNAR'], 
-    { message: 'SOLAR, LUNAR'})
-  @ApiPropertyOptional({
-    enum: ['SOLAR','LUNAR'],
-  })
-  marriage_date_type!: 'SOLAR' | 'LUNAR';
 
   @IsOptional()
   @ApiPropertyOptional({

@@ -36,7 +36,7 @@ export function mapCoupleToVModel(couple: CouplesModel, user?: UserModel): Coupl
     // userId: couple.user_id,
     createdAt: couple.created_at,
     createdBy: couple.created_by,
-    nodeId: couple.family_member_id,
+    nodeId: couple.partner_1_id,
     user: user ? mapUserToVModel(user) : undefined,
   };
 }

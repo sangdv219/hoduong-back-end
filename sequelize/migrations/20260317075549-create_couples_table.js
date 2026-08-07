@@ -32,16 +32,6 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      family_member_id: {
-        type: Sequelize.UUID,
-        allowNull: false,
-        references: {
-          model: 'family_members', // bảng node
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
-      },
       couple_order: {
         type: Sequelize.INTEGER,
         allowNull: true,
@@ -54,11 +44,6 @@ module.exports = {
       marriage_status: {
         type: Sequelize.ENUM('SINGLE','MARRIED', 'DIVORCED', 'WIDOWED'),
         allowNull: false
-      },
-      marriage_date_type: {
-        type: Sequelize.ENUM('SOLAR', 'LUNAR'),
-        allowNull: true,
-        defaultValue: 'SOLAR'
       },
       divorce_date: {
         type: Sequelize.DATE,

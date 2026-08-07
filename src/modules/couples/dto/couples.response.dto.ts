@@ -1,24 +1,19 @@
 import { MarriageDateStatus, MarriageStatus } from '@infrastructure/models/couples.model';
-import { GenderEnum, Status } from '@infrastructure/models/user.model';
 import { Expose, Type } from 'class-transformer';
 
 export interface ICouples{
   id: string;
-  user_id: string;
-  family_member_id: string;
+  partner_1_id: string;
+  partner_2_id: string;
   couple_order: number;
   marriage_date: Date;
   marriage_status: MarriageStatus;
-  marriage_date_type: MarriageDateStatus;
   divorce_date: Date
 }
 
 interface IPaginatedResult<T> {
   items: T[];
   total: number;
-  // page: number;
-  // limit: number;
-  // totalRecord: number;
 }
 
 export class CouplesBaseDto implements ICouples {
@@ -26,10 +21,10 @@ export class CouplesBaseDto implements ICouples {
   id!: string;
 
   @Expose()
-  user_id!: string; 
+  partner_1_id!: string; 
 
   @Expose()
-  family_member_id!: string;
+  partner_2_id!: string;
 
   @Expose()
   couple_order!: number;
@@ -41,10 +36,13 @@ export class CouplesBaseDto implements ICouples {
   marriage_status!: MarriageStatus;
 
   @Expose()
-  marriage_date_type!: MarriageDateStatus;
+  divorce_date!: Date
 
   @Expose()
-  divorce_date!: Date
+  partner_1!: any
+
+  @Expose()
+  partner_2!: any
 }
 
 export class GetAllCouplesResponseDto implements IPaginatedResult<ICouples> {

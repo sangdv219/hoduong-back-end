@@ -58,8 +58,8 @@ export class CoupleService extends BaseService<
       }
 
       async searchCouples(params: ICouplesPaginationDTO):Promise<GetAllCouplesResponseDto |any>{
-        const { user_id, family_member_id, ...baseParams } = params;
-    return super.search(baseParams, params, options => {
+        const { partner_1_id, partner_2_id, ...baseParams } = params;
+        return super.search(baseParams, params, options => {
 
         const include = Array.isArray(options.include)
             ? options.include
@@ -67,41 +67,47 @@ export class CoupleService extends BaseService<
                 ? [options.include]
                 : [];
 
-        const userInclude:any = {
-            model: UserModel,
-            attributes: ['fullname'],
-            // through: {
-            //     attributes: [],
-            // },
-        };
 
-        const familyMembersInclude:any = {
+        const partner1Include:any = {
             model: FamilyMembersModel,
-            attributes: [],
-            // through: {
-            //     attributes: [],
-            // },
+            as: 'partner_1',
+            attributes: ['id', 'user_id'],
+            include: [
+                {
+                    model: UserModel,
+                    as: 'user',
+                    attributes: ['fullname']
+                }
+            ]
+        };
+        const partner2Include:any = {
+            model: FamilyMembersModel,
+            as: 'partner_2',
+            attributes: ['id', 'user_id'],
+            include: [
+                {
+                    model: UserModel,
+                    as: 'user',
+                    attributes: ['fullname']
+                }
+            ]
         };
 
-        if (user_id) {
-            userInclude.where = {
-                id: user_id,
-            };
-
-            userInclude.required = true;
+ 
+        if (partner_1_id) {
+            partner1Include.where = { id: partner_1_id };
+            partner1Include.required = true;
         }
-        if (family_member_id) {
-            familyMembersInclude.where = {
-                id: family_member_id,
-            };
 
-            familyMembersInclude.required = true;
+        if (partner_2_id) {
+            partner2Include.where = { id: partner_2_id };
+            partner2Include.required = true;
         }
 
         options.include = [
             ...include,
-            userInclude,
-            familyMembersInclude,
+            partner1Include,
+            partner2Include,
         ];
 
         return options;

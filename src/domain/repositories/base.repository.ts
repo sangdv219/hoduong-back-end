@@ -30,7 +30,6 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
     const page = Number(params.page) || 1;
     const limit = Number(params.limit) || 10;
     const offset = (page - 1) * limit;
-    console.log('params', params);
     // 1. Xử lý Sort
     let order: any = [['created_at', 'DESC']];
     if (params.sortOrder) {
