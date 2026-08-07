@@ -48,7 +48,7 @@ export interface TreeAttachmentResult {
   nodeId: string;
   coupleId: string;
   couple_order: number;
-  father_id?: string;
+  parent_couple_id?: string;
   parentUserId?: string;
 }
 
@@ -166,7 +166,7 @@ GetAllFamilyMembersResponseDto
 
       let node: FamilyMembersModel;
 
-      if (!dto.father_id) {
+      if (!dto.parent_couple_id) {
         node = await this.createRootNode(dto, transaction);
       } else {
         node = await this.createChildNode(dto, transaction);
@@ -196,12 +196,12 @@ GetAllFamilyMembersResponseDto
   //     }
 
   //     if (dto.child_order !== undefined && dto.child_order !== entity.child_order) {
-  //       if (!entity.father_id && !dto.father_id) {
+  //       if (!entity.parent_couple_id && !dto.parent_couple_id) {
   //         throw new BadRequestException(FAMILY_MEMBERS_ERROR.CANNOT_PROVIDE_MEMBERS_WITHOUT_PARENT);
   //       }
-  //       const father_id = dto.father_id ?? entity.father_id;
-  //       if (father_id) {
-  //         // await this.validateMemberOrder(father_id, dto.child_order!, nodeId, transaction);
+  //       const parent_couple_id = dto.parent_couple_id ?? entity.parent_couple_id;
+  //       if (parent_couple_id) {
+  //         // await this.validateMemberOrder(parent_couple_id, dto.child_order!, nodeId, transaction);
   //       }
   //     }
 
@@ -209,7 +209,7 @@ GetAllFamilyMembersResponseDto
   //     //   nodeId,
   //     //   {
   //     //     user_id: dto.userId ?? entity.user_id,
-  //     //     father_id: dto.father_id ?? entity.father_id,
+  //     //     parent_couple_id: dto.parent_couple_id ?? entity.parent_couple_id,
   //     //     child_order: dto.child_order ?? entity.child_order,
   //     //     updated_by: actor,
   //     //   },
@@ -228,7 +228,7 @@ GetAllFamilyMembersResponseDto
         throw new NotFoundException(FAMILY_MEMBERS_ERROR.NODE_NOT_FOUND);
       }
 
-      if (!entity.father_id) {
+      if (!entity.parent_couple_id) {
         throw new BadRequestException(FAMILY_MEMBERS_ERROR.CANNOT_DELETE_ROOT_NODE);
       }
 
@@ -239,7 +239,7 @@ GetAllFamilyMembersResponseDto
 
       await this.repository.softDeactivate(nodeId, actor, transaction);
       await this.coupleRepository.deactivateByNodeId(nodeId, transaction);
-      await this.repository.decrementMembers(entity.father_id!, transaction);
+      await this.repository.decrementMembers(entity.parent_couple_id!, transaction);
     });
   }
 
@@ -264,7 +264,7 @@ GetAllFamilyMembersResponseDto
         return;
       }
 
-      if (!node.father_id) {
+      if (!node.parent_couple_id) {
         await this.repository.softDeactivate(node.id, 'system', tx);
         await this.coupleRepository.deactivateByNodeId(node.id, tx);
         return;
@@ -277,7 +277,7 @@ GetAllFamilyMembersResponseDto
 
       await this.repository.softDeactivate(node.id, 'system', tx);
       await this.coupleRepository.deactivateByUserId(userId, tx);
-      await this.repository.decrementMembers(node.father_id, tx);
+      await this.repository.decrementMembers(node.parent_couple_id, tx);
     };
 
     if (transaction) {
@@ -307,7 +307,9 @@ GetAllFamilyMembersResponseDto
             as: 'wife',
             attributes: ['id', 'fullname'],
             through: {
+              as: 'info',
               attributes: ['marriage_status', 'marriage_date'],
+              // attributes: [],
             },
         };
 
@@ -318,11 +320,11 @@ GetAllFamilyMembersResponseDto
 
             userInclude.required = true;
         }
-        //  Bổ sung Nested Join để lấy fullname thông qua father_id
+        //  Bổ sung Nested Join để lấy fullname thông qua parent_couple_id
         const fatherInclude = {
           model: FamilyMembersModel,
           as: 'father',
-          attributes: ['id', 'user_id',  'father_id'],
+          attributes: ['id', 'user_id',  'parent_couple_id'],
           include: [
             {
               model: UserModel,
@@ -349,7 +351,7 @@ GetAllFamilyMembersResponseDto
     const users = await this.userRepository.findAll(userIds);
     const userMap = new Map(users?.map((u) => [u.id, u]) ?? []);
 
-    const rootNodeEntity = allfamily_members?.find((x) => x.father_id === null || x.father_id === undefined);
+    const rootNodeEntity = allfamily_members?.find((x) => x.parent_couple_id === null || x.parent_couple_id === undefined);
     if (!rootNodeEntity) {
       throw new NotFoundException('Family tree root not found');
     }
@@ -393,42 +395,28 @@ GetAllFamilyMembersResponseDto
 
   async getParents(userId: string): Promise<FamilyMembersGetVModel[]> {
     const currentNode = await this.repository.findByUserId(userId);
-    if (!currentNode?.father_id) {
+    if (!currentNode?.parent_couple_id) {
       return [];
     }
 
-    const parent = await this.getById(currentNode.father_id);
+    const parent = await this.getById(currentNode.parent_couple_id);
     return parent ? [parent] : [];
   }
 
   private async attachToParentNode(
-    dto: ICreatedFamilyMembersRequest,
+    childPayload: {user_id: string, parent_couple_id: string | null, child_order: number} ,
     parent: IFamilyMembers, // Node cha/mẹ đã được query từ database trước đó
     transaction: Transaction
   ): Promise<FamilyMembersModel> {
-    let fatherNodeId: string | undefined = undefined;
-    // [ĐÃ XÓA] - Bỏ hoàn toàn đoạn code kiểm tra existingChild gây lỗi "PARENT_ALREADY_HAS_CHILD"
-    if (dto.father_id) {
-      // Tìm Node gia phả của cha bằng ID
-      const fatherNode = await this.repository.findByPk(dto.father_id, [], false, { transaction });
-      if (!fatherNode) {
-        throw new NotFoundException('Không tìm thấy node của người cha trên gia phả.');
-      }
-      fatherNodeId = fatherNode.id;
-    }
-    // 2. Tính toán thế hệ (Generation Order) - Lõi nghiệp vụ
     // Thế hệ của con LUÔN LUÔN bằng thế hệ của cha/mẹ cộng thêm 1
     const childGenerationOrder = parent.generation_order + 1;
-    const currentMaxOrder = await this.repository.getMaxChildOrder(parent.id, transaction);
-    // Step 3: [Service Business Logic] Tính toán thứ tự con tiếp theo và kiểm tra xem có trùng thứ tự hay không
-    const nextChildOrder = currentMaxOrder + 1;
 
     // 3. Khởi tạo Node con mới
     const newChildNode = await this.repository.create(
       {
-        user_id: dto.user_id,
-        father_id: dto.father_id || null, 
-        child_order: nextChildOrder,
+        user_id: childPayload.user_id,
+        parent_couple_id: parent.id || null, 
+        child_order: childPayload.child_order,
         generation_order: childGenerationOrder, 
       },
       { transaction }
@@ -445,7 +433,7 @@ GetAllFamilyMembersResponseDto
     transaction: Transaction,
   ): Promise<FamilyMembersModel | any>{
     console.log('==================đang tạo cụ tổ==================')
-    const existingRoot = await this.repository.findRootNode(dto.father_id, transaction);
+    const existingRoot = await this.repository.findRootNode(dto.parent_couple_id, transaction);
     if (existingRoot) {
       throw new ConflictException(FAMILY_MEMBERS_ERROR.ROOT_NODE_ALREADY_EXISTS);
     }
@@ -453,7 +441,7 @@ GetAllFamilyMembersResponseDto
     const node = await this.repository.create(
       {
         user_id: dto.user_id,
-        father_id: null,
+        parent_couple_id: null,
         generation_order: 1
       },
       { transaction },
@@ -467,25 +455,26 @@ GetAllFamilyMembersResponseDto
     transaction: Transaction,
   ): Promise<FamilyMembersModel | any> {
     console.log('---đang tạo đứa con---')
-    const { father_id } = dto;
+    const { parent_couple_id, user_id } = dto;
     // Step 1: Kiểm tra Node Cha/Mẹ có tồn tại hay không
-    if(!father_id) throw new BadRequestException(FAMILY_MEMBERS_ERROR.CANNOT_PROVIDE_MEMBERS_WITHOUT_PARENT);
-    const parentNode = await this.repository.findByPk( father_id, [], false, { transaction });
-    if (!parentNode)  throw new NotFoundException(FAMILY_MEMBERS_ERROR.PARENT_NODE_NOT_FOUND);
+    if(!parent_couple_id) throw new BadRequestException(FAMILY_MEMBERS_ERROR.CANNOT_PROVIDE_MEMBERS_WITHOUT_PARENT);
+    const parent = await this.repository.findOneByField( 'user_id', parent_couple_id);
+    // const parentNode = await this.repository.findByPk( parent.id, [], true, { transaction });
+    // console.log('---parentNode---', parentNode)
+    if (!parent)  throw new NotFoundException(FAMILY_MEMBERS_ERROR.PARENT_NODE_NOT_FOUND);
 
     // 2. Tự động sinh ra số thứ tự con tiếp theo bằng Method đã đóng gói
-    const nextChildOrder = await this.generateNextChildOrder(father_id, transaction);
+    const nextChildOrder = await this.generateNextChildOrder(parent.id, transaction);
 
     // 3. Đóng gói Payload và gắn số thứ tự vừa sinh ra
     const childPayload = {
       ...dto,
       child_order: nextChildOrder,
     };
-
   // 4. Tạo Node con mới
   const attachment = await this.attachToParentNode(
     childPayload,
-    parentNode,
+    parent,
     transaction,
   );
 

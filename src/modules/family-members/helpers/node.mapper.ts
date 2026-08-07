@@ -46,14 +46,14 @@ export function mapEntityToVModel(entity: FamilyMembersModel | Record<string, un
   return {
     nodeId: node.id,
     userId: node.user_id,
-    father_id: node.father_id ?? undefined,
+    parent_couple_id: node.parent_couple_id ?? undefined,
     createdAt: node.created_at,
     createdBy: node.created_by ?? undefined,
     updatedAt: node.updated_at,
     updatedBy: node.updated_by ?? undefined,
     child_order: node.child_order,
     user: node.user ? mapUserToVModel(node.user) : undefined,
-    // father: node.father_id?.user ? mapUserToVModel(node.father.user) : undefined,
+    // father: node.parent_couple_id?.user ? mapUserToVModel(node.father.user) : undefined,
   };
 }
 
@@ -66,14 +66,14 @@ export function mapEntityToTree(
   const userModel = userEntity ? mapUserToVModel(userEntity) : undefined;
 
   const children = allfamily_members
-    .filter((node) => node.father_id === entity.id)
+    .filter((node) => node.parent_couple_id === entity.id)
     .map((child) => mapEntityToTree(child, allfamily_members, userMap))
     .filter((childTree) => childTree.user?.status !== 'active');
 
   return {
     id: entity.id,
     userId: entity.user_id,
-    father_id: entity.father_id ?? undefined,
+    parent_couple_id: entity.parent_couple_id ?? undefined,
     createdAt: entity.created_at,
     createdBy: entity.created_by ?? undefined,
     updatedAt: entity.updated_at,

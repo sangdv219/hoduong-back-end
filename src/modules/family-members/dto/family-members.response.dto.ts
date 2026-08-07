@@ -5,7 +5,7 @@ import { Expose, Type } from 'class-transformer';
 export interface IFamilyMembers{
   id: string;
   user_id: string; 
-  father_id: string;
+  parent_couple_id: string;
   child_order: number; 
   generation_order: number;
 }
@@ -23,7 +23,7 @@ export class FamilyMembersBaseDto implements IFamilyMembers {
   generation_order!: number;
 
   @Expose()
-  father_id!: string;
+  parent_couple_id!: string;
 
   @Expose()
   child_order!: number;
@@ -35,7 +35,10 @@ export class FamilyMembersBaseDto implements IFamilyMembers {
   father!: IUser;
 
   @Expose()
-  mother!: IUser;
+  wife!: IUser;
+
+  @Expose()
+  created_at!: Date;
 }
 
 export class GetAllFamilyMembersResponseDto implements IPaginatedResult<IFamilyMembers> {

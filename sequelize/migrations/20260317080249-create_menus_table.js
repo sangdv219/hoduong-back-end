@@ -17,7 +17,7 @@ module.exports = {
         type: Sequelize.STRING(50),
         allowNull: false,
       },
-      father_id: {
+      parent_couple_id: {
         type: Sequelize.UUID,
         allowNull: true,
       },
@@ -67,7 +67,7 @@ module.exports = {
     await queryInterface.addIndex('menus', ['ascii_name'], {
       unique: true,
       name: 'idx_menus_ascii_name',
-      include: ['name', 'link', 'sort', 'couple_order', 'father_id', 'is_active', 'created_at', 'updated_at', 'created_by', 'created_by']
+      include: ['name', 'link', 'sort', 'couple_order', 'parent_couple_id', 'is_active', 'created_at', 'updated_at', 'created_by', 'created_by']
     });
   },
 

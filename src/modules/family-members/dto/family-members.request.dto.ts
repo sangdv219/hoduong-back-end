@@ -15,7 +15,7 @@ import {
 
 export interface ICreatedFamilyMembersRequest {
   user_id: string;
-  father_id: string | null;
+  parent_couple_id: string | null;
 }
 
 export interface IFamilyMembersPaginationDTO extends IPaginationDTO{
@@ -53,7 +53,7 @@ export class CoupleGetVModel {
 export class FamilyMembersGetVModel {
   nodeId?: string;
   userId?: string | null;
-  father_id?: string;
+  parent_couple_id?: string;
   createdAt?: Date;
   createdBy?: string;
   updatedAt?: Date;
@@ -69,7 +69,7 @@ export class FamilyMembersGetVModel {
 export class NodeTreeVModel {
   id?: string;
   userId?: string | null;
-  father_id?: string;
+  parent_couple_id?: string;
   createdAt?: Date;
   createdBy?: string;
   updatedAt?: Date;
@@ -104,7 +104,7 @@ export class NodeFilterQueryDto {
 
   @IsOptional()
   @IsUUID()
-  father_id?: string | null;
+  parent_couple_id?: string | null;
 
   @IsOptional()
   @Type(() => Boolean)
@@ -136,8 +136,8 @@ export class CreatedFamilyMembersRequestDto implements ICreatedFamilyMembersRequ
 
   @IsUUID()
   @IsOptional()
-  @ApiPropertyOptional({ description: 'father_id', example: null })
-  father_id: string | null = null;
+  @ApiPropertyOptional({ description: 'parent_couple_id', example: null })
+  parent_couple_id: string | null = null;
 
   // @IsOptional()
   // @Type(() => Number)
@@ -175,7 +175,7 @@ export class UpdateNodeRequestDto {
   @IsOptional()
   @IsUUID()
   @ApiPropertyOptional({ description: 'Parent node ID' })
-  father_id?: string | null = null;
+  parent_couple_id?: string | null = null;
 
   @IsOptional()
   @Type(() => Number)

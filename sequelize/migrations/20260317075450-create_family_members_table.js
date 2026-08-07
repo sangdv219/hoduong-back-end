@@ -23,11 +23,11 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      father_id: {
+      parent_couple_id: {
         type: Sequelize.UUID,
         allowNull:true,
         references: {
-          model: 'family_members', 
+          model: 'couples', 
           key: 'id',
         },
         onUpdate: 'CASCADE',
@@ -60,7 +60,7 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex('family_members', ['father_id'], {
+    await queryInterface.addIndex('family_members', ['parent_couple_id'], {
       name: 'idx_family_members_father_id',
     });
     await queryInterface.addIndex('family_members', ['user_id'], {

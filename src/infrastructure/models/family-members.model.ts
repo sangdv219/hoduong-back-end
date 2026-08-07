@@ -18,7 +18,7 @@ import { UserModel } from '@infrastructure/models/user.model';
 export interface IFamilyMembers {
   id: string;
   user_id: string;
-  father_id: string | null;
+  parent_couple_id: string | null;
   child_order: number;
   generation_order: number;
 }
@@ -40,9 +40,10 @@ export class FamilyMembersModel extends BaseModel<FamilyMembersModel> implements
   @Column(DataType.UUID)
   user_id!: string;
 
+  @ForeignKey(() => CoupleModel)
   @AllowNull(true)
   @Column(DataType.UUID)
-  father_id!: string | null;
+  parent_couple_id!: string | null;
   
   @AllowNull(false)
   @Default(1)
@@ -56,14 +57,8 @@ export class FamilyMembersModel extends BaseModel<FamilyMembersModel> implements
   @BelongsTo(() => UserModel, { foreignKey: 'user_id', as: 'user' })
   user!: UserModel; //relation N-1 with user
 
-  @BelongsTo(() => FamilyMembersModel, { foreignKey: 'father_id', as: 'father' })
-  father!: FamilyMembersModel;
-
-  // @HasMany(() => FamilyMembersModel, { foreignKey: 'father_id', as: 'children' })
-  // declare children?: FamilyMembersModel[];
-
-  // @HasMany(() => CoupleModel, 'family_member_id')
-  // declare couples?: CoupleModel[];
+  @BelongsTo(() => CoupleModel, { foreignKey: 'parent_couple_id', as: 'parent_couple' })
+  parent_couple!: CoupleModel;
 
   @BelongsToMany(() => UserModel, {
     through: () => CoupleModel,

@@ -15,6 +15,7 @@ import { FamilyMembersModel } from './family-members.model';
 
 
 export enum MarriageStatus {
+  SINGLE = 'SINGLE',
   MARRIED = 'MARRIED',
   DIVORCED = 'DIVORCED',
   WIDOWED = 'WIDOWED',

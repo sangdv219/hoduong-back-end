@@ -42,17 +42,17 @@ export class PostgresFamilyMembersRepository extends AbstractFamilyMembersReposi
 
   async findByParentId(fatherId: string, transaction?: Transaction): Promise<FamilyMembersModel | null> {
     return this.model.findOne({
-      where: { father_id: fatherId,  },
+      where: { parent_couple_id: fatherId,  },
       transaction,
     });
   }
 
-  async findRootNode(father_id, transaction?: Transaction): Promise<FamilyMembersModel | null> {
+  async findRootNode(parent_couple_id, transaction?: Transaction): Promise<FamilyMembersModel | null> {
     return this.model.findOne({
       where: {
         // Hỗ trợ cả hai trường hợp: parent là cha hoặc parent là mẹ
         [Op.or]: [
-          { father_id: father_id },
+          { parent_couple_id: parent_couple_id },
         ],
       },
       transaction,
@@ -62,7 +62,7 @@ export class PostgresFamilyMembersRepository extends AbstractFamilyMembersReposi
     return this.model.findAll({
       where: {
         [Op.or]: [
-          { father_id: parentId },
+          { parent_couple_id: parentId },
         ],
       },
       order: [['child_order', 'ASC']], // Sắp xếp theo thứ tự anh/chị/em
@@ -70,11 +70,12 @@ export class PostgresFamilyMembersRepository extends AbstractFamilyMembersReposi
     });
   }
 
-  async getMaxChildOrder(parentId: string, transaction?: Transaction): Promise<number> {
+  async getMaxChildOrder(parent_couple_id: string | null, transaction?: Transaction): Promise<number> {
+    console.log('parent_couple_id:------>', parent_couple_id);
     const maxOrder = await this.model.max('child_order', {
       where: {
         [Op.or]: [
-          { father_id: parentId },
+          { parent_couple_id: parent_couple_id },
         ],
       },
       transaction,
@@ -87,7 +88,7 @@ export class PostgresFamilyMembersRepository extends AbstractFamilyMembersReposi
     const count = await this.model.count({
       where: {
         [Op.or]: [
-          { father_id: parentId },
+          { parent_couple_id: parentId },
         ],
         child_order: childOrder,
       },
@@ -153,14 +154,6 @@ export class PostgresFamilyMembersRepository extends AbstractFamilyMembersReposi
       // col: 'id',
     };
 
-    try {
-      const { rows, count } :{rows:any[], count: number}= await this.model.findAndCountAll(finalOptions);
-      console.log('rows', rows)
-      
-    } catch (error) {
-      console.log('error', error)
-      
-    }
     const { rows, count } :{rows:any[], count: number}= await this.model.findAndCountAll(finalOptions);
     
     return {
