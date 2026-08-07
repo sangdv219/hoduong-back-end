@@ -1,10 +1,10 @@
+import { Injectable } from '@nestjs/common';
 import { BaseTransactionService } from '@infrastructure/database/transaction.service';
 import { FamilyMemberService } from '@modules/family-members/services/family-members.service';
 // import { toSafefamily-memberResponse } from '@modules/family-members/helpers/family-member-response.helper';
-import { Injectable } from '@nestjs/common';
 import { CreatedFamilyMembersRequestDto } from '@modules/family-members/dto/family-members.request.dto';
-import { FamilyMembersRepository } from '../repository/postgres-family-members.repository';
-import { CoupleService } from '@/modules/couples/services/couples.service';
+import { FamilyMembersRepository } from '@modules/family-members/repository/postgres-family-members.repository';
+import { CoupleService } from '@modules/couples/services/couples.service';
 // import { toSafefamily-memberResponse } from '@modules/family-members/helpers/family-members-response.helper';
 
 @Injectable()

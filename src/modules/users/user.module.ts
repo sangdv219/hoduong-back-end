@@ -10,7 +10,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { RedisService } from '@redis/redis.service';
 import { DefaultTokenSecretResolverStrategy } from '@core/strategies/default-token-secret-resolver.strategy';
-import { CouplesModel } from '@/infrastructure/models/couples.model';
+import { CouplesModel } from '@infrastructure/models/couples.model';
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
 import { UserRolesModel } from '@infrastructure/models/user_roles.model';
 import { PostgresUserRolesRepository } from '@modules/associations/repositories/user-roles.repository';

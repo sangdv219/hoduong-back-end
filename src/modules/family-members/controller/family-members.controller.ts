@@ -9,7 +9,7 @@ import {
   NodePaginationModel,
   NodeTreeVModel,
   UpdateNodeRequestDto,
-} from '@/modules/family-members/dto/family-members.request.dto';
+} from '@modules/family-members/dto/family-members.request.dto';
 import {
   Body,
   Controller,

@@ -1,4 +1,4 @@
-import { CouplesModel } from '@/infrastructure/models/couples.model';
+import { CouplesModel } from '@infrastructure/models/couples.model';
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
 import { UserModel } from '@infrastructure/models/user.model';
 import {
@@ -6,7 +6,7 @@ import {
   FamilyMembersGetVModel,
   NodeTreeVModel,
   NodeUserVModel,
-} from '@/modules/family-members/dto/family-members.request.dto';
+} from '@modules/family-members/dto/family-members.request.dto';
 
 export function mapUserToVModel(user: UserModel | Record<string, unknown>): NodeUserVModel {
   const u = user as UserModel;

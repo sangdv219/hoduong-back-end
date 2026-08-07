@@ -1,8 +1,9 @@
-import { BaseRepository } from '@/domain/repositories/base.repository';
-import { CouplesModel } from '@/infrastructure/models/couples.model';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { Transaction } from 'sequelize';
+import { BaseRepository } from '@domain/repositories/base.repository';
+import { CouplesModel } from '@infrastructure/models/couples.model';
+import { ICouplesPaginationDTO } from '@modules/couples/dto/couples.request.dto';
+import { CouplesQueryBuilder } from '@modules/couples/query/couples.query.builder';
+import { FindOptions, Transaction, WhereOptions } from 'sequelize';
 
 export abstract class AbstractCouplesRepository extends BaseRepository<CouplesModel> {}
 
@@ -11,10 +12,32 @@ export class CouplesRepository extends AbstractCouplesRepository {
   private static readonly searchableFields: string[] = [];
 
   constructor(
-    @InjectModel(CouplesModel)
-    protected readonly coupleModel: typeof CouplesModel,
+    private readonly couplesQueryBuilder: CouplesQueryBuilder,
   ) {
-    super(coupleModel, CouplesRepository.searchableFields);
+    super(CouplesModel, CouplesRepository.searchableFields);
+  }
+
+  async search(params: ICouplesPaginationDTO, customOptions: FindOptions<CouplesModel>){
+    const options = this.couplesQueryBuilder.build(params);
+    const where: WhereOptions = {
+      ...options.where,
+      ...customOptions?.where,
+    };
+
+    // if (!where['status']) {
+    //   where['status'] = { [Op.ne]: Status.ARCHIVED };
+    // }
+    
+    const finalOptions = {
+      ...options,
+      ...customOptions,
+      where,
+      distinct: true, 
+      col: 'id',
+    };
+
+    const { rows, count } :{rows:any[], count: number}= await this.model.findAndCountAll(finalOptions);
+    return { items: rows, total: count } as any
   }
 
   async findByUserId(userId: string, transaction?: Transaction): Promise<CouplesModel | null> {

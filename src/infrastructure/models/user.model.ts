@@ -1,5 +1,5 @@
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
-import { CouplesModel } from '@/infrastructure/models/couples.model';
+import { CouplesModel } from '@infrastructure/models/couples.model';
 import { UserRolesModel } from '@infrastructure/models/user_roles.model';
 import { BaseModel } from '@shared/model/base.model';
 import { ClsServiceManager } from 'nestjs-cls';

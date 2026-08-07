@@ -20,7 +20,7 @@ import {
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { BaseGetResponse } from '@shared/interface/common';
 import { GetByIdCouplesResponseDto } from '../dto/couples.response.dto';
-import { CouplesModel } from '@/infrastructure/models/couples.model';
+import { CouplesModel } from '@infrastructure/models/couples.model';
 
 @ApiBearerAuth('Authorization')
 @Controller({ path:'couples', version: '1' })

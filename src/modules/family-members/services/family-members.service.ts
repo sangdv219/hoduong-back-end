@@ -10,8 +10,8 @@
 import { BaseTransactionService } from '@infrastructure/database/transaction.service';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
 import { ROOT_TREE_LEVEL } from '@modules/couples/constants/couple.constant';
-import { CouplesRepository } from '@/modules/couples/repository/couples.repository';
-import { FAMILY_MEMBERS_ERROR } from '@/modules/family-members/constants/family-members.constant';
+import { CouplesRepository } from '@modules/couples/repository/couples.repository';
+import { FAMILY_MEMBERS_ERROR } from '@modules/family-members/constants/family-members.constant';
 import {
   NodeFilterQueryDto,
   FamilyMembersGetVModel,
@@ -39,10 +39,10 @@ import {
 import { Op, Sequelize, Transaction } from 'sequelize';
 import { FamilyMembersModel, IFamilyMembers } from '@infrastructure/models/family-members.model';
 import { UserModel } from '@infrastructure/models/user.model';
-import { BaseService } from '@/core/services/base.service';
-import { GetAllFamilyMembersResponseDto, GetByIdFamilyMembersResponseDto } from '../dto/family-members.response.dto';
+import { BaseService } from '@core/services/base.service';
+import { GetAllFamilyMembersResponseDto, GetByIdFamilyMembersResponseDto } from '@modules/family-members/dto/family-members.response.dto';
 import { InjectConnection } from '@nestjs/sequelize';
-import { RedisService } from '@/redis/redis.service';
+import { RedisService } from '@redis/redis.service';
 
 export interface TreeAttachmentResult {
   nodeId: string;

@@ -1,7 +1,7 @@
 import { PaginationQueryDto } from '@/shared/dto/common';
 import { IPaginationDTO } from '@/shared/interface/common';
 import { Status } from '@infrastructure/models/user.model';
-import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,

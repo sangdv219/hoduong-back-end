@@ -12,7 +12,7 @@ import {
   Sequelize,
   Table,
 } from 'sequelize-typescript';
-import { CouplesModel } from '@/infrastructure/models/couples.model';
+import { CouplesModel } from '@infrastructure/models/couples.model';
 import { UserModel } from '@infrastructure/models/user.model';
 
 export interface IFamilyMembers {

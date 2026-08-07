@@ -1,4 +1,4 @@
-import { MarriageDateStatus, MarriageStatus } from '@/infrastructure/models/couples.model';
+import { MarriageDateStatus, MarriageStatus } from '@infrastructure/models/couples.model';
 import { GenderEnum, Status } from '@infrastructure/models/user.model';
 import { Expose, Type } from 'class-transformer';
 

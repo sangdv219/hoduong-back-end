@@ -3,9 +3,8 @@ import { FamilyMembersModel } from '@infrastructure/models/family-members.model'
 import { FamilyMembersQueryBuilder } from '@modules/family-members/query/family-members.query.builder';
 import { ConflictException, Injectable } from '@nestjs/common';
 import { FindOptions, Op, Transaction, WhereOptions } from 'sequelize';
-import { IFamilyMembersPaginationDTO } from '../dto/family-members.request.dto';
-import { includes } from 'zod';
-import { UserModel } from '@/infrastructure/models/user.model';
+import { IFamilyMembersPaginationDTO } from '@modules/family-members/dto/family-members.request.dto';
+import { UserModel } from '@infrastructure/models/user.model';
 
 export abstract class AbstractFamilyMembersRepository extends BaseRepository<FamilyMembersModel> {}
 

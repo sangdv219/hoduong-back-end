@@ -45,7 +45,6 @@ export class PostgresUserRepository extends AbstractUserRepository {
       distinct: true, 
       col: 'id',
     };
-    Logger.log('finalOptions', finalOptions)
 
     const { rows, count } :{rows:any[], count: number}= await this.model.findAndCountAll(finalOptions);
     return {

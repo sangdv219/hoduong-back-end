@@ -18,7 +18,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { IPaginationDTO } from '@shared/interface/common';
-import { MarriageDateStatus, MarriageStatus } from '@/infrastructure/models/couples.model';
+import { MarriageDateStatus, MarriageStatus } from '@infrastructure/models/couples.model';
 
 interface ICreatedCouplesRequest {
   user_id: string;
@@ -105,7 +105,7 @@ export class CouplesPaginationDTO extends PaginationQueryDto implements ICouples
   @Type(() => Number)
   @IsIn([1, 2], { message: 'Phải lớn hơn 0' })
   @ApiPropertyOptional({
-    enum: [0, 1],
+    enum: [1, 2],
     description: 'Thứ tự người vợ',
     example: null,
   })

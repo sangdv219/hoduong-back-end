@@ -1,4 +1,4 @@
-import { CouplesModel } from "@/infrastructure/models/couples.model";
+import { CouplesModel } from "@infrastructure/models/couples.model";
 import { BaseQueryBuilder } from "@shared/database/query-builder/base-query.builder";
 
 export class CouplesQueryBuilder extends BaseQueryBuilder<CouplesModel>{

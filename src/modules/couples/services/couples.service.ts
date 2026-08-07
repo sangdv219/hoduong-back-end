@@ -1,14 +1,14 @@
-import { CouplesModel } from "@/infrastructure/models/couples.model";
+import { CouplesModel } from "@infrastructure/models/couples.model";
 import { RedisService } from "@redis/redis.service";
 import { BaseService } from "@core/services/base.service";
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectConnection } from "@nestjs/sequelize";
 import { Sequelize } from "sequelize";
-import { CouplesRepository } from "@/modules/couples/repository/couples.repository";
+import { CouplesRepository } from "@modules/couples/repository/couples.repository";
 import { CreatedCouplesRequestDto, ICouplesPaginationDTO, UpdatedCouplesRequestDto } from "@modules/couples/dto/couples.request.dto";
 import { GetAllCouplesResponseDto, GetByIdCouplesResponseDto } from "@modules/couples/dto/couples.response.dto";
-import { UserModel } from "@/infrastructure/models/user.model";
-import { FamilyMembersModel } from "@/infrastructure/models/family-members.model";
+import { UserModel } from "@infrastructure/models/user.model";
+import { FamilyMembersModel } from "@infrastructure/models/family-members.model";
 
 @Injectable()
 export class CoupleService extends BaseService<
