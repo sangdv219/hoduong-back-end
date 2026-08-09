@@ -26,10 +26,10 @@ module.exports = {
       parent_couple_id: {
         type: Sequelize.UUID,
         allowNull:true,
-        references: {
-          model: 'couples', 
-          key: 'id',
-        },
+        // references: {
+        //   model: 'couples', 
+        //   key: 'id',
+        // },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       },
