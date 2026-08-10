@@ -1,5 +1,5 @@
-import { CouplesModel, EMarriageStatus } from '@/infrastructure/models/couples.model';
-import { FamilyMembersModel } from '@/infrastructure/models/family-members.model';
+import { CouplesModel, EMarriageStatus } from '@infrastructure/models/couples.model';
+import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
 import { ApiProperty, ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
 import { PaginationQueryDto } from '@shared/dto/common';
 import { IPaginationDTO } from '@shared/interface/common';
@@ -12,13 +12,19 @@ import {
   IsUUID,
   Min
 } from 'class-validator';
+export type MarriageStatus =
+  | "SINGLE"
+  | "UNMARRIED"
+  | "MARRIED"
+  | "DIVORCED"
+  | "WIDOWED";
 
 interface ICreatedCouplesRequest {
   partner_1_id: string;
   partner_2_id: string;
   couple_order: number;
   marriage_date: Date;
-  marriage_status: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED';
+  marriage_status: MarriageStatus;
   divorce_date: Date
   created_at?: Date;
   updated_at?: Date;
@@ -31,7 +37,7 @@ export interface ICouplesPaginationDTO extends IPaginationDTO{
   partner_2_id: string;
   couple_order?: number;
   marriage_date?: Date;
-  marriage_status?: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED';
+  marriage_status?: MarriageStatus;
   divorce_date?: Date
 }
 
@@ -67,12 +73,12 @@ export class CreatedCouplesRequestDto implements ICreatedCouplesRequest {
   couple_order!: number;
   
   @IsNotEmpty()
-  @IsIn(['SINGLE','MARRIED', 'DIVORCED', 'WIDOWED'], 
+  @IsIn(['SINGLE', 'UNMARRIED', 'MARRIED', 'DIVORCED', 'WIDOWED'], 
     { message: 'SINGLE, MARRIED, DIVORCED, WIDOWED'})
   @ApiPropertyOptional({
-    enum: ['SINGLE','MARRIED', 'DIVORCED', 'WIDOWED'],
+    enum: ['SINGLE', 'UNMARRIED', 'MARRIED', 'DIVORCED', 'WIDOWED'],
   })
-  marriage_status!: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED' ;
+  marriage_status!: MarriageStatus;
 
   @IsOptional()
   @Type(() => Date)
@@ -87,10 +93,10 @@ export class CreatedCouplesRequestDto implements ICreatedCouplesRequest {
 
 export class UpdatedCouplesRequestDto extends PartialType(OmitType(CreatedCouplesRequestDto, ['partner_1_id', "partner_2_id", "couple_order"] as const)) {
   @IsOptional()
-  @IsIn(['SINGLE','MARRIED', 'DIVORCED', 'WIDOWED'], 
-    { message: 'SINGLE, MARRIED, DIVORCED, WIDOWED'})
+  @IsIn(['SINGLE', 'UNMARRIED', 'MARRIED', 'DIVORCED', 'WIDOWED'], 
+    { message: 'SINGLE, UNMARRIED, MARRIED, DIVORCED, WIDOWED'})
   @ApiPropertyOptional({
-    enum: ['SINGLE','MARRIED', 'DIVORCED', 'WIDOWED'],
+    enum: ['SINGLE', 'UNMARRIED', 'MARRIED', 'DIVORCED', 'WIDOWED'],
   })
   marriage_status?: EMarriageStatus;
 
@@ -128,12 +134,12 @@ export class CouplesPaginationDTO extends PaginationQueryDto implements ICouples
   couple_order!: number;
 
   @IsOptional()
-  @IsIn(['SINGLE','MARRIED', 'DIVORCED', 'WIDOWED'], 
+  @IsIn(['SINGLE', 'UNMARRIED', 'MARRIED', 'DIVORCED', 'WIDOWED'], 
     { message: 'SINGLE, MARRIED, DIVORCED, WIDOWED'})
   @ApiPropertyOptional({
-    enum: ['SINGLE','MARRIED', 'DIVORCED', 'WIDOWED'],
+    enum: ['SINGLE', 'UNMARRIED', 'MARRIED', 'DIVORCED', 'WIDOWED'],
   })
-  marriage_status!: 'SINGLE' | 'MARRIED' | 'DIVORCED' | 'WIDOWED';
+  marriage_status!: MarriageStatus;
 
   @IsOptional()
   @ApiPropertyOptional({

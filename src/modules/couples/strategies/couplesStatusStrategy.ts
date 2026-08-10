@@ -1,10 +1,9 @@
 import { BadRequestException, Injectable, NotImplementedException } from '@nestjs/common';
 import { Transaction } from 'sequelize';
 import { CouplesModel, EMarriageStatus } from '@infrastructure/models/couples.model';
-import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
-import { IUser } from '@/infrastructure/models/user.model';
-import { COUPLE_ERROR } from '../constants/couple.constant';
-import { IMarriageStatus } from '../dto/couples.request.dto';
+import { IUser } from '@infrastructure/models/user.model';
+import { COUPLE_ERROR } from '@modules/couples/constants/couple.constant';
+import { IMarriageStatus, MarriageStatus } from '@modules/couples/dto/couples.request.dto';
 
 /**
  * Interface chứa DTO dữ liệu cập nhật cặp đôi
@@ -119,6 +118,30 @@ export class WidowedMarriageStatusStrategy implements IMarriageStatusStrategy {
     if (!isPartner1Deceased && !isPartner2Deceased)  throw new BadRequestException(COUPLE_ERROR.CANNOT_SET_STATUS_TO_WIDOWED);
 
     couple.marriage_status = EMarriageStatus.WIDOWED;
+  }
+}
+
+/**
+ * 6. Strategy cho trạng thái UNMARRIED (Chưa kết hôn / Bố mẹ sinh học)
+ */
+export class UnmarriedMarriageStatusStrategy implements IMarriageStatusStrategy {
+  validateTransition(context: IMarriageStatus): void {
+    const { couple } = context;
+    if (couple.marriage_status === 'UNMARRIED' as MarriageStatus) {
+      throw new BadRequestException('Couple marriage status is already UNMARRIED.');
+    }
+  }
+
+  async handleLogic(
+    couple: CouplesModel,
+    context: IMarriageStatus,
+    _transaction?: Transaction,
+  ): Promise<void> {
+    // Trạng thái UNMARRIED đại diện cho mối quan hệ không phải hôn nhân pháp lý 
+    // (ví dụ: chỉ có con chung). Do đó, cần làm sạch các mốc thời gian cưới/ly hôn.
+    couple.marriage_status = EMarriageStatus.UNMARRIED;
+    couple.marriage_date = null as unknown as Date;
+    couple.divorce_date = null as unknown as Date;
   }
 }
 

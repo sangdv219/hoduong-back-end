@@ -1,4 +1,4 @@
-import { CouplesModel } from '@/infrastructure/models/couples.model';
+import { CouplesModel } from '@infrastructure/models/couples.model';
 import { BaseRepository } from '@domain/repositories/base.repository';
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
 import { IFamilyMembersPaginationDTO } from '@modules/family-members/dto/family-members.request.dto';

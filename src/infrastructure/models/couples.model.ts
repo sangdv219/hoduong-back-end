@@ -14,6 +14,7 @@ import { FamilyMembersModel } from '@infrastructure/models/family-members.model'
 
 export enum EMarriageStatus {
   SINGLE = 'SINGLE',
+  UNMARRIED = 'UNMARRIED',
   MARRIED = 'MARRIED',
   DIVORCED = 'DIVORCED',
   WIDOWED = 'WIDOWED',
