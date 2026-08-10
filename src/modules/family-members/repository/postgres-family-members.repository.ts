@@ -3,8 +3,8 @@ import { BaseRepository } from '@domain/repositories/base.repository';
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
 import { IFamilyMembersPaginationDTO } from '@modules/family-members/dto/family-members.request.dto';
 import { FamilyMembersQueryBuilder } from '@modules/family-members/query/family-members.query.builder';
-import { Injectable } from '@nestjs/common';
-import { FindOptions, Op, Transaction, WhereOptions } from 'sequelize';
+import { Injectable, Logger } from '@nestjs/common';
+import { FindOptions, Op, QueryTypes, Transaction, WhereOptions } from 'sequelize';
 
 export abstract class AbstractFamilyMembersRepository extends BaseRepository<FamilyMembersModel> {}
 
@@ -134,8 +134,16 @@ export class FamilyMembersRepository extends AbstractFamilyMembersRepository {
     );
   }
 
+  async getTree(query, rootNodeId, maxDepth){
+    return await this.model.sequelize.query(query, {
+      replacements: { rootNodeId, maxDepth },
+      type: QueryTypes.SELECT,
+    });
+  }
+
   async search(params: IFamilyMembersPaginationDTO, customOptions: FindOptions<FamilyMembersModel>){
     const options = this.familyMembersQueryBuilder.build(params);
+    Logger.log('options', options);
     const where: WhereOptions = {
       ...options.where,
       ...customOptions?.where,

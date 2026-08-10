@@ -12,23 +12,20 @@ import {
 } from 'sequelize-typescript';
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
 
-export enum MarriageStatus {
+export enum EMarriageStatus {
   SINGLE = 'SINGLE',
   MARRIED = 'MARRIED',
   DIVORCED = 'DIVORCED',
   WIDOWED = 'WIDOWED',
 }
-export enum MarriageDateStatus {
-  SOLAR = 'SOLAR',
-  LUNAR = 'LUNAR',
-}
+
 export interface ICouple{
   id: string;
   partner_1_id: string;
   partner_2_id: string;
   couple_order: number;
   marriage_date: Date;
-  marriage_status: MarriageStatus;
+  marriage_status: EMarriageStatus;
   divorce_date: Date
 }
 @Table({
@@ -52,31 +49,31 @@ export class CouplesModel extends BaseModel<CouplesModel> implements ICouple{
   @ForeignKey(() => FamilyMembersModel)
   @AllowNull(false)
   @Column(DataType.UUID)
-  partner_1_id!: string;
+  declare partner_1_id: string;
 
   @ForeignKey(() => FamilyMembersModel)
   @AllowNull(false)
   @Column(DataType.UUID)
-  partner_2_id!: string;
+  declare partner_2_id: string;
   
   @AllowNull(true)
   @Default(1)
   @Column(DataType.INTEGER)
-  couple_order!: number;
+  declare couple_order: number;
 
   @AllowNull(true)
   @Column(DataType.DATE)
-  marriage_date!: Date;
+  declare marriage_date: Date;
 
   @AllowNull(false)
   @Column({
-    type: DataType.ENUM(...Object.values(MarriageStatus)),
+    type: DataType.ENUM(...Object.values(EMarriageStatus)),
   })
-  marriage_status!: MarriageStatus;
+  declare marriage_status: EMarriageStatus;
 
   @AllowNull(true)
   @Column(DataType.DATE)
-  divorce_date!: Date;
+  declare divorce_date: Date;
 
   @BelongsTo(() => FamilyMembersModel, { foreignKey: 'partner_1_id', as: 'partner_1' })
   partner_1!: FamilyMembersModel;

@@ -109,7 +109,7 @@ export abstract class BaseService<
     }
     const result = await this.repository.search( params, options );
     
-    await this.cacheManage.set(redisKey, JSON.stringify(this.transformToDto( result )), 'EX', 30);
+    await this.cacheManage.set(redisKey, JSON.stringify(this.transformToDto( result )), 'EX', 5);
 
     return this.transformToDto( result );
   }

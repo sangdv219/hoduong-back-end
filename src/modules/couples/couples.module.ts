@@ -10,6 +10,7 @@ import { CouplesModel } from '@infrastructure/models/couples.model';
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
 import { FamilyMembersRepository } from '@modules/family-members/repository/postgres-family-members.repository';
 import { FamilyMembersQueryBuilder } from '@modules/family-members/query/family-members.query.builder';
+import { MarriageStatusStrategyFactory } from '@modules/couples/strategies/couplesStatusStrategy';
 
 @Module({
   imports: [SequelizeModule.forFeature([CouplesModel, UserModel, FamilyMembersModel])],
@@ -19,6 +20,7 @@ import { FamilyMembersQueryBuilder } from '@modules/family-members/query/family-
     CoupleService,
     CouplesRepository,
     CouplesQueryBuilder,
+    MarriageStatusStrategyFactory,
     UserQueryBuilder
   ],
   controllers: [CouplesController],

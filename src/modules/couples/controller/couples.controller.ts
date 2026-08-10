@@ -66,7 +66,7 @@ export class CouplesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   // @UseGuards(JWTAuthGuard)
   // @UseInterceptors(couplesContextInterceptor)
-  async updateCouples(@Param('id') id: string, @Body() dto: UpdatedCouplesRequestDto) {
+  async update(@Param('id') id: string, @Body() dto: UpdatedCouplesRequestDto) {
     try {
       return await this.coupleService.update(id, dto);
     } catch (error) {

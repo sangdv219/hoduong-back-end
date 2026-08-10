@@ -12,6 +12,7 @@ module.exports = {
     schema: schemaConfig.name,
     migrationStorageTableSchema: schemaConfig.name,
     seederStorage: 'sequelize',
+    timezone: '+07:00',
   },
   staging: {
     username: process.env.DB_USER,
@@ -23,6 +24,7 @@ module.exports = {
     schema: schemaConfig.name,
     migrationStorageTableSchema: schemaConfig.name,
     seederStorage: 'sequelize',
+    timezone: '+07:00',
   },
   production: {
     username: process.env.DB_USER,

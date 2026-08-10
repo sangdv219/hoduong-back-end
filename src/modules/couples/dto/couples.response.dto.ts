@@ -1,4 +1,4 @@
-import { MarriageDateStatus, MarriageStatus } from '@infrastructure/models/couples.model';
+import { EMarriageStatus } from '@infrastructure/models/couples.model';
 import { Expose, Type } from 'class-transformer';
 
 export interface ICouples{
@@ -7,7 +7,7 @@ export interface ICouples{
   partner_2_id: string;
   couple_order: number;
   marriage_date: Date;
-  marriage_status: MarriageStatus;
+  marriage_status: EMarriageStatus;
   divorce_date: Date
 }
 
@@ -33,7 +33,7 @@ export class CouplesBaseDto implements ICouples {
   marriage_date!: Date; 
 
   @Expose()
-  marriage_status!: MarriageStatus;
+  marriage_status!: EMarriageStatus;
 
   @Expose()
   divorce_date!: Date

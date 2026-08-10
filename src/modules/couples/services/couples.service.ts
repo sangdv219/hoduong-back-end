@@ -1,14 +1,16 @@
 import { CouplesModel } from "@infrastructure/models/couples.model";
 import { RedisService } from "@redis/redis.service";
 import { BaseService } from "@core/services/base.service";
-import { Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { InjectConnection } from "@nestjs/sequelize";
-import { Sequelize } from "sequelize";
+import { Sequelize, Transaction } from "sequelize";
 import { CouplesRepository } from "@modules/couples/repository/couples.repository";
-import { CreatedCouplesRequestDto, ICouplesPaginationDTO, UpdatedCouplesRequestDto } from "@modules/couples/dto/couples.request.dto";
+import { CreatedCouplesRequestDto, ICouplesPaginationDTO, IMarriageStatus, IUpdateCoupleDto, UpdatedCouplesRequestDto } from "@modules/couples/dto/couples.request.dto";
 import { GetAllCouplesResponseDto, GetByIdCouplesResponseDto } from "@modules/couples/dto/couples.response.dto";
-import { UserModel } from "@infrastructure/models/user.model";
+import { Status, UserModel } from "@infrastructure/models/user.model";
 import { FamilyMembersModel } from "@infrastructure/models/family-members.model";
+import { COUPLE_ERROR } from "@modules/couples/constants/couple.constant";
+import { MarriageStatusStrategyFactory } from "@modules/couples/strategies/couplesStatusStrategy";
 
 @Injectable()
 export class CoupleService extends BaseService<
@@ -27,6 +29,7 @@ export class CoupleService extends BaseService<
       private readonly sequelize: Sequelize,
       protected repository: CouplesRepository,
       public cacheManage: RedisService,
+      private readonly marriageStatusStrategyFactory: MarriageStatusStrategyFactory, 
     ) {
       super(repository);
       this.searchableFields = [ 'email' ];
@@ -133,6 +136,54 @@ export class CoupleService extends BaseService<
       }
 
       async create(dto: CreatedCouplesRequestDto){
-        return super.create(dto)
+        const {partner_1_id, partner_2_id} = dto;
+        if(partner_1_id === partner_2_id) throw new BadRequestException(COUPLE_ERROR.CANNOT_SET_RELATION_MARRIE_WITH_YOUSELF);
+        const [sorted_partner_1, sorted_partner_2] = [partner_1_id, partner_2_id].sort()
+        
+
+
+        return super.create({
+          ...dto, 
+          partner_1_id: sorted_partner_1,
+          partner_2_id: sorted_partner_2,
+        })
       }
+
+      async update(id: string, dto:IUpdateCoupleDto){
+        const transaction = await this.sequelize.transaction();
+        const couple = await CouplesModel.findByPk(id, {
+          include: [
+            {
+              association: 'partner_1',
+              include: ['user'], // Eager load UserModel cho partner_1
+            },
+            {
+              association: 'partner_2',
+              include: ['user'], // Eager load UserModel cho partner_2
+            },
+          ],
+          transaction,
+        });
+        
+        if (!couple) {
+          throw new BadRequestException('Couple not found.');
+        }
+    
+    
+        const strategy = this.marriageStatusStrategyFactory.getStrategy(dto.marriage_status);
+    
+        // 3. Chuẩn bị Context
+        const context: IMarriageStatus = {
+          couple,
+          dto,
+          partner1: couple.partner_1,
+          partner2: couple.partner_2,
+        };
+    
+        strategy.validateTransition(context);
+        await strategy.handleLogic(couple, context, transaction);
+ 
+        return couple;
+      }
+
   }
