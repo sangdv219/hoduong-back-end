@@ -17,11 +17,11 @@ import { PostgresUserRolesRepository } from '@modules/associations/repositories/
 import { PostgresRolePermissionsRepository } from '@modules/associations/repositories/role-permissions.repository';
 import { AssociationsModule } from '@modules/associations/associations.module';
 import { RolePermissionsModel } from '@modules/associations/models/role-permissions.model';
-import { RegisterUserUseCase } from './use-cases/sign-up/signup.use-case';
-import { CreateUserUseCase } from './use-cases/create-user/create-user.use-case';
-import { OTPService } from '../auth/services/OTP.service';
-import { UserStatusStrategyFactory } from './strategies/userStatusStrategy';
-import { UserQueryBuilder } from './query/user.query.builder';
+import { RegisterUserUseCase } from '@modules/users/use-cases/sign-up/signup.use-case';
+import { CreateUserUseCase } from '@modules/users/use-cases/create-user/create-user.use-case';
+import { OTPService } from '@modules/auth/services/OTP.service';
+import { UserStatusStrategyFactory } from '@modules/users/strategies/userStatusStrategy';
+import { UserQueryBuilder } from '@modules/users/query/user.query.builder';
 
 @Module({
   imports: [

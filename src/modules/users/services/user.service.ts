@@ -22,7 +22,7 @@ import { RedisService } from '@redis/redis.service';
 import { toAsciiName } from '@shared/utils/string.util';
 import { Transaction } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
-import { UserStatusStrategyFactory } from '../strategies/userStatusStrategy';
+import { UserStatusStrategyFactory } from '@modules/users/strategies/userStatusStrategy';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -45,7 +45,6 @@ export class UserService extends BaseService<
     public cacheManage: RedisService,
     private readonly passwordService: PasswordService,
     private readonly roleRepository: PostgresRoleRepository,
-    private readonly FamilyMemberService: FamilyMemberService,
     private readonly statusStrategyFactory: UserStatusStrategyFactory, 
   ) {
     super(repository);
