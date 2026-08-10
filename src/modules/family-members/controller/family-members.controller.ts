@@ -3,6 +3,7 @@ import { BaseResponseInterceptor } from '@core/interceptors/base-response.interc
 import { LoggingInterceptor } from '@core/interceptors/logging.interceptor';
 import {
   CreatedFamilyMembersRequestDto,
+  FamilyMembersAsTreeDTO,
   FamilyMembersGetVModel,
   FamilyMembersPaginationDTO,
   NodeFilterQueryDto,
@@ -48,12 +49,12 @@ export class FamilyMembersController {
     return this.familyMemberService.searchFamilyMembers(query);
   }
 
-  // @Get('tree')
-  // @HttpCode(HttpStatus.OK)
-  // @ApiOkResponse({ type: NodeTreeVModel })
-  // async getAllAsTree(): Promise<NodeTreeVModel> {
-  //   return this.familyMemberService.getAllAsTree();
-  // }
+  @Get('tree')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: NodeTreeVModel })
+  async getAllAsTree(@Body() query: FamilyMembersAsTreeDTO): Promise<any> {
+    return this.familyMemberService.getAllAsTree(query);
+  }
 
   @Get('parents/:userId')
   @HttpCode(HttpStatus.OK)
@@ -106,16 +107,5 @@ export class FamilyMembersController {
   async remove(@Param('id') id: string, @Req() req: Request): Promise<void> {
     const actor = (req as any).user?.username ?? 'System';
     await this.familyMemberService.remove(id, actor);
-  }
-
-  @Put(':id/change-status')
-  @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: FamilyMembersGetVModel })
-  async changeStatus(
-    @Param('id') id: string,
-    @Req() req: Request,
-  ): Promise<FamilyMembersGetVModel> {
-    const actor = (req as any).user?.username ?? 'System';
-    return this.familyMemberService.changeStatus(id, actor);
   }
 }

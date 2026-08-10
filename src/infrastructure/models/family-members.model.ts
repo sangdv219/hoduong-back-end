@@ -37,27 +37,27 @@ export class FamilyMembersModel extends BaseModel<FamilyMembersModel> implements
   @ForeignKey(() => UserModel)
   @AllowNull(true)
   @Column(DataType.UUID)
-  user_id!: string | null;
+  declare user_id: string | null;
 
   @AllowNull(false)
   @Column(DataType.INTEGER)
-  generation_order!: number;
+  declare generation_order: number;
 
   @ForeignKey(() => CouplesModel)
   @AllowNull(true)
   @Column(DataType.UUID)
-  parent_couple_id!: string | null;
+  declare parent_couple_id: string | null;
   
   @AllowNull(false)
   @Default(1)
   @Column(DataType.INTEGER)
-  child_order!: number;
+  declare child_order: number;
 
   @BelongsTo(() => UserModel, { foreignKey: 'user_id', as: 'user' })
-  user!: UserModel; //relation N-1 with user
+  declare user: UserModel; //relation N-1 with user
 
   @BelongsTo(() => CouplesModel, { foreignKey: 'parent_couple_id', as: 'parent_couple' })
-  parent_couple!: CouplesModel;
+  declare parent_couple: CouplesModel;
 
   @BelongsToMany(() => FamilyMembersModel, {
     through: () => CouplesModel,
@@ -65,6 +65,6 @@ export class FamilyMembersModel extends BaseModel<FamilyMembersModel> implements
     otherKey: 'partner_2_id',
     as: 'partners'
   })
-  partners!: FamilyMembersModel[];
+  declare partners: FamilyMembersModel[];
 }
 

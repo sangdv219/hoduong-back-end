@@ -9,7 +9,6 @@
 
 import { BaseTransactionService } from '@infrastructure/database/transaction.service';
 import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
-import { ROOT_TREE_LEVEL } from '@modules/couples/constants/couple.constant';
 import { CouplesRepository } from '@modules/couples/repository/couples.repository';
 import { FAMILY_MEMBERS_ERROR } from '@modules/family-members/constants/family-members.constant';
 import {
@@ -36,12 +35,12 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Op, Sequelize, Transaction } from 'sequelize';
+import { Op, QueryTypes, Sequelize, Transaction } from 'sequelize';
 import { FamilyMembersModel, IFamilyMembers } from '@infrastructure/models/family-members.model';
 import { UserModel } from '@infrastructure/models/user.model';
 import { BaseService } from '@core/services/base.service';
 import { GetAllFamilyMembersResponseDto, GetByIdFamilyMembersResponseDto } from '@modules/family-members/dto/family-members.response.dto';
-import { InjectConnection } from '@nestjs/sequelize';
+import { InjectConnection, InjectModel } from '@nestjs/sequelize';
 import { RedisService } from '@redis/redis.service';
 
 export interface TreeAttachmentResult {
@@ -67,6 +66,8 @@ GetAllFamilyMembersResponseDto
   constructor(
     @InjectConnection()
     private readonly sequelize: Sequelize,
+    @InjectModel(FamilyMembersModel)
+    protected familyMembersModel: typeof FamilyMembersModel,
     protected repository: FamilyMembersRepository,
     private readonly coupleRepository: CouplesRepository,
     private readonly userRepository: PostgresUserRepository,
@@ -155,6 +156,7 @@ GetAllFamilyMembersResponseDto
   }
 
   async create(dto: ICreatedFamilyMembersRequest): Promise<FamilyMembersGetVModel | any> {
+    this.cleanCacheRedis()
     return this.baseTransactionService.runInTransaction(async (transaction) => {
       const user = await this.userRepository.findByPk(dto.user_id, [], false, { transaction }); 
       if (!user) throw new NotFoundException(FAMILY_MEMBERS_ERROR.USER_NOT_FOUND);
@@ -290,7 +292,6 @@ GetAllFamilyMembersResponseDto
 
   async searchFamilyMembers(query: IFamilyMembersPaginationDTO): Promise<GetAllFamilyMembersResponseDto | any> {
     const { user_id, ...baseParams } = query;
-    Logger.log('search user')
     return super.search(baseParams, query, options => {
         const include = Array.isArray(options.include)
             ? options.include
@@ -301,7 +302,7 @@ GetAllFamilyMembersResponseDto
         const userInclude:any = {
             model: UserModel,
             as: 'user',
-            attributes: ['fullname', 'age'],
+            attributes: ['fullname'],
         };
         // const coupleInclude:any = {
         //     model: UserModel,
@@ -359,6 +360,31 @@ GetAllFamilyMembersResponseDto
 
   //   return mapEntityToTree(rootNodeEntity, allfamily_members ?? [], userMap as Map<string, UserModel>);
   // }
+
+  async getAllAsTree(dto): Promise<any[]> {
+    const {rootNodeId, maxDepth = 10} = dto;
+    // QUY TẮC 4: Có path_tracker để chống vòng lặp cứng (nếu bị lọt data lỗi) và maxDepth chống tràn bộ nhớ
+    const query = `
+      WITH RECURSIVE family_tree AS (
+        SELECT id, user_id, parent_couple_id, generation_order, 1 AS depth,
+               ARRAY[id] AS path_tracker
+        FROM family_members 
+        WHERE id = :rootNodeId
+
+        UNION ALL
+
+        SELECT fm.id, fm.user_id, fm.parent_couple_id, fm.generation_order, ft.depth + 1,
+               ft.path_tracker || fm.id
+        FROM family_members fm
+        INNER JOIN family_tree ft ON fm.parent_couple_id = ft.parent_couple_id -- Khớp relation logic của bạn
+        WHERE ft.depth < :maxDepth 
+          AND fm.id != ALL(ft.path_tracker) 
+      )
+      SELECT * FROM family_tree;
+    `;
+
+    return this.repository.getTree(query, rootNodeId, maxDepth)
+  }
 
   async getById(id: string): Promise<FamilyMembersGetVModel | null> {
     const entity = await this.repository.findByPkWithRelations(id);
@@ -434,10 +460,10 @@ GetAllFamilyMembersResponseDto
     transaction: Transaction,
   ): Promise<FamilyMembersModel | any>{
     console.log('==================đang tạo cụ tổ==================')
-    const existingRoot = await this.repository.findRootNode(dto.parent_couple_id, transaction);
-    if (existingRoot) {
-      throw new ConflictException(FAMILY_MEMBERS_ERROR.ROOT_NODE_ALREADY_EXISTS);
-    }
+    // const existingRoot = await this.repository.findRootNode(dto.parent_couple_id, transaction);
+    // if (existingRoot) {
+    //   throw new ConflictException(FAMILY_MEMBERS_ERROR.ROOT_NODE_ALREADY_EXISTS);
+    // }
 
     const node = await this.repository.create(
       {
@@ -463,7 +489,8 @@ GetAllFamilyMembersResponseDto
     // const parentNode = await this.repository.findByPk( parent.id, [], true, { transaction });
     // console.log('---parentNode---', parentNode)
     if (!parent)  throw new NotFoundException(FAMILY_MEMBERS_ERROR.PARENT_NODE_NOT_FOUND);
-
+    //QUY TẮC 1: Bắt buộc tránh Vòng lặp phụ thuộc (Circular Dependency)
+    // Thế hệ của con LUÔN LUÔN phải lớn hơn thế hệ của cha/mẹ.
     // 2. Tự động sinh ra số thứ tự con tiếp theo bằng Method đã đóng gói
     const nextChildOrder = await this.generateNextChildOrder(parent.id, transaction);
 

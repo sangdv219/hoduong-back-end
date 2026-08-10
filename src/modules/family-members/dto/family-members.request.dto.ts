@@ -183,12 +183,21 @@ export class UpdateNodeRequestDto {
   @Min(1)
   @ApiPropertyOptional({ description: 'Member order among siblings' })
   child_order?: number | null = 1;
-
+  
   @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
   @ApiPropertyOptional()
   status?: boolean | null = true ;
+}
+
+export class FamilyMembersAsTreeDTO{
+  @ApiProperty({ description: 'rootNodeId',  })
+  rootNodeId!: string
+  
+  @IsOptional()
+  @ApiProperty({ description: 'maxDepth' })
+  maxDepth!: number
 }
 
 export class FamilyMembersPaginationDTO extends PaginationQueryDto implements IFamilyMembersPaginationDTO {
