@@ -8,7 +8,7 @@
 
 
 import { BaseTransactionService } from '@infrastructure/database/transaction.service';
-import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
+import { UserRepository } from '@modules/users/repository/user.admin.repository';
 import { CouplesRepository } from '@modules/couples/repository/couples.repository';
 import { FAMILY_MEMBERS_ERROR } from '@modules/family-members/constants/family-members.constant';
 import {
@@ -70,7 +70,7 @@ GetAllFamilyMembersResponseDto
     protected familyMembersModel: typeof FamilyMembersModel,
     protected repository: FamilyMembersRepository,
     private readonly coupleRepository: CouplesRepository,
-    private readonly userRepository: PostgresUserRepository,
+    private readonly userRepository: UserRepository,
     private readonly baseTransactionService: BaseTransactionService,
     public cacheManage: RedisService,
   ) {

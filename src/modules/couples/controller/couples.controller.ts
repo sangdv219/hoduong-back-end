@@ -1,7 +1,6 @@
 import { AllExceptionsFilter } from '@core/filters/sequelize-exception.filter';
 import { BaseResponseInterceptor } from '@core/interceptors/base-response.interceptor';
 import { LoggingInterceptor } from '@core/interceptors/logging.interceptor';
-import { RegisterDto } from '@modules/auth/dto/register.dto';
 import { CouplesPaginationDTO, CreatedCouplesRequestDto, UpdatedCouplesRequestDto } from '@modules/couples/dto/couples.request.dto';
 import { CoupleService } from '@modules/couples/services/couples.service';
 import {
@@ -19,8 +18,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { BaseGetResponse } from '@shared/interface/common';
-import { GetByIdCouplesResponseDto } from '../dto/couples.response.dto';
+import { GetByIdCouplesResponseDto } from '@modules/couples/dto/couples.response.dto';
 import { CouplesModel } from '@infrastructure/models/couples.model';
+import { CreateCoupleUseCase } from '@modules/couples/use-cases/create-couple.use-case';
 
 @ApiBearerAuth('Authorization')
 @Controller({ path:'couples', version: '1' })
@@ -29,6 +29,7 @@ import { CouplesModel } from '@infrastructure/models/couples.model';
 export class CouplesController {
   constructor(
     private readonly coupleService: CoupleService,
+    private readonly createCoupleUseCase: CreateCoupleUseCase,
   ) { }
 
   @ApiOkResponse({ description: 'Danh sách couples phân trang', type: BaseGetResponse<CouplesModel> })
@@ -59,7 +60,8 @@ export class CouplesController {
   @Post()
   @ApiOkResponse({ description: 'Create new couples', type: CreatedCouplesRequestDto })
   async create(@Body() dto: CreatedCouplesRequestDto): Promise<any> {
-    return await this.coupleService.create(dto);
+
+    return await this.createCoupleUseCase.execute(dto);
   }
   
   @Patch(':id')

@@ -1,5 +1,5 @@
 import { BaseTransactionService } from '@infrastructure/database/transaction.service';
-import { PostgresUserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
+import { UserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
 import { FamilyMemberService } from '@modules/family-members/services/family-members.service';
 // import { toSafeUserResponse } from '@modules/users/helpers/user-response.helper';
 import { UserService } from '@modules/users/services/user.service';
@@ -11,7 +11,7 @@ import { toSafeUserResponse } from '@modules/users/helpers/user-response.helper'
 export class CreateUserUseCase {
   constructor(
     private readonly userService: UserService,
-    private readonly userRolesRepository: PostgresUserRolesRepository,
+    private readonly userRolesRepository: UserRolesRepository,
     private readonly FamilyMemberService: FamilyMemberService,
     private readonly baseTransactionService: BaseTransactionService,
   ) {}

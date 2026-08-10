@@ -5,14 +5,14 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Transaction } from 'sequelize';
 
 @Injectable()
-export class PostgresUserRolesRepository extends AbstractUserRolesRepository {
+export class UserRolesRepository extends AbstractUserRolesRepository {
   private static readonly searchableFields: string[] = [];
 
   constructor(
     @InjectModel(UserRolesModel)
     protected readonly userRolesModel: typeof UserRolesModel,
   ) {
-    super(userRolesModel, PostgresUserRolesRepository.searchableFields);
+    super(userRolesModel, UserRolesRepository.searchableFields);
   }
 
   async assignRole(

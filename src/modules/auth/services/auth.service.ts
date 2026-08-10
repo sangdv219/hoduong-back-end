@@ -4,7 +4,7 @@ import { LoginResponseDto } from '@modules/auth/interface/login.interface';
 import { RefreshTokenResponseDto } from '@modules/auth/interface/refreshToken.interface';
 import { OTPService } from '@modules/auth/services/OTP.service';
 import { PasswordService } from '@modules/password/services/password.service';
-import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
+import { UserRepository } from '@modules/users/repository/user.admin.repository';
 import { UserService } from '@modules/users/services/user.service';
 import { GoneException, Inject, Injectable, Logger, NotFoundException, OnModuleInit, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -25,7 +25,7 @@ export class AuthService implements OnModuleInit {
     private readonly OTPService: OTPService,
     // @InjectModel(UserModel)
     // protected readonly UserModel: typeof UserModel,
-    private readonly userRepository: PostgresUserRepository, // Assuming Redis is injected for cache management
+    private readonly userRepository: UserRepository, // Assuming Redis is injected for cache management
     private readonly configService: ConfigService,
     private readonly userService: UserService,
     @Inject(REDIS_TOKEN)

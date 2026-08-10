@@ -4,18 +4,18 @@ import { RolesModel } from '@infrastructure/models/roles.model';
 import { UserModel } from '@infrastructure/models/user.model';
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { PostgresRolePermissionsRepository } from './repositories/role-permissions.repository';
+import { RolePermissionsRepository } from './repositories/role-permissions.repository';
 import { RolePermissionsModel } from './models/role-permissions.model';
 
 @Module({
   imports: [ SequelizeModule.forFeature([RolesModel, PermissionsModel, UserModel, RolePermissionsModel])],
   providers: [
     PostgresPermissionsRepository,
-    PostgresRolePermissionsRepository, 
+    RolePermissionsRepository, 
   ],
   exports: [
     PostgresPermissionsRepository, 
-    PostgresRolePermissionsRepository, 
+    RolePermissionsRepository, 
   ],
 })
 export class AssociationsModule {}

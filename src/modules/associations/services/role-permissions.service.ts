@@ -1,7 +1,7 @@
 // // src/modules/rbac/rbac.service.ts
 // import { Injectable, Logger } from '@nestjs/common';
 // import { RedisService } from '@redis/redis.service';
-// import { PostgresRolePermissionsRepository } from '../associations/repositories/role-permissions.repository';
+// import { RolePermissionsRepository } from '../associations/repositories/role-permissions.repository';
 // import { PermissionsModel } from '../permissions/domain/models/permissions.model';
 // import { RolesModel } from '../roles/domain/models/roles.model';
 
@@ -9,7 +9,7 @@
 // export class RolePermissionsService {
 //   private readonly logger = new Logger(RolePermissionsService.name);
 //   constructor(
-//     protected repository: PostgresRolePermissionsRepository,
+//     protected repository: RolePermissionsRepository,
 //     public cacheManage: RedisService,
 //   ) { }
 

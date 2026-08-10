@@ -3,7 +3,7 @@ import { RolesModule } from '@modules/roles/roles.module';
 import { FamilyMembersModule } from '@modules/family-members/family-members.module';
 import { UserAdminController } from '@modules/users/controller/user.admin.controller';
 import { UserModel } from '@infrastructure/models/user.model';
-import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
+import { UserRepository } from '@modules/users/repository/user.admin.repository';
 import { UserService } from '@modules/users/services/user.service';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
@@ -13,8 +13,8 @@ import { DefaultTokenSecretResolverStrategy } from '@core/strategies/default-tok
 import { CouplesModel } from '@infrastructure/models/couples.model';
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
 import { UserRolesModel } from '@infrastructure/models/user_roles.model';
-import { PostgresUserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
-import { PostgresRolePermissionsRepository } from '@modules/associations/repositories/role-permissions.repository';
+import { UserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
+import { RolePermissionsRepository } from '@modules/associations/repositories/role-permissions.repository';
 import { AssociationsModule } from '@modules/associations/associations.module';
 import { RolePermissionsModel } from '@modules/associations/models/role-permissions.model';
 import { RegisterUserUseCase } from '@modules/users/use-cases/sign-up/signup.use-case';
@@ -33,10 +33,10 @@ import { UserQueryBuilder } from '@modules/users/query/user.query.builder';
   ],
   controllers: [UserAdminController],
   providers: [
-    PostgresUserRepository,
+    UserRepository,
     UserService,
-    PostgresUserRolesRepository,
-    PostgresRolePermissionsRepository,
+    UserRolesRepository,
+    RolePermissionsRepository,
     RedisService,
     RegisterUserUseCase,
     CreateUserUseCase,
@@ -49,6 +49,6 @@ import { UserQueryBuilder } from '@modules/users/query/user.query.builder';
       useClass: DefaultTokenSecretResolverStrategy,
     },
   ],
-  exports: [PostgresUserRepository, UserService],
+  exports: [UserRepository, UserService],
 })
 export class UserModule {}

@@ -4,11 +4,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 
 @Injectable()
-export class PostgresRolePermissionsRepository extends AbstractRolePermissionsRepository {
+export class RolePermissionsRepository extends AbstractRolePermissionsRepository {
   private static readonly searchableFields = ['name', 'description'];
   constructor(@InjectModel(RolePermissionsModel)
     protected readonly rolePermissionsModel: typeof RolePermissionsModel,
   ) {
-    super(rolePermissionsModel, PostgresRolePermissionsRepository.searchableFields);
+    super(rolePermissionsModel, RolePermissionsRepository.searchableFields);
   }
 }

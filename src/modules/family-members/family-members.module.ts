@@ -8,7 +8,7 @@ import { CouplesQueryBuilder } from '@modules/couples/query/couples.query.builde
 import { FamilyMembersRepository } from '@modules/family-members/repository/postgres-family-members.repository';
 import { FamilyMemberService } from '@modules/family-members/services/family-members.service';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
+import { UserRepository } from '@modules/users/repository/user.admin.repository';
 import { UserModel } from '@infrastructure/models/user.model';
 import { UserQueryBuilder } from '@modules/users/query/user.query.builder';
 
@@ -17,7 +17,7 @@ import { UserQueryBuilder } from '@modules/users/query/user.query.builder';
   providers: [
     FamilyMembersRepository,
     CouplesRepository,
-    PostgresUserRepository,
+    UserRepository,
     FamilyMemberService,
     FamilyMembersQueryBuilder,
     UserQueryBuilder,

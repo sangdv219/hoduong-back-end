@@ -127,7 +127,7 @@ export class WidowedMarriageStatusStrategy implements IMarriageStatusStrategy {
 export class UnmarriedMarriageStatusStrategy implements IMarriageStatusStrategy {
   validateTransition(context: IMarriageStatus): void {
     const { couple } = context;
-    if (couple.marriage_status === 'UNMARRIED' as MarriageStatus) {
+    if (couple.marriage_status === EMarriageStatus.UNMARRIED as MarriageStatus) {
       throw new BadRequestException('Couple marriage status is already UNMARRIED.');
     }
   }
@@ -157,6 +157,8 @@ export class MarriageStatusStrategyFactory {
         return new DivorcedMarriageStatusStrategy();
       case EMarriageStatus.WIDOWED:
         return new WidowedMarriageStatusStrategy();
+      case EMarriageStatus.UNMARRIED:
+        return new UnmarriedMarriageStatusStrategy();
       default:
         throw new NotImplementedException(
           `Strategy for marriage status '${targetStatus}' is not implemented.`,

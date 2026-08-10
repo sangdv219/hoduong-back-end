@@ -3,7 +3,7 @@ import { RedisService } from "@redis/redis.service";
 import { BaseService } from "@core/services/base.service";
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { InjectConnection } from "@nestjs/sequelize";
-import { Sequelize } from "sequelize";
+import { Sequelize, Transaction } from "sequelize";
 import { CouplesRepository } from "@modules/couples/repository/couples.repository";
 import { CreatedCouplesRequestDto, ICouplesPaginationDTO, IMarriageStatus, IUpdateCoupleDto, UpdatedCouplesRequestDto } from "@modules/couples/dto/couples.request.dto";
 import { GetAllCouplesResponseDto, GetByIdCouplesResponseDto } from "@modules/couples/dto/couples.response.dto";
@@ -135,18 +135,8 @@ export class CoupleService extends BaseService<
           })
       }
 
-      async create(dto: CreatedCouplesRequestDto){
-        const {partner_1_id, partner_2_id} = dto;
-        if(partner_1_id === partner_2_id) throw new BadRequestException(COUPLE_ERROR.CANNOT_SET_RELATION_MARRIE_WITH_YOUSELF);
-        const [sorted_partner_1, sorted_partner_2] = [partner_1_id, partner_2_id].sort()
-        
-
-
-        return super.create({
-          ...dto, 
-          partner_1_id: sorted_partner_1,
-          partner_2_id: sorted_partner_2,
-        })
+      async create(dto: CreatedCouplesRequestDto, transaction?: Transaction){
+        return super.create(dto)
       }
 
       async update(id: string, dto:IUpdateCoupleDto){
@@ -185,5 +175,4 @@ export class CoupleService extends BaseService<
  
         return couple;
       }
-
   }

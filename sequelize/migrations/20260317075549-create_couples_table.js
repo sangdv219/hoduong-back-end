@@ -42,7 +42,7 @@ module.exports = {
         allowNull: true,
       },
       marriage_status: {
-        type: Sequelize.ENUM('SINGLE','MARRIED', 'DIVORCED', 'WIDOWED'),
+        type: Sequelize.ENUM('SINGLE', 'UNMARRIED', 'MARRIED', 'DIVORCED', 'WIDOWED'),
         allowNull: false
       },
       divorce_date: {

@@ -6,14 +6,14 @@ import { REDIS_TOKEN } from "@redis/redis.module";
 import { findCacheByEmail, scanlAlKeys } from "@shared/utils/common.util";
 import { OTPService } from '@modules/auth/services/OTP.service';
 import { GoneException, Inject, UnauthorizedException } from "@nestjs/common";
-import { PostgresUserRepository } from "@modules/users/repository/user.admin.repository";
+import { UserRepository } from "@modules/users/repository/user.admin.repository";
 import Redis from "ioredis";
 
 
 export class RegisterUserUseCase {
     constructor(
         private readonly bullService: BullService,
-        private readonly userRepository: PostgresUserRepository,
+        private readonly userRepository: UserRepository,
         private readonly OTPService: OTPService,
         @Inject(REDIS_TOKEN)
         private readonly redis: Redis,

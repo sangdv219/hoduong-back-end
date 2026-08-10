@@ -13,7 +13,7 @@ import { RedisService } from '@redis/redis.service';
 import { sensitiveFields } from '@shared/config/sensitive-fields.config';
 import { IPaginationDTO } from '@shared/interface/common';
 import { plainToInstance } from 'class-transformer';
-import { Model } from 'sequelize';
+import { Model, Transaction } from 'sequelize';
  // BaseService không cần biết Thực thế có field gì.
 export abstract class BaseService<
   TModel,
@@ -114,11 +114,11 @@ export abstract class BaseService<
     return this.transformToDto( result );
   }
 
-  async create(dto: TCreateRequestDto) {
+  async create(dto: TCreateRequestDto, transaction?: Transaction) {
     this.cleanCacheRedis()
     const entity = this.mapper ? this.mapper(dto) : (dto as Partial<TModel>)
     
-    return await this.repository.create(entity);
+    return await this.repository.create(entity, {transaction});
   }
   
   async update(id: string, dto: TUpdateRequestDto): Promise<any> {

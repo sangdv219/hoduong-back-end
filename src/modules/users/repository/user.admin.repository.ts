@@ -8,13 +8,13 @@ import { FindOptions, Op, Transaction, WhereOptions } from 'sequelize';
 export abstract class AbstractUserRepository extends BaseRepository<UserModel> {}
 
 @Injectable()
-export class PostgresUserRepository extends AbstractUserRepository {
+export class UserRepository extends AbstractUserRepository {
   private static readonly searchableFields = ['phone', 'gender', 'email', 'fullname', 'ascii_name'];
 
   constructor(
     private readonly userQueryBuilder: UserQueryBuilder,
   ) {
-    super(UserModel, PostgresUserRepository.searchableFields);
+    super(UserModel, UserRepository.searchableFields);
   }
 
   async existsByEmail(email: string): Promise<boolean> {

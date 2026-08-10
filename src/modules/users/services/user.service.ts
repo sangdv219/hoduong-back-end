@@ -1,14 +1,14 @@
 import { BaseService } from '@core/services/base.service';
 import { RolesModel } from '@infrastructure/models/roles.model';
 import { Status, UserModel } from '@infrastructure/models/user.model';
-import { PostgresUserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
+import { UserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
 import { FamilyMemberService } from '@modules/family-members/services/family-members.service';
 import { PasswordService } from '@modules/password/services/password.service';
 import { PostgresRoleRepository } from '@modules/roles/infrastructure/repository/postgres-role.repository';
 import { DEFAULT_MEMBER_ROLE_NAME, USER_ENTITY, USER_ERROR } from '@modules/users/constants/user.constant';
 import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, IUserPaginationDTO, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
-import { PostgresUserRepository } from '@modules/users/repository/user.admin.repository';
+import { UserRepository } from '@modules/users/repository/user.admin.repository';
 import {
   ConflictException,
   HttpException,
@@ -39,9 +39,9 @@ export class UserService extends BaseService<
   constructor(
     @InjectConnection()
     private readonly sequelize: Sequelize,
-    protected repository: PostgresUserRepository,
-    protected userRolesRepository: PostgresUserRolesRepository,
-    private readonly userRepository: PostgresUserRepository,
+    protected repository: UserRepository,
+    protected userRolesRepository: UserRolesRepository,
+    private readonly userRepository: UserRepository,
     public cacheManage: RedisService,
     private readonly passwordService: PasswordService,
     private readonly roleRepository: PostgresRoleRepository,
