@@ -11,7 +11,7 @@ import { RedisContext } from '@redis/enums/redis-key.enum';
 import { buildRedisKeyQuery } from '@redis/helpers/redis-key.helper';
 import { RedisService } from '@redis/redis.service';
 import { sensitiveFields } from '@shared/config/sensitive-fields.config';
-import { IPaginationDTO } from '@shared/interface/common';
+import { IBaseSearchParams } from '@shared/interface/common';
 import { plainToInstance } from 'class-transformer';
 import { Model, Transaction } from 'sequelize';
  // BaseService không cần biết Thực thế có field gì.
@@ -66,73 +66,51 @@ export abstract class BaseService<
     await this.moduleDestroy();
   }
 
-  async getPagination(query:IPaginationDTO) {
-    const redisKey = buildRedisKeyQuery(this.entityName.toLocaleLowerCase(), RedisContext.LIST, query as unknown as Record<string, string>);
-
-    const cached = await this.cacheManage.get(redisKey);
-
-    const dataCache = cached && JSON.parse(cached);
-    if (cached) return dataCache;
-
-    const exclude = sensitiveFields[this.entityName] ?? [];
-
-    const { items, total } = await this.repository.findWithPagination(query, exclude);
-
-    const response = { items: items, totalRecord: total };
-
-    await this.cacheManage.set(redisKey, JSON.stringify(response), 'EX', 30);
-
-    return response as GetAllResponseDto;
-  }
 
   async search(params, query, callback){
-    const redisKey = buildRedisKeyQuery(this.entityName.toLocaleLowerCase(), RedisContext.LIST, query as unknown as Record<string, string>);
+    // const redisKey = buildRedisKeyQuery(this.entityName.toLocaleLowerCase(), RedisContext.LIST, query as unknown as Record<string, string>);
 
-    const cached = await this.cacheManage.get(redisKey);
+    // const cached = await this.cacheManage.get(redisKey);
 
-    const dataCache = cached && JSON.parse(cached);
+    // const dataCache = cached && JSON.parse(cached);
 
-    if (cached) return dataCache;
+    // if (cached) return dataCache;
 
     let options={};
+
     if(callback){
         options = await callback(options);
     }
     
-    try {
-      const result = await this.repository.search( params, options );
-      Logger.log('result', result);
-      
-    } catch (error) {
-      Logger.log('error', error);
-      
-    }
-    const result = await this.repository.search( params, options );
     
-    await this.cacheManage.set(redisKey, JSON.stringify(this.transformToDto( result )), 'EX', 5);
+    try {
+      await this.repository.search( params, options );
+    } catch (error) {
+      Logger.log('Base service', error);
+    }
+    
+    const result = await this.repository.search( params, options );
+    // console.log('result', result);
+    
+    // await this.cacheManage.set(redisKey, JSON.stringify(this.transformToDto( result )), 'EX', 5);
 
     return this.transformToDto( result );
   }
 
   async create(dto: TCreateRequestDto, transaction?: Transaction) {
-    this.cleanCacheRedis()
     const entity = this.mapper ? this.mapper(dto) : (dto as Partial<TModel>)
-    
-    return await this.repository.create(entity, {transaction});
+    const created = await this.repository.create(entity, {transaction});
+    this.cleanCacheRedis()
+    return created;
   }
   
-  async update(id: string, dto: TUpdateRequestDto): Promise<any> {
-    this.cleanCacheRedis()
-    const entity = await this.repository.findByPk(id, [], false) as Model<any, any>
+  async update(id: string, dto: TUpdateRequestDto, transaction?: Transaction): Promise<any> {
+    const entity = await this.repository.findByPk(id, [], false, {transaction}) as Model<any, any>
     if (!entity) return null;
-    try {
-      Object.assign(entity, dto)
-      await entity.save()
-      return entity;
-    } catch (error) {
-      this.logger.error('[base.service:97] message', error);
-      
-    }
+    Object.assign(entity, dto)
+    const updatedEntity = await entity.save({transaction})
+    this.cleanCacheRedis();
+    return updatedEntity;
   }
   
   async getById(id: string, callback): Promise<GetByIdResponseDto | any> {
@@ -140,15 +118,17 @@ export abstract class BaseService<
     if(callback){
         options = await callback(options);
     }
-    const redisKey = buildRedisKeyQuery(this.entityName.toLocaleLowerCase(), RedisContext.DETAIL, {}, id);
+    // const redisKey = buildRedisKeyQuery(this.entityName.toLocaleLowerCase(), RedisContext.DETAIL, {}, id);
 
-    const cached = await this.cacheManage.get(redisKey);
+    // const cached = await this.cacheManage.get(redisKey);
 
-    const dataCache = cached && JSON.parse(cached);
-    if (cached) return dataCache;
-
+    // const dataCache = cached && JSON.parse(cached);
+    // if (cached) return dataCache;
+    
     const exclude = sensitiveFields[this.entityName] ?? [];
+
     const result = await this.repository.findByPk(id, exclude, false, options );
+
     if (!result) {
       throw new NotFoundException(`${this.entityName} with id ${id} not found`);
     }
@@ -168,7 +148,6 @@ export abstract class BaseService<
 
   async delete(id: string) {
     await this.cleanCacheRedis();
-    // await this.getById(id);
     await this.repository.delete(id);
   }
 
@@ -188,23 +167,25 @@ export abstract class BaseService<
       return item;
     };
 
+    // console.log('------------>',JSON.stringify(res, null, 2));
     // Trường hợp 1: res là Object phân trang (ví dụ { data: [...], totalRecord: 10 })
     if (typeof res === 'object' && !Array.isArray(res)) {
       const listKey = res.data ? 'data' : res.items ? 'items' : null;
-  
+      
       if (listKey && Array.isArray(res[listKey])) {
         const plainList = res[listKey].map(toPlain);
+        
         const formattedResponse = {
           items: plainList,
           totalRecord: res.totalRecord || res.total || 0,
         };
-
+        
         return plainToInstance(this.getAllDtoClass, formattedResponse, {
           excludeExtraneousValues: true,
         });
       }
     }
-  
+    
     // Trường hợp 2: res là Mảng danh sách các Model Instance ([User1, User2])
     if (Array.isArray(res)) {
       const plainList = res.map(toPlain);

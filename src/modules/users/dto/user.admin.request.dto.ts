@@ -17,7 +17,7 @@ import {
   IsUUID,
   MinLength,
 } from 'class-validator';
-import { IPaginationDTO } from '@shared/interface/common';
+import { IBaseSearchParams } from '@shared/interface/common';
 
 interface ICreatedUserAdminRequest {
   fullname: string;
@@ -44,7 +44,7 @@ interface ICreatedUserAdminRequest {
   deleted_by?: string;
 }
 
-export interface IUserPaginationDTO extends IPaginationDTO{
+export interface IUserPaginationDTO extends IBaseSearchParams{
   gender?: 0 | 1;
   status: 'active' | 'inactive' | 'pending' | 'suspended' | 'archived';
   life_status: number;

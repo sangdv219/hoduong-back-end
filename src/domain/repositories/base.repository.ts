@@ -1,5 +1,5 @@
-import { IBaseSearchParams, IPaginatedResult, IPaginationDTO } from '@shared/interface/common';
-import { NotFoundException } from '@nestjs/common';
+import { IBaseSearchParams, IPaginatedResult } from '@shared/interface/common';
+import { Logger, NotFoundException } from '@nestjs/common';
 import { FindAndCountOptions, FindOptions, Includeable, Op, QueryTypes, Transaction, WhereOptions } from 'sequelize';
 import { Sequelize } from "sequelize-typescript";
 
@@ -7,11 +7,10 @@ import { Sequelize } from "sequelize-typescript";
 
 export interface IBaseRepository<T> {
   search(params: IBaseSearchParams, options: FindOptions<T>):Promise<IPaginatedResult<T>>;
-  findWithPagination(param: IPaginationDTO, exclude: string[]): Promise<{ items: any; total: number }>;
   findByFields<K extends keyof T>(field: K, value: T[K], attributes?: string[], exclude?: string[]): Promise<any[]>;
   findAllByRaw(condition: Record<string, any>, exclude?: string[]): Promise<any[] | null>;
   findOneByField<K extends keyof T>(field: K, value: T[K], exclude: string[]): Promise<any>;
-  findByPk(id: string, exclude?: string[], raw?: boolean, options?: { transaction?: Transaction } | FindOptions<T>): Promise<T | null>;
+  findByPk(id: string, exclude?: string[], raw?: boolean, options?: { transaction?: Transaction }): Promise<T | null>;
   findByOneByRaw(condition: Record<string, any>, exclude: string[]): Promise<T | null>;
   create(entity: Partial<T>, options?: { transaction?: Transaction }): Promise<void>;
   update(id: string, entity: Partial<T>): Promise<any>;
@@ -107,15 +106,23 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
     return records as unknown as T[K][];
   }
 
-  async findOneByField<K extends keyof T>(field: K, value: T[K], exclude = ['']): Promise<any> {
-    const record = await this.model.findOne({
-      where: {
-        [field as string]: value
-      },
-      raw: true,
-      attributes: { exclude },
-    });
-    return record as unknown as T[K];
+  async findOneByField<K extends keyof T>(field: K, value: T[K], exclude = [''], include?: Includeable | Includeable[], transaction?: Transaction): Promise<any> {
+    try {
+      const record = await this.model.findOne({
+        where: {
+          [field as string]: value
+        },
+        raw: true,
+        attributes: { exclude },
+        include: include,
+        transaction: transaction
+      });
+      return record as unknown as T[K];
+      
+    } catch (error) {
+      Logger.error('error', error);
+      
+    }
   }
 
   async findByPk(id: string, exclude:string[] = [], raw = false, 

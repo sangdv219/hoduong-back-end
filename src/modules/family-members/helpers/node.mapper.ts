@@ -1,16 +1,9 @@
 import { CouplesModel } from '@infrastructure/models/couples.model';
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
 import { UserModel } from '@infrastructure/models/user.model';
-import {
-  CoupleGetVModel,
-  FamilyMembersGetVModel,
-  NodeTreeVModel,
-  NodeUserVModel,
-} from '@modules/family-members/dto/family-members.request.dto';
 
-export function mapUserToVModel(user: UserModel | Record<string, unknown>): NodeUserVModel {
+export function mapUserToVModel(user: UserModel | Record<string, unknown>) {
   const u = user as UserModel;
-  console.log('u',u)
   return {
     id: u.id,
     fullname: u.fullname,
@@ -29,7 +22,7 @@ export function mapUserToVModel(user: UserModel | Record<string, unknown>): Node
   };
 }
 
-export function mapCoupleToVModel(couple: CouplesModel, user?: UserModel): CoupleGetVModel {
+export function mapCoupleToVModel(couple: CouplesModel, user?: UserModel) {
   return {
     id: couple.id,
     couple_order: couple.couple_order,
@@ -41,7 +34,7 @@ export function mapCoupleToVModel(couple: CouplesModel, user?: UserModel): Coupl
   };
 }
 
-export function mapEntityToVModel(entity: FamilyMembersModel | Record<string, unknown>): FamilyMembersGetVModel {
+export function mapEntityToVModel(entity: FamilyMembersModel | Record<string, unknown>) {
   const node = entity as FamilyMembersModel;
   return {
     nodeId: node.id,
@@ -61,7 +54,7 @@ export function mapEntityToTree(
   entity: FamilyMembersModel,
   allfamily_members: FamilyMembersModel[],
   userMap: Map<string, UserModel>,
-): NodeTreeVModel {
+) {
   // const userEntity = userMap.get(entity.user_id);
   // const userModel = userEntity ? mapUserToVModel(userEntity) : undefined;
 

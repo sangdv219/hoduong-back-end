@@ -1,20 +1,6 @@
-import { EMarriageStatus } from '@infrastructure/models/couples.model';
+import { IPaginatedResult } from '@/shared/interface/common';
+import { EMarriageStatus, ICouples, TMarriageStatus } from '@infrastructure/models/couples.model';
 import { Expose, Type } from 'class-transformer';
-
-export interface ICouples{
-  id: string;
-  partner_1_id: string;
-  partner_2_id: string;
-  couple_order: number;
-  marriage_date: Date;
-  marriage_status: EMarriageStatus;
-  divorce_date: Date
-}
-
-interface IPaginatedResult<T> {
-  items: T[];
-  total: number;
-}
 
 export class CouplesBaseDto implements ICouples {
   @Expose()

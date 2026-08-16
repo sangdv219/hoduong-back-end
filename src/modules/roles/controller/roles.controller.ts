@@ -44,7 +44,7 @@ export class RolesController {
   // @UseGuards(JWTAuthGuard)
   async getPagination(@Query() query: PaginationQueryDto): Promise<GetAllRoleResponseDto> {
     try {
-      return await this.roleService.getPagination(query);
+      return await this.roleService.search(query);
     } catch (error) {
       throw error;
     }

@@ -1,3 +1,4 @@
+import { CouplesModel, EMarriageStatus, ICouples } from '@/infrastructure/models/couples.model';
 import { IPaginatedResult } from '@/shared/interface/common';
 import { GenderEnum, IUser, Status } from '@infrastructure/models/user.model';
 import { Expose, Type } from 'class-transformer';
@@ -10,7 +11,25 @@ export interface IFamilyMembers{
   generation_order: number;
 }
 
+export interface FamilyTreeNode {
+  id: string;
+  user_id: string;
+  fullname: string;
+  generation_order: number;
+  child_order: number;
+  couples: FamilyTreeCoupleNode[];
+}
 
+export interface FamilyTreeCoupleNode {
+  couple_id: string;
+  marriage_status: EMarriageStatus;
+  partner: {
+    id: string;
+    user_id: string;
+    fullname: string;
+  } | null;
+  children: FamilyTreeNode[];
+}
 
 export class FamilyMembersBaseDto implements IFamilyMembers {
   @Expose()
@@ -32,7 +51,7 @@ export class FamilyMembersBaseDto implements IFamilyMembers {
   user!: IUser;
 
   @Expose()
-  father!: IUser;
+  parent_couple!: ICouples;
 
   @Expose()
   partners!: IUser;
@@ -55,46 +74,10 @@ export class GetAllFamilyMembersResponseDto implements IPaginatedResult<IFamilyM
 
 export class FamilyMembersDetail extends FamilyMembersBaseDto {
   @Expose()
-  birth_date!: Date; // 🟢 Bỏ 'declare'
-
-  @Expose()
-  year_of_death!: Date; // Khớp với yearOfDeath?
-
-  @Expose()
-  burial_place!: string; // Khớp với burialPlace?
-
-  @Expose()
-  address!: string; // Khớp với address?
-
-  @Expose()
-  biography!: string; // Khớp với biography?
-
-  @Expose()
-  avatar_file_id!: number; 
-  
-  @Expose()
-  is_root!: boolean;
-
-  @Expose()
   updated_by!: string;
 
   @Expose()
   updated_at!: Date;
-
-  @Expose()
-  deleted_by!: string;
-
-  @Expose()
-  deleted_at!: Date;
-
-  @Expose()
-  failed_login_attempts!: number;
-
-  @Expose()
-  last_failed_login_at!: Date;
-
-  @Expose()
-  locked_until!: Date; // 
 }
 export class GetByIdFamilyMembersResponseDto {
   @Expose()

@@ -1,10 +1,10 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Expose, Transform, Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
-import { IPaginationDTO } from '../interface/common';
+import { IBaseSearchParams } from '../interface/common';
 import { IUserAdmin } from '@modules/users/dto/user.admin.response.dto';
 
-export class PaginationQueryDto implements IPaginationDTO {
+export class PaginationQueryDto implements IBaseSearchParams {
   @IsOptional()
   @ApiPropertyOptional({ example: 1, description: 'Page number (1–10)' })
   @Type(() => Number)

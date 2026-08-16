@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable, NotImplementedException } from '@nestjs/common';
 import { Transaction } from 'sequelize';
-import { CouplesModel, EMarriageStatus } from '@infrastructure/models/couples.model';
+import { CouplesModel, EMarriageStatus, TMarriageStatus } from '@infrastructure/models/couples.model';
 import { IUser } from '@infrastructure/models/user.model';
 import { COUPLE_ERROR } from '@modules/couples/constants/couple.constant';
-import { IMarriageStatus, MarriageStatus } from '@modules/couples/dto/couples.request.dto';
+import { IMarriageStatus } from '@modules/couples/dto/couples.request.dto';
 
 /**
  * Interface chứa DTO dữ liệu cập nhật cặp đôi
@@ -127,7 +127,7 @@ export class WidowedMarriageStatusStrategy implements IMarriageStatusStrategy {
 export class UnmarriedMarriageStatusStrategy implements IMarriageStatusStrategy {
   validateTransition(context: IMarriageStatus): void {
     const { couple } = context;
-    if (couple.marriage_status === EMarriageStatus.UNMARRIED as MarriageStatus) {
+    if (couple.marriage_status === EMarriageStatus.UNMARRIED as TMarriageStatus) {
       throw new BadRequestException('Couple marriage status is already UNMARRIED.');
     }
   }
@@ -147,7 +147,7 @@ export class UnmarriedMarriageStatusStrategy implements IMarriageStatusStrategy 
 
 @Injectable()
 export class MarriageStatusStrategyFactory {
-  getStrategy(targetStatus?: EMarriageStatus): IMarriageStatusStrategy {
+  getStrategy(targetStatus?: TMarriageStatus): IMarriageStatusStrategy {
     switch (targetStatus) {
       case EMarriageStatus.SINGLE:
         return new SingleMarriageStatusStrategy();

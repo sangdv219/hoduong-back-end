@@ -1,6 +1,17 @@
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 
-export class RoleBaseDto {
+export interface IRoles{
+  id: string;
+  name: string;
+  description: string;
+}
+
+interface IPaginatedResult<T> {
+  items: T[];
+  total: number;
+}
+
+export class RolesBaseDto implements IRoles{
   @Expose()
   id!: string;
 
@@ -13,13 +24,17 @@ export class RoleBaseDto {
 
 export class GetAllRoleResponseDto {
   @Expose()
-  items!: RoleBaseDto[];
+  @Type(() => RolesBaseDto)
+  items!: RolesBaseDto[];
+
+  @Expose()
+  total!: number;
 
   @Expose()
   totalRecord!: number;
 }
 
-export class CreatedRoleReponseDto extends RoleBaseDto {
+export class CreatedRoleReponseDto extends RolesBaseDto {
   @Expose()
   created_at!: Date;
   
@@ -27,6 +42,29 @@ export class CreatedRoleReponseDto extends RoleBaseDto {
   updated_at!: Date;
 }
 
+export class GetAllRolesResponseDto implements IPaginatedResult<IRoles> {
+  @Expose()
+  @Type(() => RolesBaseDto)
+  items!: IRoles[];
 
-export class GetByIdRoleResponseDto extends CreatedRoleReponseDto {}
+  @Expose()
+  total!: number;
+  
+  @Expose()
+  totalRecord!: number;
+}
+
+export class RolesDetail extends RolesBaseDto {
+  @Expose()
+  updated_by!: string;
+
+  @Expose()
+  updated_at!: Date;
+}
+
+export class GetByIdRoleResponseDto extends CreatedRoleReponseDto {
+  @Expose()
+  @Type(() => RolesDetail)
+  items!: RolesDetail;
+}
 

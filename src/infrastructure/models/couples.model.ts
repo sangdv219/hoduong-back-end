@@ -20,7 +20,15 @@ export enum EMarriageStatus {
   WIDOWED = 'WIDOWED',
 }
 
-export interface ICouple{
+export type TMarriageStatus =
+  | "SINGLE"
+  | "UNMARRIED"
+  | "MARRIED"
+  | "DIVORCED"
+  | "WIDOWED";
+
+
+export interface ICouples{
   id: string;
   partner_1_id: string;
   partner_2_id: string;
@@ -41,7 +49,7 @@ export interface ICouple{
     }
   ]
 })
-export class CouplesModel extends BaseModel<CouplesModel> implements ICouple{
+export class CouplesModel extends BaseModel<CouplesModel> implements ICouples{
   @PrimaryKey
   @Default(Sequelize.literal('gen_random_uuid()'))
   @Column(DataType.UUID)

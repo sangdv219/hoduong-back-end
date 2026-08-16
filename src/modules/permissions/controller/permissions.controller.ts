@@ -39,7 +39,7 @@ export class PermissionsController {
   @HttpCode(HttpStatus.OK)
   async getPagination(@Query() query: PaginationQueryDto): Promise<GetAllPermissionsResponseDto> {
     try {
-      return await this.permissionService.getPagination(query);
+      return await this.permissionService.searchPermissions(query);
     } catch (error) {
       throw error;
     }

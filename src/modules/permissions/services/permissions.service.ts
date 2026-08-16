@@ -54,4 +54,7 @@ export class PermissionsService extends
     this.Permissionss = [];
     Logger.log('onModuleDestroy -> Permissionss: ', this.Permissionss);
   }
+  async searchPermissions(params: any):Promise<GetAllPermissionsResponseDto |any>{
+
+  }
 }

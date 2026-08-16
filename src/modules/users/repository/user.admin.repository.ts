@@ -37,7 +37,7 @@ export class UserRepository extends AbstractUserRepository {
     if (!where['status']) {
       where['status'] = { [Op.ne]: Status.ARCHIVED };
     }
-    
+    console.log('params user repository', params); 
     const finalOptions = {
       ...options,
       ...customOptions,
@@ -47,10 +47,7 @@ export class UserRepository extends AbstractUserRepository {
     };
 
     const { rows, count } :{rows:any[], count: number}= await this.model.findAndCountAll(finalOptions);
-    return {
-             items: rows,  
-             total: count,
-           } as any
+    return { items: rows,  total: count } as any
   }
 
   async findAll(userId: string[], transaction?: Transaction): Promise<UserModel[] | null> {

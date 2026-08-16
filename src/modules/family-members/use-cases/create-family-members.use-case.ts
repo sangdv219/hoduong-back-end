@@ -3,7 +3,7 @@ import { BaseTransactionService } from '@infrastructure/database/transaction.ser
 import { FamilyMemberService } from '@modules/family-members/services/family-members.service';
 // import { toSafefamily-memberResponse } from '@modules/family-members/helpers/family-member-response.helper';
 import { CreatedFamilyMembersRequestDto } from '@modules/family-members/dto/family-members.request.dto';
-import { FamilyMembersRepository } from '@modules/family-members/repository/postgres-family-members.repository';
+import { FamilyMembersRepository } from '@/modules/family-members/repository/family-members.repository';
 import { CoupleService } from '@modules/couples/services/couples.service';
 // import { toSafefamily-memberResponse } from '@modules/family-members/helpers/family-members-response.helper';
 

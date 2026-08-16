@@ -1,15 +1,12 @@
+import { Request } from 'express';
 import { AllExceptionsFilter } from '@core/filters/sequelize-exception.filter';
 import { BaseResponseInterceptor } from '@core/interceptors/base-response.interceptor';
 import { LoggingInterceptor } from '@core/interceptors/logging.interceptor';
 import {
   CreatedFamilyMembersRequestDto,
   FamilyMembersAsTreeDTO,
-  FamilyMembersGetVModel,
   FamilyMembersPaginationDTO,
-  NodeFilterQueryDto,
-  NodePaginationModel,
-  NodeTreeVModel,
-  UpdateNodeRequestDto,
+  UpdatedFamilyMembersRequestDto,
 } from '@modules/family-members/dto/family-members.request.dto';
 import {
   Body,
@@ -31,9 +28,8 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
-import { Request } from 'express';
-import { FamilyMemberService } from '../services/family-members.service';
-import { GetAllFamilyMembersResponseDto } from '../dto/family-members.response.dto';
+import { FamilyMemberService } from '@modules/family-members/services/family-members.service';
+import { GetAllFamilyMembersResponseDto } from '@modules/family-members/dto/family-members.response.dto';
 
 @ApiBearerAuth('Authorization')
 @Controller({ path: 'family-members', version: '1' })
@@ -44,63 +40,54 @@ export class FamilyMembersController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: NodePaginationModel })
-  async getPagination(@Query() query: FamilyMembersPaginationDTO): Promise<GetAllFamilyMembersResponseDto> {
+  async getPagination(@Query() query: FamilyMembersPaginationDTO) {
     return this.familyMemberService.searchFamilyMembers(query);
-  }
-
-  @Get('tree')
-  @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: NodeTreeVModel })
-  async getAllAsTree(@Body() query: FamilyMembersAsTreeDTO): Promise<any> {
-    return this.familyMemberService.getAllAsTree(query);
-  }
-
-  @Get('parents/:userId')
-  @HttpCode(HttpStatus.OK)
-  async getParents(@Param('userId') userId: string): Promise<FamilyMembersGetVModel[]> {
-    return this.familyMemberService.getParents(userId);
-  }
-
-  @Get('children/:userId')
-  @HttpCode(HttpStatus.OK)
-  async getChildren(@Param('userId') userId: string): Promise<FamilyMembersGetVModel[]> {
-    return this.familyMemberService.getChilds(userId);
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: FamilyMembersGetVModel })
-  async getById(@Param('id') id: string): Promise<FamilyMembersGetVModel> {
-    const node = await this.familyMemberService.getById(id);
-    if (!node) {
-      throw new NotFoundException(`Node with id ${id} not found`);
-    }
-    return node;
+  getFamilyMembersDetail(@Param('id') id: string){
+    return this.familyMemberService.getFamilyMembersDetail(id);
+    
   }
 
+  @Post('tree')
+  @HttpCode(HttpStatus.OK)
+  async getAllAsTree(@Body() rootId: FamilyMembersAsTreeDTO) {
+    return this.familyMemberService.getFamilyTree(rootId);
+  }
+
+  @Get('parents/:userId')
+  @HttpCode(HttpStatus.OK)
+  async getParents(@Param('userId') userId: string) {
+    return this.familyMemberService.getParents(userId);
+  }
+
+  @Post('children/:userId')
+  @HttpCode(HttpStatus.OK)
+  async getChildren(@Param('userId') userId: string) {
+    return this.familyMemberService.getChilds(userId);
+  }
+  
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UsePipes(new ValidationPipe({ transform: true }))
-  @ApiOkResponse({ type: FamilyMembersGetVModel })
-  async create(
+  async createFamilyMembers(
     @Body() dto: CreatedFamilyMembersRequestDto,
-  ): Promise<FamilyMembersGetVModel> {
-    return this.familyMemberService.create(dto);
+  ){
+    return this.familyMemberService.createFamilyMembers(dto);
   }
 
-  // @Patch(':id')
-  // @HttpCode(HttpStatus.OK)
-  // @UsePipes(new ValidationPipe({ transform: true }))
-  // @ApiOkResponse({ type: FamilyMembersGetVModel })
-  // async update(
-  //   @Param('id') id: string,
-  //   @Body() dto: UpdateNodeRequestDto,
-  //   @Req() req: Request,
-  // ): Promise<FamilyMembersGetVModel> {
-  //   const actor = (req as any).user?.username ?? 'System';
-  //   return this.familyMemberService.update(id, dto);
-  // }
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async updateFamilyMembers(
+    @Param('id') id: string,
+    @Body() dto: UpdatedFamilyMembersRequestDto,
+  ) {
+    // const actor = (req as any).user?.username ?? 'System';
+    return this.familyMemberService.updateFamilyMembers(id, dto);
+  }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)

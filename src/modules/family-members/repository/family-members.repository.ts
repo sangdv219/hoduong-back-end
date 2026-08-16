@@ -1,10 +1,11 @@
 import { CouplesModel } from '@infrastructure/models/couples.model';
 import { BaseRepository } from '@domain/repositories/base.repository';
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
-import { IFamilyMembersPaginationDTO } from '@modules/family-members/dto/family-members.request.dto';
 import { FamilyMembersQueryBuilder } from '@modules/family-members/query/family-members.query.builder';
 import { Injectable, Logger } from '@nestjs/common';
-import { FindOptions, Op, QueryTypes, Transaction, WhereOptions } from 'sequelize';
+import { FindOptions, Op, QueryTypes, Sequelize, Transaction, WhereOptions } from 'sequelize';
+import { FamilyMembersPaginationDTO } from '../dto/family-members.request.dto';
+import { InjectConnection } from '@nestjs/sequelize';
 
 export abstract class AbstractFamilyMembersRepository extends BaseRepository<FamilyMembersModel> {}
 
@@ -13,6 +14,8 @@ export class FamilyMembersRepository extends AbstractFamilyMembersRepository {
   private static readonly searchableFields: string[] = [];
 
   constructor(
+    @InjectConnection()
+    private readonly sequelize: Sequelize,
     private readonly familyMembersQueryBuilder: FamilyMembersQueryBuilder,
   ) {
     super(FamilyMembersModel, FamilyMembersRepository.searchableFields);
@@ -57,6 +60,7 @@ export class FamilyMembersRepository extends AbstractFamilyMembersRepository {
       transaction,
     });
   }
+  
   async findChildrenByParentId(parentId: string, transaction?: Transaction): Promise<FamilyMembersModel[]> {
     return this.model.findAll({
       where: {
@@ -70,7 +74,6 @@ export class FamilyMembersRepository extends AbstractFamilyMembersRepository {
   }
 
   async getMaxChildOrder(parent_couple_id: string | null, transaction?: Transaction): Promise<number> {
-    console.log('parent_couple_id:------>', parent_couple_id);
     const maxOrder = await this.model.max('child_order', {
       where: {
         [Op.or]: [
@@ -83,6 +86,32 @@ export class FamilyMembersRepository extends AbstractFamilyMembersRepository {
     return (maxOrder as number) || 0;
   }
 
+  async getDescendantIds(rootId: string, transaction?: Transaction): Promise<string[]> {
+    const rows = await this.sequelize.query(
+      `WITH RECURSIVE descendants AS (
+         SELECT id, parent_couple_id FROM family_members WHERE parent_couple_id IN (
+           SELECT id FROM couples WHERE partner_1_id = :rootId OR partner_2_id = :rootId
+         )
+         UNION ALL
+         SELECT fm.id, fm.parent_couple_id
+         FROM family_members fm
+         INNER JOIN descendants d ON fm.parent_couple_id IN (
+           SELECT id FROM couples WHERE partner_1_id = d.id OR partner_2_id = d.id
+         )
+       )
+       SELECT id FROM descendants;`,
+      { replacements: { rootId }, type: QueryTypes.SELECT, transaction }
+    );
+    return rows.map((r: any) => r.id);
+  }
+
+  async bulkShiftGenerationOrder(ids: string[], delta: number, transaction?: Transaction): Promise<void> {
+    await this.model.update(
+      { generation_order: Sequelize.literal(`generation_order + (${delta})`) },
+      { where: { id: { [Op.in]: ids } }, transaction }
+    );
+  }
+  
   async existsChildOrder(parentId: string, childOrder: number, transaction?: Transaction): Promise<boolean> {
     const count = await this.model.count({
       where: {
@@ -104,7 +133,7 @@ export class FamilyMembersRepository extends AbstractFamilyMembersRepository {
         {
           model: FamilyMembersModel,
           as: 'partners',
-          include: [{ model: CouplesModel, as: 'parent_couple' }],
+          include: [{ model: CouplesModel, as: 'parent_coiuple' }],
         },
       ],
       transaction,
@@ -141,32 +170,30 @@ export class FamilyMembersRepository extends AbstractFamilyMembersRepository {
     });
   }
 
-  async search(params: IFamilyMembersPaginationDTO, customOptions: FindOptions<FamilyMembersModel>){
+  async search(params: FamilyMembersPaginationDTO, customOptions: FindOptions<FamilyMembersModel>){
     const options = this.familyMembersQueryBuilder.build(params);
-    Logger.log('options', options);
+    Logger.log('options_____', options);
     const where: WhereOptions = {
       ...options.where,
       ...customOptions?.where,
     };
-
-    // if (!where['status']) {
-    //   where['status'] = { [Op.ne]: Status.ARCHIVED };
-    // }
-
-    const finalOptions = {
-      ...options,
-      ...customOptions,
-      where,
-      // distinct: true, 
-      // col: 'id',
-    };
-
-    const { rows, count } :{rows:any[], count: number}= await this.model.findAndCountAll(finalOptions);
     
-    return {
-             items: rows,  
-             total: count,
-           } as any
+    // if (!where['status']) {
+      //   where['status'] = { [Op.ne]: Status.ARCHIVED };
+      // }
+      
+      const finalOptions = {
+        ...options,
+        ...customOptions,
+        where,
+        // distinct: true, 
+        // col: 'id',
+      };
+      
+      const { rows, count } :{rows:any[], count: number}= await this.model.findAndCountAll(finalOptions);
+      Logger.log('rows', rows);
+    
+    return { items: rows, total: count } as any
   }
 
   async findByUserId(userId: string, transaction?: Transaction){

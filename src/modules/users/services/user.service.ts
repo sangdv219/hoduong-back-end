@@ -2,11 +2,10 @@ import { BaseService } from '@core/services/base.service';
 import { RolesModel } from '@infrastructure/models/roles.model';
 import { Status, UserModel } from '@infrastructure/models/user.model';
 import { UserRolesRepository } from '@modules/associations/repositories/user-roles.repository';
-import { FamilyMemberService } from '@modules/family-members/services/family-members.service';
 import { PasswordService } from '@modules/password/services/password.service';
 import { PostgresRoleRepository } from '@modules/roles/infrastructure/repository/postgres-role.repository';
 import { DEFAULT_MEMBER_ROLE_NAME, USER_ENTITY, USER_ERROR } from '@modules/users/constants/user.constant';
-import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, IUserPaginationDTO, UpdatedUserAdminRequestDto, UserPaginationDTO } from '@modules/users/dto/user.admin.request.dto';
+import { ChangeStatusUserAdminRequestDto, CreatedUserAdminRequestDto, IUserPaginationDTO, UpdatedUserAdminRequestDto } from '@modules/users/dto/user.admin.request.dto';
 import { GetAllUserAdminResponseDto, GetByIdUserAdminResponseDto } from '@modules/users/dto/user.admin.response.dto';
 import { UserRepository } from '@modules/users/repository/user.admin.repository';
 import {
@@ -261,7 +260,7 @@ export class UserService extends BaseService<
     }
   }
 
-  async searchUser(params: IUserPaginationDTO):Promise<GetAllUserAdminResponseDto |any> {
+  async searchUser(params: IUserPaginationDTO):Promise<GetAllUserAdminResponseDto> {
     const { role_id, ...baseParams } = params;
     return super.search(baseParams, params, options => {
 

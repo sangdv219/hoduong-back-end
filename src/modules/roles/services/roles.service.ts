@@ -1,11 +1,11 @@
-import { GetAllRoleResponseDto, GetByIdRoleResponseDto } from '@modules/roles/dto/role.response.dto';
+import { GetAllRoleResponseDto, GetAllRolesResponseDto, GetByIdRoleResponseDto } from '@modules/roles/dto/role.response.dto';
 import { BaseService } from '@core/services/base.service';
 import { ROLES_ENTITY } from '@modules/roles/constants/roles.constant';
 import { RolesModel } from '@infrastructure/models/roles.model';
 import { PostgresRoleRepository } from '@modules/roles/infrastructure/repository/postgres-role.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '@redis/redis.service';
-import { CreatedRolesRequestDto, UpdatedRolesRequestDto } from '@modules/roles/dto/role.request.dto';
+import { CreatedRolesRequestDto, IRolesPaginationDTO, RolesPaginationDTO, UpdatedRolesRequestDto } from '@modules/roles/dto/role.request.dto';
 import { Sequelize } from 'sequelize-typescript';
 import { BaseTransactionService } from '@infrastructure/database/transaction.service';
 
@@ -60,6 +60,17 @@ export class RolesService extends
     Logger.log('onModuleDestroy -> Roles: ', this.Roles);
   }
 
+  async search(params: RolesPaginationDTO):Promise<GetAllRolesResponseDto |any>{
+    const { ...baseParams } = params;
+    return super.search(baseParams, params, options => {})
+
+    // const include = Array.isArray(options.include)
+    //     ? options.include
+    //     : options.include
+    //         ? [options.include]
+    //         : [];
+    // }
+  }
   // async create(dto) {
     // this.baseTransactionService.runInTransaction(async (t1) => {
     //   //B1 Insert role

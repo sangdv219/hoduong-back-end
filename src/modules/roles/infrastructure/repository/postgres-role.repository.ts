@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { FindOptions, Op, WhereOptions } from 'sequelize';
 import { BaseRepository } from '@domain/repositories/base.repository';
-import { IPaginatedResult, IPaginationDTO } from '@shared/interface/common';
+import { IPaginatedResult, IBaseSearchParams } from '@shared/interface/common';
 
 class AbstractRoleRepository extends BaseRepository<RolesModel> {}
 @Injectable()
@@ -16,7 +16,7 @@ export class PostgresRoleRepository extends AbstractRoleRepository {
     super(productModel, PostgresRoleRepository.searchableFields);
   }
 
-  async paginate(params: IPaginationDTO, options: FindOptions<RolesModel> = {}): Promise<IPaginatedResult<RolesModel>> {
+  async paginate(params: IBaseSearchParams, options: FindOptions<RolesModel> = {}): Promise<IPaginatedResult<RolesModel>> {
     const page = Number(params.page) || 1;
     const limit = Number(params.limit) || 10;
     const offset = (page - 1) * limit;
@@ -58,6 +58,7 @@ export class PostgresRoleRepository extends AbstractRoleRepository {
     return {
       items: rows,
       total: count,
+      totalRecord: Math.ceil(count / limit),
       // page,
       // limit,
       // totalRecord: Math.ceil(count / limit),

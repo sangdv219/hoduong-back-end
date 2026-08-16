@@ -8,10 +8,11 @@ import { CouplesQueryBuilder } from '@modules/couples/query/couples.query.builde
 import { CouplesController } from '@modules/couples/controller/couples.controller';
 import { CouplesModel } from '@infrastructure/models/couples.model';
 import { FamilyMembersModel } from '@infrastructure/models/family-members.model';
-import { FamilyMembersRepository } from '@modules/family-members/repository/postgres-family-members.repository';
+import { FamilyMembersRepository } from '@/modules/family-members/repository/family-members.repository';
 import { FamilyMembersQueryBuilder } from '@modules/family-members/query/family-members.query.builder';
 import { MarriageStatusStrategyFactory } from '@modules/couples/strategies/couplesStatusStrategy';
 import { CreateCoupleUseCase } from '@modules/couples/use-cases/create-couple.use-case';
+import { UpdateCoupleUseCase } from '@modules/couples/use-cases/update-couple.use-case';
 
 @Module({
   imports: [SequelizeModule.forFeature([CouplesModel, UserModel, FamilyMembersModel])],
@@ -23,7 +24,8 @@ import { CreateCoupleUseCase } from '@modules/couples/use-cases/create-couple.us
     CouplesQueryBuilder,
     MarriageStatusStrategyFactory,
     UserQueryBuilder,
-    CreateCoupleUseCase
+    CreateCoupleUseCase,
+    UpdateCoupleUseCase
   ],
   controllers: [CouplesController],
   exports: [CouplesRepository, CoupleService],

@@ -5,7 +5,7 @@ import { FamilyMembersQueryBuilder } from '@modules/family-members/query/family-
 import { CouplesModel } from '@infrastructure/models/couples.model';
 import { CouplesRepository } from '@modules/couples/repository/couples.repository';
 import { CouplesQueryBuilder } from '@modules/couples/query/couples.query.builder';
-import { FamilyMembersRepository } from '@modules/family-members/repository/postgres-family-members.repository';
+import { FamilyMembersRepository } from '@/modules/family-members/repository/family-members.repository';
 import { FamilyMemberService } from '@modules/family-members/services/family-members.service';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { UserRepository } from '@modules/users/repository/user.admin.repository';

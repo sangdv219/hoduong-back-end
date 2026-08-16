@@ -1,16 +1,14 @@
-import { CouplesModel } from "@infrastructure/models/couples.model";
-import { RedisService } from "@redis/redis.service";
 import { BaseService } from "@core/services/base.service";
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
-import { InjectConnection } from "@nestjs/sequelize";
-import { Sequelize, Transaction } from "sequelize";
-import { CouplesRepository } from "@modules/couples/repository/couples.repository";
-import { CreatedCouplesRequestDto, ICouplesPaginationDTO, IMarriageStatus, IUpdateCoupleDto, UpdatedCouplesRequestDto } from "@modules/couples/dto/couples.request.dto";
-import { GetAllCouplesResponseDto, GetByIdCouplesResponseDto } from "@modules/couples/dto/couples.response.dto";
-import { UserModel } from "@infrastructure/models/user.model";
+import { CouplesModel } from "@infrastructure/models/couples.model";
 import { FamilyMembersModel } from "@infrastructure/models/family-members.model";
-import { COUPLE_ERROR } from "@modules/couples/constants/couple.constant";
+import { UserModel } from "@infrastructure/models/user.model";
+import { CreatedCouplesRequestDto, ICouplesPaginationDTO, UpdatedCouplesRequestDto } from "@modules/couples/dto/couples.request.dto";
+import { GetAllCouplesResponseDto, GetByIdCouplesResponseDto } from "@modules/couples/dto/couples.response.dto";
+import { CouplesRepository } from "@modules/couples/repository/couples.repository";
 import { MarriageStatusStrategyFactory } from "@modules/couples/strategies/couplesStatusStrategy";
+import { Injectable, Logger } from "@nestjs/common";
+import { RedisService } from "@redis/redis.service";
+import { Transaction } from "sequelize";
 
 @Injectable()
 export class CoupleService extends BaseService<
@@ -25,8 +23,6 @@ export class CoupleService extends BaseService<
     protected readonly getAllDtoClass = GetAllCouplesResponseDto;
     protected readonly getByIdDtoClass = GetByIdCouplesResponseDto;
     constructor(
-      @InjectConnection()
-      private readonly sequelize: Sequelize,
       protected repository: CouplesRepository,
       public cacheManage: RedisService,
       private readonly marriageStatusStrategyFactory: MarriageStatusStrategyFactory, 
@@ -60,119 +56,110 @@ export class CoupleService extends BaseService<
         Logger.log('🗑️onModuleDestroy -> users: ', this.users);
       }
 
-      async searchCouples(params: ICouplesPaginationDTO):Promise<GetAllCouplesResponseDto |any>{
+      async searchCouples(params: ICouplesPaginationDTO):Promise<GetAllCouplesResponseDto>{
         const { partner_1_id, partner_2_id, ...baseParams } = params;
         return super.search(baseParams, params, options => {
 
-        const include = Array.isArray(options.include)
-            ? options.include
-            : options.include
-                ? [options.include]
-                : [];
+          const include = Array.isArray(options.include)
+              ? options.include
+              : options.include
+                  ? [options.include]
+                  : [];
 
+          const partner1Include:any = {
+              model: FamilyMembersModel,
+              as: 'partner_1',
+              attributes: ['id', 'user_id'],
+              include: [
+                  {
+                      model: UserModel,
+                      as: 'user',
+                      attributes: ['fullname']
+                  }
+              ]
+          };
 
-        const partner1Include:any = {
-            model: FamilyMembersModel,
-            as: 'partner_1',
-            attributes: ['id', 'user_id'],
-            include: [
-                {
-                    model: UserModel,
-                    as: 'user',
-                    attributes: ['fullname']
-                }
-            ]
-        };
-        const partner2Include:any = {
-            model: FamilyMembersModel,
-            as: 'partner_2',
-            attributes: ['user_id'],
-            include: [
-                {
-                    model: UserModel,
-                    as: 'user',
-                    attributes: ['fullname']
-                }
-            ]
-        };
+          const partner2Include:any = {
+              model: FamilyMembersModel,
+              as: 'partner_2',
+              attributes: ['user_id'],
+              include: [
+                  {
+                      model: UserModel,
+                      as: 'user',
+                      attributes: ['fullname']
+                  }
+              ]
+          };
+  
+          if (partner_1_id) {
+              partner1Include.where = { id: partner_1_id };
+              partner1Include.required = true;
+          }
 
- 
-        if (partner_1_id) {
-            partner1Include.where = { id: partner_1_id };
-            partner1Include.required = true;
-        }
+          if (partner_2_id) {
+              partner2Include.where = { id: partner_2_id };
+              partner2Include.required = true;
+          }
 
-        if (partner_2_id) {
-            partner2Include.where = { id: partner_2_id };
-            partner2Include.required = true;
-        }
+          options.include = [
+              ...include,
+              partner1Include,
+              partner2Include,
+          ];
 
-        options.include = [
-            ...include,
-            partner1Include,
-            partner2Include,
-        ];
-
-        return options;
-    });
+          return options;
+        });
       }
 
       async getCouplesById(id: string): Promise<GetByIdCouplesResponseDto | null>{
         return super.getById(id, options => {
             const include = Array.isArray(options.include) ? options.include : options.include  ? [options.include] : [];
-            const userInclude:any = {
-                model: UserModel,
-                attributes: ['id','name'],
-                through: {
-                    attributes: [],
-                },
+            const membersInclude1:any = {
+                model: FamilyMembersModel,
+                as: 'partner_1',
+                attributes: ['user_id'],
+                include: {
+                  model: UserModel,
+                  as: 'user',
+                  attributes: ['fullname']
+                }
+            };
+            const membersInclude2:any = {
+                model: FamilyMembersModel,
+                as: 'partner_2',
+                attributes: ['user_id'],
+                include: {
+                  model: UserModel,
+                  as: 'user',
+                  attributes: ['fullname']
+                }
             };
             options.include = [
                 ...include,
-                userInclude,
+                membersInclude1,
+                membersInclude2
             ];
             return options;
           })
       }
 
       async create(dto: CreatedCouplesRequestDto, transaction?: Transaction){
-        return super.create(dto)
+        return super.create(dto, transaction)
       }
 
-      async update(id: string, dto:IUpdateCoupleDto){
-        const transaction = await this.sequelize.transaction();
-        const couple = await CouplesModel.findByPk(id, {
-          include: [
-            {
-              association: 'partner_1',
-              include: ['user'], // Eager load UserModel cho partner_1
-            },
-            {
-              association: 'partner_2',
-              include: ['user'], // Eager load UserModel cho partner_2
-            },
-          ],
-          transaction,
-        });
-        
-        if (!couple) {
-          throw new BadRequestException('Couple not found.');
-        }
-    
+      async update(id: string, dto: UpdatedCouplesRequestDto, transaction?: Transaction){
     
         const strategy = this.marriageStatusStrategyFactory.getStrategy(dto.marriage_status);
     
         // 3. Chuẩn bị Context
-        const context: IMarriageStatus = {
-          couple,
+        const context = {
           dto,
-          partner1: couple.partner_1,
-          partner2: couple.partner_2,
         };
-    
-        strategy.validateTransition(context);
-        await strategy.handleLogic(couple, context, transaction);
- 
-        return couple;
+        console.log('dto', dto);
+        
+        // strategy.validateTransition(context);
+        return super.update(id, dto, transaction)
+        // await strategy.handleLogic(couple, context, transaction);
       }
   }

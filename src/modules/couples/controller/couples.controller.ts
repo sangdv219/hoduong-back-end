@@ -18,9 +18,10 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { BaseGetResponse } from '@shared/interface/common';
-import { GetByIdCouplesResponseDto } from '@modules/couples/dto/couples.response.dto';
+import { GetAllCouplesResponseDto, GetByIdCouplesResponseDto } from '@modules/couples/dto/couples.response.dto';
 import { CouplesModel } from '@infrastructure/models/couples.model';
 import { CreateCoupleUseCase } from '@modules/couples/use-cases/create-couple.use-case';
+import { UpdateCoupleUseCase } from '@modules/couples/use-cases/update-couple.use-case';
 
 @ApiBearerAuth('Authorization')
 @Controller({ path:'couples', version: '1' })
@@ -30,28 +31,21 @@ export class CouplesController {
   constructor(
     private readonly coupleService: CoupleService,
     private readonly createCoupleUseCase: CreateCoupleUseCase,
+    private readonly updateCoupleUseCase: UpdateCoupleUseCase,
   ) { }
 
   @ApiOkResponse({ description: 'Danh sách couples phân trang', type: BaseGetResponse<CouplesModel> })
   @Get()
   @HttpCode(HttpStatus.OK)
   // @UseGuards(JWTAuthGuard)
-  async getPagination(@Query() query: CouplesPaginationDTO): Promise<GetByIdCouplesResponseDto> {
-    try {
-      return this.coupleService.searchCouples(query);
-    } catch (error) {
-      throw error;
-    }
+  async getPagination(@Query() query: CouplesPaginationDTO): Promise<GetAllCouplesResponseDto> {
+    return this.coupleService.searchCouples(query);
   }
 
   @Get(':id')
   // @UseGuards(JWTAuthGuard)
   async getById(@Param('id') id: string): Promise<GetByIdCouplesResponseDto | null> {
-    try {
-      return await this.coupleService.getCouplesById(id);
-    } catch (error) {
-      throw error;
-    }
+    return await this.coupleService.getCouplesById(id);
   }
   
   @HttpCode(HttpStatus.CREATED)
@@ -60,7 +54,6 @@ export class CouplesController {
   @Post()
   @ApiOkResponse({ description: 'Create new couples', type: CreatedCouplesRequestDto })
   async create(@Body() dto: CreatedCouplesRequestDto): Promise<any> {
-
     return await this.createCoupleUseCase.execute(dto);
   }
   
@@ -69,10 +62,6 @@ export class CouplesController {
   // @UseGuards(JWTAuthGuard)
   // @UseInterceptors(couplesContextInterceptor)
   async update(@Param('id') id: string, @Body() dto: UpdatedCouplesRequestDto) {
-    try {
-      return await this.coupleService.update(id, dto);
-    } catch (error) {
-      throw error;
-    }
+    return await this.updateCoupleUseCase.execute(id, dto);
   }
 }
