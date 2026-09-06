@@ -172,7 +172,6 @@ export class FamilyMembersRepository extends AbstractFamilyMembersRepository {
 
   async search(params: FamilyMembersPaginationDTO, customOptions: FindOptions<FamilyMembersModel>){
     const options = this.familyMembersQueryBuilder.build(params);
-    Logger.log('options_____', options);
     const where: WhereOptions = {
       ...options.where,
       ...customOptions?.where,
@@ -202,4 +201,7 @@ export class FamilyMembersRepository extends AbstractFamilyMembersRepository {
       transaction,
     });
   }
+
+
+
 }

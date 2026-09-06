@@ -14,12 +14,20 @@ import {
   Table
 } from 'sequelize-typescript';
 
+export enum EMemberRelationType {
+  BLOOD = 'BLOOD',           // huyết thống trực hệ (con ruột / cụ tổ)
+  MARRIED_IN = 'MARRIED_IN', // dâu/rể - kết hôn vào gia đình
+}
+
+export type TMemberRelationType = 'MARRIED_IN' |  'BLOOD';
+           // huyết thống trực hệ (con ruột / cụ tổ)
 export interface IFamilyMembers {
   id: string;
   user_id: string | null;
   parent_couple_id: string | null;
   child_order: number;
   generation_order: number;
+  relation_type: EMemberRelationType;
 }
 
 @Table({
@@ -52,6 +60,11 @@ export class FamilyMembersModel extends BaseModel<FamilyMembersModel> implements
   @Default(1)
   @Column(DataType.INTEGER)
   declare child_order: number;
+
+  @AllowNull(false)
+  // @Default(EMemberRelationType.BLOOD)
+  @Column({ type: DataType.ENUM(...Object.values(EMemberRelationType)) })
+  declare relation_type: EMemberRelationType;
 
   @BelongsTo(() => UserModel, { foreignKey: 'user_id', as: 'user' })
   declare user: UserModel; //relation N-1 with user

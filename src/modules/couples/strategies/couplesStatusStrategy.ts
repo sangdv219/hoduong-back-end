@@ -1,9 +1,8 @@
-import { BadRequestException, Injectable, NotImplementedException } from '@nestjs/common';
-import { Transaction } from 'sequelize';
 import { CouplesModel, EMarriageStatus, TMarriageStatus } from '@infrastructure/models/couples.model';
 import { IUser } from '@infrastructure/models/user.model';
 import { COUPLE_ERROR } from '@modules/couples/constants/couple.constant';
 import { IMarriageStatus } from '@modules/couples/dto/couples.request.dto';
+import { BadRequestException, Injectable, NotImplementedException } from '@nestjs/common';
 
 /**
  * Interface chứa DTO dữ liệu cập nhật cặp đôi
@@ -14,7 +13,7 @@ import { IMarriageStatus } from '@modules/couples/dto/couples.request.dto';
  */
 export interface IMarriageStatusStrategy {
   validateTransition(context: IMarriageStatus): void;
-  handleLogic( couple: CouplesModel, context: IMarriageStatus, transaction?: Transaction ): Promise<void>;
+  handleLogic( couple: CouplesModel, context: IMarriageStatus ): Promise<void>;
 }
 
 /**
@@ -28,7 +27,7 @@ export class SingleMarriageStatusStrategy implements IMarriageStatusStrategy {
     }
   }
 
-  async handleLogic( couple: CouplesModel, context: IMarriageStatus, _transaction?: Transaction ): Promise<void> {
+  async handleLogic( couple: CouplesModel, context: IMarriageStatus ): Promise<void> {
     // Khi đưa về SINGLE: Xóa các mốc ngày cưới và ly hôn
     couple.marriage_status = EMarriageStatus.SINGLE;
     couple.marriage_date = null as unknown as Date;
@@ -42,12 +41,12 @@ export class SingleMarriageStatusStrategy implements IMarriageStatusStrategy {
 export class MarriedMarriageStatusStrategy implements IMarriageStatusStrategy {
   validateTransition(context: IMarriageStatus): void {
     const { couple } = context;
-    if (couple.marriage_status === EMarriageStatus.MARRIED) {
-      throw new BadRequestException('Couple is already registered as MARRIED.');
-    }
+    // if (couple.marriage_status === EMarriageStatus.MARRIED) {
+    //   throw new BadRequestException('Couple is already registered as MARRIED.');
+    // }
   }
 
-  async handleLogic( couple: CouplesModel, context: IMarriageStatus, _transaction?: Transaction ): Promise<void> {
+  async handleLogic( couple: CouplesModel, context: IMarriageStatus ): Promise<void> {
     const { dto } = context;
 
     // Xác định ngày kết hôn từ DTO hoặc giữ nguyên/mặc định thời điểm hiện tại
@@ -73,7 +72,7 @@ export class DivorcedMarriageStatusStrategy implements IMarriageStatusStrategy {
     }
   }
 
-  async handleLogic( couple: CouplesModel, context: IMarriageStatus, _transaction?: Transaction ): Promise<void> {
+  async handleLogic( couple: CouplesModel, context: IMarriageStatus): Promise<void> {
     const { dto } = context;
     const divorceDate = dto?.divorce_date || new Date();
 
@@ -98,10 +97,10 @@ export class WidowedMarriageStatusStrategy implements IMarriageStatusStrategy {
     }
   }
 
-  async handleLogic( couple: CouplesModel, context: IMarriageStatus, _transaction?: Transaction ): Promise<void> {
-    const { partner1, partner2 } = context;
+  async handleLogic( couple: CouplesModel, context: IMarriageStatus ): Promise<void> {
+    const { partner_1, partner_2 } = context;
 
-    if (!partner1 || !partner2) {
+    if (!partner_1 || !partner_2) {
       throw new BadRequestException(
         'Partner information must be loaded to validate WIDOWED status.',
       );
@@ -111,8 +110,8 @@ export class WidowedMarriageStatusStrategy implements IMarriageStatusStrategy {
       return Boolean(user.year_of_death) || user.life_status === 0;
     };
 
-    const isPartner1Deceased = checkIsDeceased(partner1.user);
-    const isPartner2Deceased = checkIsDeceased(partner2.user);
+    const isPartner1Deceased = checkIsDeceased(partner_1.user);
+    const isPartner2Deceased = checkIsDeceased(partner_2.user);
 
     // Bắt buộc ít nhất 1 trong 2 người phải được hệ thống ghi nhận đã mất
     if (!isPartner1Deceased && !isPartner2Deceased)  throw new BadRequestException(COUPLE_ERROR.CANNOT_SET_STATUS_TO_WIDOWED);
@@ -134,8 +133,7 @@ export class UnmarriedMarriageStatusStrategy implements IMarriageStatusStrategy 
 
   async handleLogic(
     couple: CouplesModel,
-    context: IMarriageStatus,
-    _transaction?: Transaction,
+    _: IMarriageStatus,
   ): Promise<void> {
     // Trạng thái UNMARRIED đại diện cho mối quan hệ không phải hôn nhân pháp lý 
     // (ví dụ: chỉ có con chung). Do đó, cần làm sạch các mốc thời gian cưới/ly hôn.

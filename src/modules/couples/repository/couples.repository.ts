@@ -3,7 +3,7 @@ import { BaseRepository } from '@domain/repositories/base.repository';
 import { CouplesModel } from '@infrastructure/models/couples.model';
 import { ICouplesPaginationDTO } from '@modules/couples/dto/couples.request.dto';
 import { CouplesQueryBuilder } from '@modules/couples/query/couples.query.builder';
-import { FindOptions, Transaction, WhereOptions } from 'sequelize';
+import { FindOptions, Op, Transaction, WhereOptions } from 'sequelize';
 
 export abstract class AbstractCouplesRepository extends BaseRepository<CouplesModel> {}
 
@@ -27,8 +27,6 @@ export class CouplesRepository extends AbstractCouplesRepository {
     // if (!where['status']) {
     //   where['status'] = { [Op.ne]: Status.ARCHIVED };
     // }
-
-    console.log('params couples repository', params);
 
     const finalOptions = {
       ...options,
@@ -74,5 +72,32 @@ export class CouplesRepository extends AbstractCouplesRepository {
       { status: false },
       { where: { user_id: userId }, transaction },
     );
+  }
+
+  async getNextCoupleOrder(partnerId: string, transaction?: Transaction): Promise<number> {
+    // Lấy row couple_order lớn nhất hiện tại của partner này, khoá lại (FOR UPDATE)
+    // để request thứ 2 chạy song song phải đợi request đầu commit xong mới đọc được.
+    const lastCouple = await this.model.findOne({
+      where: {
+        [Op.or]: [{ partner_1_id: partnerId }, { partner_2_id: partnerId }],
+      },
+      order: [['couple_order', 'DESC']],
+      lock: transaction ? Transaction.LOCK.UPDATE : undefined,
+      transaction,
+    });
+
+    return (lastCouple?.couple_order ?? 0) + 1;
+  }
+
+  async findByPartnerId(partnerId: string, transaction?: Transaction): Promise<CouplesModel | null> {
+    return this.model.findOne({
+      where: {
+        [Op.or]: [
+          { partner_1_id: partnerId }, 
+          { partner_2_id: partnerId }
+        ]
+      },
+      transaction
+    });
   }
 }

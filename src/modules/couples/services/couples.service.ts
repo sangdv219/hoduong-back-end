@@ -28,7 +28,7 @@ export class CoupleService extends BaseService<
       private readonly marriageStatusStrategyFactory: MarriageStatusStrategyFactory, 
     ) {
       super(repository);
-      this.searchableFields = [ 'email' ];
+      this.searchableFields = [ 'marriage_status' ];
       this.entityName = 'couples';
     }
 
@@ -144,22 +144,24 @@ export class CoupleService extends BaseService<
           })
       }
 
-      async create(dto: CreatedCouplesRequestDto, transaction?: Transaction){
-        return super.create(dto, transaction)
+      async create(dto: CreatedCouplesRequestDto, transaction?: Transaction): Promise<any>{
+        return await super.create(dto, transaction);
       }
 
-      async update(id: string, dto: UpdatedCouplesRequestDto, transaction?: Transaction){
+      async updateCouples(id: string, dto: UpdatedCouplesRequestDto, couple: CouplesModel, transaction?: Transaction){
     
         const strategy = this.marriageStatusStrategyFactory.getStrategy(dto.marriage_status);
     
         // 3. Chuẩn bị Context
         const context = {
+          couple,
           dto,
+          partner_1: couple,
+          partner_2: couple
         };
-        console.log('dto', dto);
         
-        // strategy.validateTransition(context);
+        strategy.validateTransition(context);
+        await strategy.handleLogic(couple, context);
         return super.update(id, dto, transaction)
-        // await strategy.handleLogic(couple, context, transaction);
       }
   }

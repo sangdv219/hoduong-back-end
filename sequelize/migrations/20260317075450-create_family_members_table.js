@@ -23,13 +23,17 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
+      relation_type: {
+        type: Sequelize.STRING(10),
+        allowNull: false,
+        validate: {
+          isIn: [['blood', 'married']] // Chỉ chấp nhận giá trị nằm trong mảng này
+        },
+        defaultValue: 'blood'
+      },
       parent_couple_id: {
         type: Sequelize.UUID,
         allowNull:true,
-        // references: {
-        //   model: 'couples', 
-        //   key: 'id',
-        // },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       },

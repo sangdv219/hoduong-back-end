@@ -42,8 +42,8 @@ export interface IUpdateCoupleDto extends IUpdated {
 export interface IMarriageStatus {
   couple: CouplesModel;
   dto?: IUpdateCoupleDto;
-  partner1?: FamilyMembersModel;
-  partner2?: FamilyMembersModel;
+  partner_1?: any;
+  partner_2?: any;
 }
 
 export class CreatedCouplesRequestDto implements ICreatedCouplesRequest {
@@ -85,34 +85,6 @@ export class CreatedCouplesRequestDto implements ICreatedCouplesRequest {
 
 
 export class UpdatedCouplesRequestDto extends PartialType(CreatedCouplesRequestDto) {}
-// export class UpdatedCouplesRequestDto  {
-//   @IsUUID()
-//   @IsOptional()
-//   @ApiProperty({ description: 'partner_1_id', example: '026e2174-aff3-4461-9f43-0e16c9a88f17' })
-//   partner_1_id?: string;
-
-//   @IsUUID()
-//   @IsOptional()
-//   @ApiProperty({ description: 'partner_2_id', example: '026e2174-aff3-4461-9f43-0e16c9a88f17' })
-//   partner_2_id?: string;
-
-//   @IsOptional()
-//   @IsIn(['SINGLE', 'UNMARRIED', 'MARRIED', 'DIVORCED', 'WIDOWED'], 
-//     { message: 'SINGLE, UNMARRIED, MARRIED, DIVORCED, WIDOWED'})
-//   @ApiPropertyOptional({
-//     enum: ['SINGLE', 'UNMARRIED', 'MARRIED', 'DIVORCED', 'WIDOWED'],
-//   })
-//   marriage_status?: EMarriageStatus;
-
-//   @IsOptional()
-//   @Type(() => Date)
-//   @ApiProperty({ description: 'marriage_date', example: "2026-08-09 20:00:05.461+07" })
-//   marriage_date?: Date;
-
-//   @IsOptional()
-//   @Type(() => Date)
-//   divorce_date?: Date;
-// }
 
 export class CouplesPaginationDTO extends PaginationQueryDto implements ICouplesPaginationDTO{
   @IsOptional()

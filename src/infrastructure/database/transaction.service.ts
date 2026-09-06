@@ -8,11 +8,12 @@ export class BaseTransactionService{
     constructor(private readonly sequelize: Sequelize){}
 
     async runInTransaction<T>(fn: (transaction: Transaction) => Promise<T>): Promise<T> {
+        Logger.log('runInTransaction')
         return this.sequelize.transaction(async (t1) => {
             try {
                 return await fn(t1);
             } catch (error) {
-                this.logger.error('[base.transaction.service:14] error', error.message);
+                this.logger.error('[base.transaction.service:14] error');
                 throw error;
             };
         });
@@ -28,7 +29,7 @@ export class BaseTransactionService{
             await t2.commit();
             return result;
         } catch (error) {
-            this.logger.error('[base.transaction.service:26] message', error.message);
+            this.logger.error('[base.transaction.service:26] message');
             await t2.rollback();
             throw error;
         }

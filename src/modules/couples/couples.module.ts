@@ -13,6 +13,8 @@ import { FamilyMembersQueryBuilder } from '@modules/family-members/query/family-
 import { MarriageStatusStrategyFactory } from '@modules/couples/strategies/couplesStatusStrategy';
 import { CreateCoupleUseCase } from '@modules/couples/use-cases/create-couple.use-case';
 import { UpdateCoupleUseCase } from '@modules/couples/use-cases/update-couple.use-case';
+import { FamilyMemberService } from '@modules/family-members/services/family-members.service';
+import { BaseTransactionService } from '@/infrastructure/database/transaction.service';
 
 @Module({
   imports: [SequelizeModule.forFeature([CouplesModel, UserModel, FamilyMembersModel])],
@@ -21,9 +23,12 @@ import { UpdateCoupleUseCase } from '@modules/couples/use-cases/update-couple.us
     FamilyMembersQueryBuilder,
     CoupleService,
     CouplesRepository,
+    FamilyMembersRepository,
     CouplesQueryBuilder,
     MarriageStatusStrategyFactory,
+    BaseTransactionService,
     UserQueryBuilder,
+    // FamilyMemberService,
     CreateCoupleUseCase,
     UpdateCoupleUseCase
   ],

@@ -1,3 +1,5 @@
+import { EMarriageStatus } from '@/infrastructure/models/couples.model';
+import { EMemberRelationType } from '@/infrastructure/models/family-members.model';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { PaginationQueryDto } from '@shared/dto/common';
 import { IBaseSearchParams, ICreated, IUpdated } from '@shared/interface/common';
@@ -29,8 +31,43 @@ export class CreatedFamilyMembersRequestDto implements ICreatedFamilyMembersRequ
     example: '',
   })
   parent_couple_id!: string | null;
+
+
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: 'generation_order',
+    example: '',
+  })
+  generation_order!: number | null;
+
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: 'relation_type',
+    example: '',
+  })
+  relation_type!: EMemberRelationType;
+
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: 'child_order',
+    example: '',
+  })
+  child_order!: number;
 }
 
+export class AttachSpouseRequestDto {
+  @IsUUID() @IsNotEmpty()
+  @ApiProperty({ description: 'user_id của người dâu/rể mới' })
+  user_id!: string;
+
+  @IsUUID() @IsNotEmpty()
+  @ApiProperty({ description: 'id của family_member đã có trong cây mà người này kết hôn cùng' })
+  married_to_member_id!: string;
+
+  @IsOptional()
+  @ApiPropertyOptional({ enum: EMarriageStatus })
+  marriage_status?: EMarriageStatus;
+}
 
 export class UpdatedFamilyMembersRequestDto extends PartialType(CreatedFamilyMembersRequestDto) {}
 

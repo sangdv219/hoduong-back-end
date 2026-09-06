@@ -11,7 +11,7 @@ import { BaseTransactionService } from '@infrastructure/database/transaction.ser
 import { UserRepository } from '@modules/users/repository/user.admin.repository';
 import { CouplesRepository } from '@modules/couples/repository/couples.repository';
 import { FAMILY_MEMBERS_ERROR } from '@modules/family-members/constants/family-members.constant';
-import { IFamilyMembersPaginationDTO, CreatedFamilyMembersRequestDto, UpdatedFamilyMembersRequestDto, FamilyMembersAsTreeDTO } from '@modules/family-members/dto/family-members.request.dto';
+import { IFamilyMembersPaginationDTO, CreatedFamilyMembersRequestDto, UpdatedFamilyMembersRequestDto, FamilyMembersAsTreeDTO, AttachSpouseRequestDto } from '@modules/family-members/dto/family-members.request.dto';
 import { mapEntityToVModel } from '@modules/family-members/helpers/node.mapper';
 import { FamilyMembersRepository } from '@/modules/family-members/repository/family-members.repository';
 import {
@@ -22,7 +22,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Op, QueryTypes, Sequelize, Transaction } from 'sequelize';
-import { FamilyMembersModel, IFamilyMembers } from '@infrastructure/models/family-members.model';
+import { EMemberRelationType, FamilyMembersModel, IFamilyMembers } from '@infrastructure/models/family-members.model';
 import { UserModel } from '@infrastructure/models/user.model';
 import { BaseService } from '@core/services/base.service';
 import { FamilyTreeCoupleNode, FamilyTreeNode, GetAllFamilyMembersResponseDto, GetByIdFamilyMembersResponseDto } from '@modules/family-members/dto/family-members.response.dto';
@@ -204,6 +204,7 @@ GetAllFamilyMembersResponseDto
         user_id: user_id,
         parent_couple_id: parent_couple_id || null,
         generation_order: generation_order,
+        relation_type: dto.relation_type,
         child_order: child_order
       }
 
@@ -211,118 +212,202 @@ GetAllFamilyMembersResponseDto
     });
   }
 
-  // async updateFamilyMembers(id: string, dto: UpdatedFamilyMembersRequestDto){
-  //   const {parent_couple_id} = dto;
-
-  //   if(parent_couple_id){
-  //     const coupleEntity = await this.coupleRepository.findByPk(
-  //       parent_couple_id, 
-  //       [], 
-  //       false, 
-  //       {
-  //         include: [
-  //           {
-  //             model: FamilyMembersModel,
-  //             as:'partner_1',
-  //             include: [
-  //               {
-  //                 model: UserModel,
-  //                 as:'user',
-  //                 attributes: ['fullname', 'id'],
-  //               },
-  //             ]
-  //           },
-  //           {
-  //             model: FamilyMembersModel,
-  //             as:'partner_2',
-  //             include: [
-  //               {
-  //                 model: UserModel,
-  //                 as:'user',
-  //                 attributes: ['fullname', 'id'],
-  //               },
-  //             ]
-  //           },
-  //         ]
-  //     });
-  //     if (!coupleEntity) {
-  //       throw new NotFoundException(FAMILY_MEMBERS_ERROR.PARENT_NODE_NOT_FOUND);
-  //     }
-      
-  //     const couple = coupleEntity.toJSON();
-  //     const partner_1_id = couple.partner_1?.id;
-  //     const partner_2_id = couple.partner_2?.id;
-
-  //     if (partner_1_id === id || partner_2_id === id) {
-  //       throw new ConflictException('Không thể gán bản thân làm con của chính mình');
-  //     }
-
-  //   }
-    
-  //   return super.update(id, dto)
-  // }
-
-  async updateFamilyMembers(id: string, dto: UpdatedFamilyMembersRequestDto) {
-    if (!('parent_couple_id' in dto)) {
-      return; // field không được truyền -> không đụng vào quan hệ cha mẹ
-    }
-    const { parent_couple_id } = dto; // có thể là string hoặc null
+  async attachSpouse(dto: AttachSpouseRequestDto) {
+    this.cleanCacheRedis();
   
     return this.baseTransactionService.runInTransaction(async (transaction) => {
+      const { user_id, married_to_member_id, marriage_status } = dto;
+  
+      const user = await this.userRepository.findByPk(user_id, [], false, { transaction });
+      if (!user) throw new NotFoundException(FAMILY_MEMBERS_ERROR.USER_NOT_FOUND);
+  
+      const existing = await this.repository.findByUserId(user_id, transaction);
+      if (existing) throw new ConflictException(FAMILY_MEMBERS_ERROR.USER_ALREADY_HAS_NODE);
+  
+      const spouseNode = await this.repository.findByPk(married_to_member_id, [], false, { transaction });
+      if (!spouseNode) throw new NotFoundException(FAMILY_MEMBERS_ERROR.PARENT_NODE_NOT_FOUND);
+  
+      // dâu/rể luôn cùng generation_order với người họ kết hôn cùng
+      const newMember = await super.create({
+        user_id,
+        parent_couple_id: null,
+        generation_order: spouseNode.generation_order,
+        relation_type: EMemberRelationType.MARRIED_IN,
+        child_order: 1,
+      }, transaction);
+  
+      const coupleOrder = await this.coupleRepository.getNextCoupleOrder(married_to_member_id, transaction);
+  
+      const couple = await this.coupleRepository.create({
+        partner_1_id: married_to_member_id,
+        partner_2_id: user_id,
+        couple_order: coupleOrder,
+        marriage_status: marriage_status ?? 'MARRIED',
+      }, {transaction});
+  
+      return { member: newMember, couple };
+    });
+  }
+
+  // async updateFamilyMembers(id: string, dto: UpdatedFamilyMembersRequestDto) {
+  //   if (!('parent_couple_id' in dto)) {
+  //     return; // field không được truyền -> không đụng vào quan hệ cha mẹ
+  //   }
+  //   const { parent_couple_id } = dto; // có thể là string hoặc null
+  
+  //   return this.baseTransactionService.runInTransaction(async (transaction) => {
+  //     const entity = await this.repository.findByPk(id, [], false, { transaction });
+  //     if (!entity) throw new NotFoundException(FAMILY_MEMBERS_ERROR.NODE_NOT_FOUND);
+  
+  //     let newGenerationOrder: number;
+  //     let newChildOrder: number;
+  
+  //     if (parent_couple_id) {
+  //        // ---- GÁN VÀO COUPLE CHA MẸ MỚI ----
+  //        const coupleEntity = await this.coupleRepository.findByPk(parent_couple_id, [], false, {
+  //         transaction,
+  //         include: [{ model: FamilyMembersModel, as: 'partner_1' }],
+  //       });
+  //       if (!coupleEntity) throw new NotFoundException(FAMILY_MEMBERS_ERROR.PARENT_NODE_NOT_FOUND);
+  //       const couple = coupleEntity.toJSON();
+  
+  //       if (couple.partner_1.id === id || couple.partner_2_id === id) {
+  //         throw new ConflictException('Không thể gán bản thân làm con của chính mình');
+  //       }
+  
+  //       const descendantIds = await this.repository.getDescendantIds(id, transaction);
+  //       if (descendantIds.includes(couple.partner_1.id) || descendantIds.includes(couple.partner_2_id)) {
+  //         throw new ConflictException('Không thể gán một hậu duệ làm cha/mẹ của node này (tạo vòng lặp)');
+  //       }
+  
+  //       newGenerationOrder = couple.partner_1.generation_order + 1;
+  //       newChildOrder = await this.generateNextChildOrder(parent_couple_id, transaction);
+  //     } else {
+  //       console.log('---cuto---')
+  //       // ---- TÁCH RA LÀM CỤ TỔ ----
+  
+  //       // (Tuỳ chọn) chỉ cho phép 1 root trong hệ thống
+  //       // const existingRoot = await this.repository.findOneByField('parent_couple_id', null, ['id']);
+  //       // if (existingRoot && existingRoot.id !== id) {
+  //       //   throw new ConflictException('Hệ thống đã tồn tại một cụ tổ khác');
+  //       // }
+  
+  //       newGenerationOrder = 1;
+  //       newChildOrder = 1;
+  //     }
+  //     const delta = newGenerationOrder - entity.generation_order;
+  
+  //     const updated = await this.repository.update(id, {
+  //       parent_couple_id,          // null hoặc uuid
+  //       generation_order: newGenerationOrder,
+  //       child_order: newChildOrder,
+  //     }, { transaction });  
+  
+  //     if (delta !== 0) {
+  //       const descendantIds = await this.repository.getDescendantIds(id, transaction);
+  //       if (descendantIds.length > 0) {
+  //         await this.repository.bulkShiftGenerationOrder(descendantIds, delta, transaction);
+  //       }
+  //     }   
+  //     return updated; 
+  //   });
+  // }
+
+  async updateFamilyMembers(id: string, dto: UpdatedFamilyMembersRequestDto, transaction?: Transaction) {
+    if (!('parent_couple_id' in dto)) {
+      return; 
+    }
+    const { parent_couple_id } = dto; 
+  
+    // return this.baseTransactionService.runInTransaction(async (transaction) => {
       const entity = await this.repository.findByPk(id, [], false, { transaction });
       if (!entity) throw new NotFoundException(FAMILY_MEMBERS_ERROR.NODE_NOT_FOUND);
   
-      let newGenerationOrder: number;
-      let newChildOrder: number;
+      let newGenerationOrder: number = entity.generation_order;
+      let newChildOrder: number = entity.child_order;
   
-      if (parent_couple_id) {
-         // ---- GÁN VÀO COUPLE CHA MẸ MỚI ----
-         const coupleEntity = await this.coupleRepository.findByPk(parent_couple_id, [], false, {
-          transaction,
-          include: [{ model: FamilyMembersModel, as: 'partner_1' }],
-        });
-        if (!coupleEntity) throw new NotFoundException(FAMILY_MEMBERS_ERROR.PARENT_NODE_NOT_FOUND);
-        const couple = coupleEntity.toJSON();
-  
-        if (couple.partner_1.id === id || couple.partner_2_id === id) {
-          throw new ConflictException('Không thể gán bản thân làm con của chính mình');
+      // 1. TÍNH TOÁN THẾ HỆ CHO THÀNH VIÊN TRỰC HỆ (BLOOD)
+      if (entity.relation_type === EMemberRelationType.BLOOD || !entity.relation_type) {
+        if (parent_couple_id) {
+          const coupleEntity = await this.coupleRepository.findByPk(parent_couple_id, [], false, {
+            transaction,
+            include: [{ model: FamilyMembersModel, as: 'partner_1' }],
+          });
+          if (!coupleEntity) throw new NotFoundException(FAMILY_MEMBERS_ERROR.PARENT_NODE_NOT_FOUND);
+          
+          const couple = coupleEntity.toJSON();
+          if (couple.partner_1.id === id || couple.partner_2_id === id) {
+            throw new ConflictException('Không thể gán bản thân làm con của chính mình');
+          }
+    
+          const descendantIds = await this.repository.getDescendantIds(id, transaction);
+          if (descendantIds.includes(couple.partner_1.id) || descendantIds.includes(couple.partner_2_id)) {
+            throw new ConflictException('Không thể gán một hậu duệ làm cha/mẹ của node này (tạo vòng lặp)');
+          }
+    
+          newGenerationOrder = couple.partner_1.generation_order + 1;
+          newChildOrder = await this.generateNextChildOrder(parent_couple_id, transaction);
+        } else {
+          newGenerationOrder = 1;
+          newChildOrder = 1;
         }
-  
-        const descendantIds = await this.repository.getDescendantIds(id, transaction);
-        if (descendantIds.includes(couple.partner_1.id) || descendantIds.includes(couple.partner_2_id)) {
-          throw new ConflictException('Không thể gán một hậu duệ làm cha/mẹ của node này (tạo vòng lặp)');
+      } 
+      // 2. ĐẢM BẢO THÀNH VIÊN MARRIED_IN ĐỒNG BỘ VỚI PARTNER
+      else if (entity.relation_type === EMemberRelationType.MARRIED_IN) {
+        // Lấy thông tin partner huyết thống để đồng bộ generation
+        const coupleInfo = await this.coupleRepository.findByPartnerId(id, transaction);
+        
+        if (coupleInfo) {
+            const partnerId = coupleInfo.partner_1_id === id ? coupleInfo.partner_2_id : coupleInfo.partner_1_id;
+            const partner = await this.repository.findByPk(partnerId, [], false, { transaction });
+            if (partner) newGenerationOrder = partner.generation_order;
         }
-  
-        newGenerationOrder = couple.partner_1.generation_order + 1;
-        newChildOrder = await this.generateNextChildOrder(parent_couple_id, transaction);
-      } else {
-        // ---- TÁCH RA LÀM CỤ TỔ ----
-  
-        // (Tuỳ chọn) chỉ cho phép 1 root trong hệ thống
-        const existingRoot = await this.repository.findOneByField('parent_couple_id', null, ['id']);
-        if (existingRoot && existingRoot.id !== id) {
-          throw new ConflictException('Hệ thống đã tồn tại một cụ tổ khác');
-        }
-  
-        newGenerationOrder = 1;
-        newChildOrder = 1;
       }
+
       const delta = newGenerationOrder - entity.generation_order;
   
       const updated = await this.repository.update(id, {
-        parent_couple_id,          // null hoặc uuid
+        parent_couple_id,          
         generation_order: newGenerationOrder,
         child_order: newChildOrder,
       }, { transaction });  
   
+      // 3. XỬ LÝ DỊCH CHUYỂN HẬU DUỆ VÀ VỢ/CHỒNG LIÊN QUAN (DELTA !== 0)
       if (delta !== 0) {
         const descendantIds = await this.repository.getDescendantIds(id, transaction);
+        
+        // A. Dịch chuyển Hậu duệ
         if (descendantIds.length > 0) {
           await this.repository.bulkShiftGenerationOrder(descendantIds, delta, transaction);
         }
+
+        // B. Đồng bộ cho các thành viên MARRIED_IN (Vợ/chồng của Node hiện tại và Vợ/chồng của các hậu duệ)
+        const allAffectedBloodIds = [id, ...descendantIds];
+        
+        const couplesToSync = await this.coupleRepository.findAllByRaw({
+            where: {
+                [Op.or]: [
+                    { partner_1_id: { [Op.in]: allAffectedBloodIds } },
+                    { partner_2_id: { [Op.in]: allAffectedBloodIds } }
+                ]
+            },
+            transaction
+        });
+
+        if (couplesToSync && couplesToSync.length > 0) {
+            // Gom tất cả ID trong các cặp đôi bị ảnh hưởng
+            const allPartnerIds = couplesToSync.flatMap((c: any) => [c.partner_1_id, c.partner_2_id]);
+            
+            // Tìm những ID nằm trong couples nhưng KHÔNG thuộc luồng trực hệ bị ảnh hưởng -> chính là những người MARRIED_IN
+            const spouseIdsToShift:any[] = [...new Set(allPartnerIds)].filter((pId: any) => !allAffectedBloodIds.includes(pId));
+            Logger.log('spouseIdsToShift', spouseIdsToShift)
+            if (spouseIdsToShift.length > 0) {
+               await this.repository.bulkShiftGenerationOrder(spouseIdsToShift, delta, transaction);
+            }
+        }
       }   
       return updated; 
-    });
+    // });
   }
 
   async searchFamilyMembers(query: IFamilyMembersPaginationDTO): Promise<GetAllFamilyMembersResponseDto | any> {

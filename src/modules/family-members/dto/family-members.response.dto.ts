@@ -43,6 +43,9 @@ export class FamilyMembersBaseDto implements IFamilyMembers {
 
   @Expose()
   parent_couple_id!: string;
+  
+  @Expose()
+  relation_type!: string;
 
   @Expose()
   child_order!: number;
